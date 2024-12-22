@@ -2,3 +2,4 @@
 /Cargo.lock
 vendor/
 /.history
+.DS_Store

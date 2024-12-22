@@ -1,59 +1,51 @@
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, StdResult, to_json_binary, CosmosMsg};
+#[cfg(not(feature = "library"))]
+use cosmwasm_std::entry_point;
+use cosmwasm_std::{
+    to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo,
+    StdResult, WasmMsg,
+};
+use cw2::set_contract_version;
+use sg_std::StargazeMsgWrapper;
 use sg721_base::Sg721Contract;
-use sg_std::Response;
+
+pub type Response = cosmwasm_std::Response<StargazeMsgWrapper>;
+pub type SubMsg = cosmwasm_std::SubMsg<StargazeMsgWrapper>;
 
 use crate::error::ContractError;
-use crate::execute::{execute_set_pixel_color, execute_update_config};
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, Extension, UpdateConfigMsg};
-use crate::query::{query_config, query_tile_state};
-use crate::state::{Config, CONFIG};
+use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::state::{Config, CONFIG, Extension};
 
-pub struct TilesContract<'a> {
-    pub sg721_base: Sg721Contract<'a, Extension>,
-}
+// version info for migration info
+const CONTRACT_NAME: &str = "crates.io:tiles";
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-impl<'a> Default for TilesContract<'a> {
-    fn default() -> Self {
-        Self {
-            sg721_base: Sg721Contract::default(),
-        }
-    }
-}
-
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[entry_point]
 pub fn instantiate(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
-    // First instantiate base sg721 contract
-    let sg721_msg = msg.clone().into();
-    TilesContract::default().sg721_base.instantiate(deps.branch(), env.clone(), info.clone(), sg721_msg)?;
+    set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-    // Then initialize our extension
     let config = Config {
-        admin: deps.api.addr_validate(&msg.minter)?,
+        admin: info.sender.clone(),
         minter: deps.api.addr_validate(&msg.minter)?,
         collection_info: msg.collection_info,
         dev_address: deps.api.addr_validate(&msg.dev_address)?,
         dev_fee_percent: msg.dev_fee_percent,
         base_price: msg.base_price,
-        price_scaling: Some(msg.price_scaling),
+        price_scaling: msg.price_scaling,
     };
-
     CONFIG.save(deps.storage, &config)?;
 
     Ok(Response::new()
         .add_attribute("method", "instantiate")
-        .add_attribute("admin", config.admin)
-        .add_attribute("minter", msg.minter)
-        .add_attribute("dev_address", msg.dev_address)
-        .add_attribute("dev_fee_percent", msg.dev_fee_percent.to_string())
-        .add_attribute("base_price", msg.base_price.to_string()))
+        .add_attribute("admin", info.sender)
+        .add_attribute("minter", msg.minter))
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[entry_point]
 pub fn execute(
     deps: DepsMut,
     env: Env,
@@ -61,50 +53,31 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::SetPixelColor(msg) => execute_set_pixel_color(deps, env, info, msg),
-        ExecuteMsg::UpdateConfig {
-            dev_address,
-            dev_fee_percent,
-            base_price,
-            price_scaling,
-        } => execute_update_config(
-            deps,
-            env,
-            info,
-            UpdateConfigMsg {
-                dev_address,
-                dev_fee_percent,
-                base_price,
-                price_scaling,
-            },
-        ),
-        ExecuteMsg::Base(base_msg) => {
-            let res = TilesContract::default().sg721_base.execute(deps, env, info, base_msg)
-                .map_err(ContractError::Sg721Error)?;
-            
-            // Convert Stargaze response to standard response
-            let mut response = Response::new()
-                .add_attributes(res.attributes)
-                .add_events(res.events);
-            
-            // Convert messages
-            for msg in res.messages {
-                response = response.add_message(msg.msg);
+        ExecuteMsg::Sg721Base(msg) => {
+            let config = CONFIG.load(deps.storage)?;
+            if info.sender != config.minter {
+                return Err(ContractError::Unauthorized {});
             }
-            
-            Ok(response)
+            let msg = WasmMsg::Execute {
+                contract_addr: config.minter.to_string(),
+                msg: to_json_binary(&msg)?,
+                funds: vec![],
+            };
+            Ok(Response::new().add_message(msg))
         }
+        ExecuteMsg::SetPixelColor(msg) => crate::execute::execute_set_pixel_color(deps, env, info, msg),
+        ExecuteMsg::UpdateConfig(msg) => crate::execute::execute_update_config(deps, env, info, msg),
     }
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[entry_point]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
-        QueryMsg::TileState { token_id } => to_json_binary(&query_tile_state(deps, token_id)?),
-        QueryMsg::Base(base_msg) => {
-            TilesContract::default().sg721_base.query(deps, env, base_msg)
+        QueryMsg::Sg721Base(base_msg) => {
+            let contract: Sg721Contract<Extension> = Sg721Contract::default();
+            contract.query(deps, env, base_msg)
         }
+        QueryMsg::Config {} => to_json_binary(&CONFIG.load(deps.storage)?),
     }
 }
 
@@ -135,12 +108,12 @@ mod tests {
             dev_address: "dev".to_string(),
             dev_fee_percent: Decimal::percent(5),
             base_price: Uint128::new(100),
-            price_scaling: crate::state::PriceScaling {
+            price_scaling: Some(crate::state::PriceScaling {
                 hour_1_price: Uint128::new(100),
                 hour_12_price: Uint128::new(200),
                 hour_24_price: Uint128::new(300),
                 quadratic_base: Uint128::new(400),
-            },
+            }),
         };
         let info = mock_info("creator", &coins(1000, "earth"));
 

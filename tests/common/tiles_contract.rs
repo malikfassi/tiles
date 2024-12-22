@@ -1,85 +1,64 @@
 use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
-use cw_multi_test::{AppResponse, Executor};
+use cw_multi_test::Executor;
 use sg_multi_test::StargazeApp;
-use tiles::msg::Extension;
+use tiles::msg::{QueryMsg, ExecuteMsg, UpdateConfigMsg, SetPixelColorMsg};
+use tiles::state::{Config, PriceScaling};
 
-use crate::common::NATIVE_DENOM;
+use crate::common::vending_factory::VendingFactoryContract;
 
-pub struct TilesContract<'a> {
-    pub app: &'a mut StargazeApp,
-    pub contract_addr: String,
-    pub owner: String,
+pub struct TilesContract {
+    pub contract_addr: Addr,
+    pub minter_addr: Addr,
 }
 
-impl<'a> TilesContract<'a> {
-    pub fn new(app: &'a mut StargazeApp, owner: &str) -> Self {
+impl TilesContract {
+    pub fn new(
+        _app: &mut StargazeApp,
+        _sender: &Addr,
+        factory: &VendingFactoryContract,
+        collection_addr: Addr,
+    ) -> Self {
         Self {
-            app,
-            contract_addr: String::new(),
-            owner: owner.to_string(),
+            contract_addr: collection_addr,
+            minter_addr: factory.minter_addr.clone(),
         }
     }
 
-    pub fn mint(&mut self, token_id: &str) -> anyhow::Result<AppResponse> {
-        let msg = tiles::msg::ExecuteMsg::Base(sg721::ExecuteMsg::Mint {
-            token_id: token_id.to_string(),
-            owner: self.owner.clone(),
-            token_uri: None,
-            extension: Extension::default(),
-        });
-
-        self.app.execute_contract(
-            Addr::unchecked(&self.owner),
-            Addr::unchecked(&self.contract_addr),
-            &msg,
-            &[],
-        )
-    }
-
-    pub fn set_pixel_color(
-        &mut self,
-        token_id: &str,
-        pixels: Vec<tiles::msg::PixelUpdate>,
-    ) -> anyhow::Result<AppResponse> {
-        let msg = tiles::msg::ExecuteMsg::SetPixelColor(tiles::msg::SetPixelColorMsg {
-            updates: vec![tiles::msg::TileUpdate {
-                tile_id: token_id.to_string(),
-                current_metadata: tiles::state::TileMetadata {
-                    tile_id: token_id.to_string(),
-                    pixels: vec![],
-                },
-                updates: tiles::msg::TileUpdates { pixels },
-            }],
-            max_message_size: 128 * 1024,
-        });
-
-        self.app.execute_contract(
-            Addr::unchecked(&self.owner),
-            Addr::unchecked(&self.contract_addr),
-            &msg,
-            &[Coin::new(100_000_000, NATIVE_DENOM)],
-        )
+    pub fn query_config(&self, app: &StargazeApp) -> Result<Config, Box<dyn std::error::Error>> {
+        let msg = QueryMsg::Config {};
+        let res: Config = app.wrap().query_wasm_smart(self.contract_addr.clone(), &msg)?;
+        Ok(res)
     }
 
     pub fn update_config(
-        &mut self,
+        &self,
+        app: &mut StargazeApp,
+        sender: &Addr,
         dev_address: Option<String>,
         dev_fee_percent: Option<Decimal>,
         base_price: Option<Uint128>,
-        price_scaling: Option<tiles::state::PriceScaling>,
-    ) -> anyhow::Result<AppResponse> {
-        let msg = tiles::msg::ExecuteMsg::UpdateConfig {
+        price_scaling: Option<PriceScaling>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let msg = ExecuteMsg::UpdateConfig(UpdateConfigMsg {
             dev_address,
             dev_fee_percent,
             base_price,
             price_scaling,
-        };
+        });
 
-        self.app.execute_contract(
-            Addr::unchecked(&self.owner),
-            Addr::unchecked(&self.contract_addr),
-            &msg,
-            &[],
-        )
+        app.execute_contract(sender.clone(), self.contract_addr.clone(), &msg, &[])?;
+        Ok(())
+    }
+
+    pub fn set_pixel_color(
+        &self,
+        app: &mut StargazeApp,
+        sender: &Addr,
+        msg: SetPixelColorMsg,
+        funds: Vec<Coin>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let msg = ExecuteMsg::SetPixelColor(msg);
+        app.execute_contract(sender.clone(), self.contract_addr.clone(), &msg, &funds)?;
+        Ok(())
     }
 } 

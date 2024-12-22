@@ -1,63 +1,195 @@
-use tiles::msg::PixelUpdate;
-use crate::common::{mock_app, tiles_contract::TilesContract, vending_factory::VendingFactory};
+use cosmwasm_std::Coin;
+use tiles::msg::{SetPixelColorMsg, TileUpdate, TileUpdates, PixelUpdate};
+use tiles::state::{TileMetadata, PixelData};
 
-#[test]
-fn proper_initialization() {
-    let (mut app, tiles_code_id, minter_code_id, factory_code_id) = mock_app();
-    let mut factory = VendingFactory::new(&mut app, "owner");
-    factory.instantiate(factory_code_id, tiles_code_id).unwrap();
-
-    // Create minter
-    let res = factory.create_minter(tiles_code_id).unwrap();
-    let minter_addr = factory.parse_minter_response(&res).expect("Failed to parse minter address");
-    assert!(!minter_addr.is_empty());
-}
+use crate::common::fixtures::{setup_test, TestSetup};
 
 #[test]
 fn test_set_pixel_color() {
-    let (mut app, tiles_code_id, minter_code_id, factory_code_id) = mock_app();
-    let mut factory = VendingFactory::new(&mut app, "owner");
-    factory.instantiate(factory_code_id, tiles_code_id).unwrap();
+    let Ok(TestSetup {
+        mut app,
+        sender,
+        factory: _,
+        tiles,
+    }) = setup_test() else {
+        panic!("Failed to setup test");
+    };
 
-    // Create minter
-    let res = factory.create_minter(tiles_code_id).unwrap();
-    let minter_addr = factory.parse_minter_response(&res).expect("Failed to parse minter address");
+    // Create test data
+    let tile_id = "1".to_string();
+    let current_metadata = TileMetadata {
+        tile_id: tile_id.clone(),
+        pixels: vec![PixelData::new_at_mint(0, sender.clone(), app.block_info().time.seconds())],
+    };
 
-    // Create tiles contract
-    let mut contract = TilesContract::new(&mut app, "owner");
-    contract.contract_addr = minter_addr;
+    // Update pixel color
+    let msg = SetPixelColorMsg {
+        updates: vec![TileUpdate {
+            tile_id: tile_id.clone(),
+            current_metadata: current_metadata.clone(),
+            updates: TileUpdates {
+                pixels: vec![PixelUpdate {
+                    id: 0,
+                    color: "#FF0000".to_string(),
+                    expiration: app.block_info().time.seconds() + 3600,
+                }],
+            },
+        }],
+        max_message_size: 1024,
+    };
 
-    // Mint a token
-    contract.mint("1").unwrap();
-
-    // Set pixel color
-    let pixels = vec![PixelUpdate {
-        id: 0,
-        color: "#FF0000".to_string(),
-        expiration: 1000,
-    }];
-    contract.set_pixel_color("1", pixels).unwrap();
+    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![Coin::new(100_000, "ustars")]);
+    assert!(res.is_ok());
 }
 
 #[test]
-fn test_set_pixel_color_unauthorized() {
-    let (mut app, tiles_code_id, minter_code_id, factory_code_id) = mock_app();
-    let mut factory = VendingFactory::new(&mut app, "owner");
-    factory.instantiate(factory_code_id, tiles_code_id).unwrap();
+fn test_set_pixel_color_invalid_color() {
+    let Ok(TestSetup {
+        mut app,
+        sender,
+        factory: _,
+        tiles,
+    }) = setup_test() else {
+        panic!("Failed to setup test");
+    };
 
-    // Create minter
-    let res = factory.create_minter(tiles_code_id).unwrap();
-    let minter_addr = factory.parse_minter_response(&res).expect("Failed to parse minter address");
+    // Create test data
+    let tile_id = "1".to_string();
+    let current_metadata = TileMetadata {
+        tile_id: tile_id.clone(),
+        pixels: vec![PixelData::new_at_mint(0, sender.clone(), app.block_info().time.seconds())],
+    };
 
-    // Create tiles contract
-    let mut contract = TilesContract::new(&mut app, "owner");
-    contract.contract_addr = minter_addr;
+    // Try to update with invalid color
+    let msg = SetPixelColorMsg {
+        updates: vec![TileUpdate {
+            tile_id: tile_id.clone(),
+            current_metadata: current_metadata.clone(),
+            updates: TileUpdates {
+                pixels: vec![PixelUpdate {
+                    id: 0,
+                    color: "invalid".to_string(),
+                    expiration: app.block_info().time.seconds() + 3600,
+                }],
+            },
+        }],
+        max_message_size: 1024,
+    };
 
-    // Try to set pixel color without minting
-    let pixels = vec![PixelUpdate {
-        id: 0,
-        color: "#FF0000".to_string(),
-        expiration: 1000,
-    }];
-    contract.set_pixel_color("1", pixels).unwrap_err();
+    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![Coin::new(100_000, "ustars")]);
+    assert!(res.is_err());
+}
+
+#[test]
+fn test_set_pixel_color_invalid_expiration() {
+    let Ok(TestSetup {
+        mut app,
+        sender,
+        factory: _,
+        tiles,
+    }) = setup_test() else {
+        panic!("Failed to setup test");
+    };
+
+    // Create test data
+    let tile_id = "1".to_string();
+    let current_metadata = TileMetadata {
+        tile_id: tile_id.clone(),
+        pixels: vec![PixelData::new_at_mint(0, sender.clone(), app.block_info().time.seconds())],
+    };
+
+    // Try to update with invalid expiration
+    let msg = SetPixelColorMsg {
+        updates: vec![TileUpdate {
+            tile_id: tile_id.clone(),
+            current_metadata: current_metadata.clone(),
+            updates: TileUpdates {
+                pixels: vec![PixelUpdate {
+                    id: 0,
+                    color: "#FF0000".to_string(),
+                    expiration: app.block_info().time.seconds() + 31_536_001, // > 1 year
+                }],
+            },
+        }],
+        max_message_size: 1024,
+    };
+
+    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![Coin::new(100_000, "ustars")]);
+    assert!(res.is_err());
+}
+
+#[test]
+fn test_set_pixel_color_insufficient_funds() {
+    let Ok(TestSetup {
+        mut app,
+        sender,
+        factory: _,
+        tiles,
+    }) = setup_test() else {
+        panic!("Failed to setup test");
+    };
+
+    // Create test data
+    let tile_id = "1".to_string();
+    let current_metadata = TileMetadata {
+        tile_id: tile_id.clone(),
+        pixels: vec![PixelData::new_at_mint(0, sender.clone(), app.block_info().time.seconds())],
+    };
+
+    // Try to update with insufficient funds
+    let msg = SetPixelColorMsg {
+        updates: vec![TileUpdate {
+            tile_id: tile_id.clone(),
+            current_metadata: current_metadata.clone(),
+            updates: TileUpdates {
+                pixels: vec![PixelUpdate {
+                    id: 0,
+                    color: "#FF0000".to_string(),
+                    expiration: app.block_info().time.seconds() + 3600,
+                }],
+            },
+        }],
+        max_message_size: 1024,
+    };
+
+    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![Coin::new(1, "ustars")]);
+    assert!(res.is_err());
+}
+
+#[test]
+fn test_set_pixel_color_message_too_large() {
+    let Ok(TestSetup {
+        mut app,
+        sender,
+        factory: _,
+        tiles,
+    }) = setup_test() else {
+        panic!("Failed to setup test");
+    };
+
+    // Create test data
+    let tile_id = "1".to_string();
+    let current_metadata = TileMetadata {
+        tile_id: tile_id.clone(),
+        pixels: vec![PixelData::new_at_mint(0, sender.clone(), app.block_info().time.seconds())],
+    };
+
+    // Try to update with message size too large
+    let msg = SetPixelColorMsg {
+        updates: vec![TileUpdate {
+            tile_id: tile_id.clone(),
+            current_metadata: current_metadata.clone(),
+            updates: TileUpdates {
+                pixels: vec![PixelUpdate {
+                    id: 0,
+                    color: "#FF0000".to_string(),
+                    expiration: app.block_info().time.seconds() + 3600,
+                }],
+            },
+        }],
+        max_message_size: 128 * 1024 + 1, // > 128KB
+    };
+
+    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![Coin::new(100_000, "ustars")]);
+    assert!(res.is_err());
 } 

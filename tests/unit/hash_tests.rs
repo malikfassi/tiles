@@ -1,34 +1,81 @@
-use cosmwasm_std::testing::mock_dependencies;
-use tiles::state::{TileState, TileMetadata};
+use cosmwasm_std::Addr;
+use tiles::state::{Extension, TileMetadata, PixelData};
 
 #[test]
 fn test_hash_generation() {
-    let _deps = mock_dependencies();
+    let tile_id = "1";
+    let pixels = vec![
+        PixelData {
+            id: 0,
+            color: "#FF0000".to_string(),
+            expiration: 1000,
+            last_updated_by: Addr::unchecked("owner"),
+            last_updated_at: 500,
+        },
+        PixelData {
+            id: 1,
+            color: "#00FF00".to_string(),
+            expiration: 2000,
+            last_updated_by: Addr::unchecked("owner"),
+            last_updated_at: 500,
+        },
+    ];
 
-    let tile_id = "1".to_string();
-    let pixels = vec![];
-
-    let hash = TileState::generate_hash(&tile_id, &pixels);
+    let hash = Extension::generate_hash(tile_id, &pixels);
     assert!(!hash.is_empty());
 }
 
 #[test]
-fn test_verify_metadata() {
-    let _deps = mock_dependencies();
+fn test_hash_verification() {
+    let tile_id = "1";
+    let pixels = vec![
+        PixelData {
+            id: 0,
+            color: "#FF0000".to_string(),
+            expiration: 1000,
+            last_updated_by: Addr::unchecked("owner"),
+            last_updated_at: 500,
+        },
+    ];
 
-    let tile_id = "1".to_string();
-    let pixels = vec![];
-
-    let hash = TileState::generate_hash(&tile_id, &pixels);
-    let state = TileState {
+    let hash = Extension::generate_hash(tile_id, &pixels);
+    let extension = Extension {
         tile_hash: hash,
-        pixels: pixels.clone(),
     };
 
     let metadata = TileMetadata {
-        tile_id: tile_id.clone(),
+        tile_id: tile_id.to_string(),
         pixels: pixels.clone(),
     };
 
-    assert!(state.verify_metadata(&tile_id, &metadata).is_ok());
+    assert!(extension.verify_metadata(tile_id, &metadata).is_ok());
+}
+
+#[test]
+fn test_hash_mismatch() {
+    let tile_id = "1";
+    let pixels = vec![
+        PixelData {
+            id: 0,
+            color: "#FF0000".to_string(),
+            expiration: 1000,
+            last_updated_by: Addr::unchecked("owner"),
+            last_updated_at: 500,
+        },
+    ];
+
+    let hash = Extension::generate_hash(tile_id, &pixels);
+    let extension = Extension {
+        tile_hash: hash,
+    };
+
+    let mut modified_pixels = pixels.clone();
+    modified_pixels[0].color = "#00FF00".to_string();
+
+    let metadata = TileMetadata {
+        tile_id: tile_id.to_string(),
+        pixels: modified_pixels,
+    };
+
+    assert!(extension.verify_metadata(tile_id, &metadata).is_err());
 } 

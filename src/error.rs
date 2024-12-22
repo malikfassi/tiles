@@ -1,14 +1,13 @@
 use cosmwasm_std::StdError;
-use sg721_base::ContractError as Sg721ContractError;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum ContractError {
     #[error("{0}")]
     Std(#[from] StdError),
 
-    #[error("Unauthorized")]
-    Unauthorized {},
+    #[error("{0}")]
+    Base(String),
 
     #[error("Hash mismatch - state has been modified")]
     HashMismatch {},
@@ -25,7 +24,13 @@ pub enum ContractError {
     #[error("Message too large")]
     MessageTooLarge {},
 
-    #[error("Sg721 error: {0}")]
-    Sg721Error(#[from] Sg721ContractError),
+    #[error("Unauthorized")]
+    Unauthorized {},
+}
+
+impl From<sg721_base::ContractError> for ContractError {
+    fn from(err: sg721_base::ContractError) -> Self {
+        ContractError::Base(err.to_string())
+    }
 }
   

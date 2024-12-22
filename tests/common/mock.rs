@@ -1,34 +1,26 @@
-use cosmwasm_std::testing::mock_dependencies;
-use cw_multi_test::{App, AppBuilder, Contract, ContractWrapper};
+use cosmwasm_std::{Addr, Coin, Timestamp};
+use sg_multi_test::StargazeApp;
 
-pub fn mock_app() -> App {
-    AppBuilder::new().build(|_router, _, _storage| {})
-}
+use crate::common::NATIVE_DENOM;
 
-pub fn contract_vending_factory() -> Box<dyn Contract> {
-    let contract = ContractWrapper::new(
-        vending_factory::contract::execute,
-        vending_factory::contract::instantiate,
-        vending_factory::contract::query,
-    )
-    .with_sudo(vending_factory::contract::sudo);
-    Box::new(contract)
-}
+pub fn mock_app() -> (StargazeApp, Addr) {
+    let mut app = StargazeApp::default();
+    let sender = Addr::unchecked("owner");
 
-pub fn contract_vending_minter() -> Box<dyn Contract> {
-    let contract = ContractWrapper::new(
-        vending_minter::contract::execute,
-        vending_minter::contract::instantiate,
-        vending_minter::contract::query,
-    );
-    Box::new(contract)
-}
+    // Set block time (2023-01-01)
+    let mut block = app.block_info();
+    block.time = Timestamp::from_seconds(1672531200);
+    app.set_block(block);
 
-pub fn contract_sg721() -> Box<dyn Contract> {
-    let contract = ContractWrapper::new(
-        sg721_base::entry::execute,
-        sg721_base::entry::instantiate,
-        sg721_base::entry::query,
-    );
-    Box::new(contract)
+    // Fund sender
+    app.init_modules(|router, _, storage| {
+        router.bank.init_balance(
+            storage,
+            &sender,
+            vec![Coin::new(1_000_000_000, NATIVE_DENOM)],
+        )
+    })
+    .unwrap();
+
+    (app, sender)
 } 

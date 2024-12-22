@@ -1,85 +1,95 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{DepsMut, Empty, Env, MessageInfo, Response};
+use sg721::ExecuteMsg as Sg721ExecuteMsg;
+use sg_std::StargazeMsgWrapper;
+use sg721_base::Sg721Contract;
 
 use crate::error::ContractError;
-use crate::msg::{SetPixelColorMsg, UpdateConfigMsg};
-use crate::state::{CONFIG, TileState, TILE_STATES};
+use crate::msg::{ExecuteMsg, SetPixelColorMsg, UpdateConfigMsg};
+use crate::state::{CONFIG, PIXELS_PER_TILE, PixelData, Extension};
+
+pub fn execute(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: ExecuteMsg,
+) -> Result<Response<StargazeMsgWrapper>, ContractError> {
+    match msg {
+        ExecuteMsg::Sg721Base(base_msg) => {
+            let config = CONFIG.load(deps.storage)?;
+            if info.sender != config.minter {
+                return Err(ContractError::Unauthorized {});
+            }
+            match base_msg {
+                Sg721ExecuteMsg::Mint { token_id, owner, token_uri, extension: _ } => {
+                    let owner_addr = deps.api.addr_validate(&owner)?;
+                    let creation_time = env.block.time.seconds();
+                    
+                    // Create default pixels (all white, expired)
+                    let pixels: Vec<PixelData> = (0..PIXELS_PER_TILE)
+                        .map(|id| PixelData::new_at_mint(id, owner_addr.clone(), creation_time))
+                        .collect();
+
+                    // Initialize extension with default pixels
+                    let extension = Extension {
+                        tile_hash: Extension::generate_hash(&token_id, &pixels),
+                    };
+
+                    // Forward mint message to sg721 with our extension
+                    let mint_msg = Sg721ExecuteMsg::Mint {
+                        token_id,
+                        owner,
+                        token_uri,
+                        extension,
+                    };
+                    let contract: Sg721Contract<Extension> = Sg721Contract::default();
+                    Ok(contract.execute(deps, env, info, mint_msg)?)
+                }
+                _ => {
+                    let contract: Sg721Contract<Extension> = Sg721Contract::default();
+                    Ok(contract.execute(deps, env, info, base_msg)?)
+                }
+            }
+        },
+        ExecuteMsg::SetPixelColor(msg) => execute_set_pixel_color(deps, env, info, msg),
+        ExecuteMsg::UpdateConfig(msg) => execute_update_config(deps, env, info, msg),
+    }
+}
 
 pub fn execute_set_pixel_color(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     msg: SetPixelColorMsg,
-) -> Result<Response, ContractError> {
-    // Load config
-    let _config = CONFIG.load(deps.storage)?;
-
-    // Validate message size
-    if msg.max_message_size > crate::state::MAX_MESSAGE_SIZE {
+) -> Result<Response<StargazeMsgWrapper>, ContractError> {
+    // Verify message size
+    if msg.max_message_size > 128 * 1024 {
         return Err(ContractError::MessageTooLarge {});
     }
 
-    let num_updates = msg.updates.len();
+    let contract: Sg721Contract<Extension> = Sg721Contract::default();
 
     // Process each tile update
     for update in msg.updates {
-        // Load tile state
-        let mut tile_state = TILE_STATES
-            .load(deps.storage, &update.tile_id)
-            .unwrap_or_default();
-
-        // Convert metadata to state format
-        let mut pixels = Vec::new();
-        for p in update.current_metadata.pixels {
-            pixels.push(crate::state::PixelData {
-                id: p.id,
-                color: p.color,
-                expiration: p.expiration,
-                last_updated_by: p.last_updated_by,
-            });
-        }
-        let metadata = crate::state::TileMetadata {
-            tile_id: update.current_metadata.tile_id,
-            pixels,
-        };
+        // Load token info to get extension
+        let mut token = contract.parent.tokens.load(deps.storage, &update.tile_id)?;
 
         // Verify current state
-        tile_state.verify_metadata(&update.tile_id, &metadata)?;
+        token.extension.verify_metadata(&update.tile_id, &update.current_metadata)?;
 
         // Apply updates and generate new hash
-        for pixel_update in update.updates.pixels {
-            // Find pixel index or create new pixel
-            let pixel_idx = tile_state.pixels
-                .iter()
-                .position(|p| p.id == pixel_update.id);
+        let new_hash = token.extension.apply_updates(
+            &update.current_metadata,
+            &update.updates,
+            &info.sender,
+            env.block.time.seconds(),
+        )?;
 
-            match pixel_idx {
-                Some(idx) => {
-                    // Update existing pixel
-                    let pixel = &mut tile_state.pixels[idx];
-                    pixel.color = pixel_update.color;
-                    pixel.expiration = pixel_update.expiration;
-                    pixel.last_updated_by = info.sender.to_string();
-                }
-                None => {
-                    // Create new pixel
-                    tile_state.pixels.push(crate::state::PixelData {
-                        id: pixel_update.id,
-                        color: pixel_update.color,
-                        expiration: pixel_update.expiration,
-                        last_updated_by: info.sender.to_string(),
-                    });
-                }
-            }
-        }
-
-        // Save new state
-        tile_state.tile_hash = TileState::generate_hash(&update.tile_id, &tile_state.pixels);
-        TILE_STATES.save(deps.storage, &update.tile_id, &tile_state)?;
+        // Save new extension
+        token.extension.tile_hash = new_hash;
+        contract.parent.tokens.save(deps.storage, &update.tile_id, &token)?;
     }
 
-    Ok(Response::new()
-        .add_attribute("action", "set_pixel_color")
-        .add_attribute("num_updates", num_updates.to_string()))
+    Ok(Response::new().add_attribute("action", "set_pixel_color"))
 }
 
 pub fn execute_update_config(
@@ -87,7 +97,7 @@ pub fn execute_update_config(
     _env: Env,
     info: MessageInfo,
     msg: UpdateConfigMsg,
-) -> Result<Response, ContractError> {
+) -> Result<Response<StargazeMsgWrapper>, ContractError> {
     let mut config = CONFIG.load(deps.storage)?;
 
     // Only admin can update config
@@ -111,9 +121,5 @@ pub fn execute_update_config(
 
     CONFIG.save(deps.storage, &config)?;
 
-    Ok(Response::new()
-        .add_attribute("method", "update_config")
-        .add_attribute("dev_address", config.dev_address)
-        .add_attribute("dev_fee_percent", config.dev_fee_percent.to_string())
-        .add_attribute("base_price", config.base_price.to_string()))
+    Ok(Response::new().add_attribute("action", "update_config"))
 } 
