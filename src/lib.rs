@@ -5,7 +5,8 @@ pub mod execute;
 pub mod msg;
 pub mod query;
 pub mod state;
-pub mod validation;
+pub mod types;
+pub mod utils;
 
 pub use crate::error::ContractError;
 

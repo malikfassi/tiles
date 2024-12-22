@@ -1,7 +1,8 @@
 use cosmwasm_std::{Addr, Coin, Timestamp};
 use sg_multi_test::StargazeApp;
 
-use crate::common::NATIVE_DENOM;
+use crate::defaults::config::DEFAULT_INITIAL_BALANCE;
+use crate::defaults::constants::NATIVE_DENOM;
 
 pub fn mock_app() -> (StargazeApp, Addr) {
     let mut app = StargazeApp::default();
@@ -17,7 +18,7 @@ pub fn mock_app() -> (StargazeApp, Addr) {
         router.bank.init_balance(
             storage,
             &sender,
-            vec![Coin::new(1_000_000_000, NATIVE_DENOM)],
+            vec![Coin::new(DEFAULT_INITIAL_BALANCE, NATIVE_DENOM)],
         )
     })
     .expect("Failed to init modules");

@@ -1,10 +1,15 @@
 use cosmwasm_std::{Addr, Coin};
-use cw_multi_test::{ContractWrapper, Executor};
-use sg_multi_test::StargazeApp;
+use cw_multi_test::{App, ContractWrapper, Executor};
+use sg_std::StargazeMsgWrapper;
+use vending_factory::msg::{CreateMinterMsg, InstantiateMsg};
 use std::fmt;
-use vending_factory::msg::VendingMinterCreateMsg;
 
-use crate::common::NATIVE_DENOM;
+use crate::defaults::config::{
+    DEFAULT_CREATION_FEE, DEFAULT_MAX_PER_ADDRESS_LIMIT, DEFAULT_MAX_TOKEN_LIMIT,
+    DEFAULT_MAX_TRADING_OFFSET_SECS, DEFAULT_MINT_FEE_BPS, DEFAULT_MIN_MINT_PRICE,
+    DEFAULT_SHUFFLE_FEE,
+};
+use crate::defaults::constants::NATIVE_DENOM;
 
 #[derive(Debug)]
 pub enum VendingFactoryError {
@@ -76,16 +81,16 @@ impl VendingFactoryContract {
                         code_id: minter_code_id,
                         allowed_sg721_code_ids: vec![sg721_code_id],
                         frozen: false,
-                        creation_fee: Coin::new(1_000_000, NATIVE_DENOM),
-                        min_mint_price: Coin::new(100_000, NATIVE_DENOM),
-                        mint_fee_bps: 1000,
-                        max_trading_offset_secs: 60 * 60 * 24 * 7, // 1 week
+                        creation_fee: Coin::new(DEFAULT_CREATION_FEE, NATIVE_DENOM),
+                        min_mint_price: Coin::new(DEFAULT_MIN_MINT_PRICE, NATIVE_DENOM),
+                        mint_fee_bps: DEFAULT_MINT_FEE_BPS,
+                        max_trading_offset_secs: DEFAULT_MAX_TRADING_OFFSET_SECS,
                         extension: vending_factory::state::ParamsExtension {
-                            max_token_limit: 10000,
-                            max_per_address_limit: 50,
+                            max_token_limit: DEFAULT_MAX_TOKEN_LIMIT,
+                            max_per_address_limit: DEFAULT_MAX_PER_ADDRESS_LIMIT,
                             airdrop_mint_price: Coin::new(0, NATIVE_DENOM),
                             airdrop_mint_fee_bps: 0,
-                            shuffle_fee: Coin::new(500_000, NATIVE_DENOM),
+                            shuffle_fee: Coin::new(DEFAULT_SHUFFLE_FEE, NATIVE_DENOM),
                         },
                     },
                 },
@@ -126,7 +131,7 @@ impl VendingFactoryContract {
                 sender.clone(),
                 self.contract_addr.clone(),
                 &vending_factory::msg::ExecuteMsg::CreateMinter(msg),
-                &[Coin::new(1_000_000, NATIVE_DENOM)],
+                &[Coin::new(DEFAULT_CREATION_FEE, NATIVE_DENOM)],
             )
             .map_err(|e| {
                 println!("Failed to execute CreateMinter: {}", e);

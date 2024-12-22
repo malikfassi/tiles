@@ -1,44 +1,36 @@
 use cosmwasm_std::StdError;
+use sg721_base::ContractError as Sg721ContractError;
 use thiserror::Error;
 
-#[derive(Error, Debug, PartialEq)]
+#[derive(Error, Debug)]
 pub enum ContractError {
     #[error("{0}")]
     Std(#[from] StdError),
 
-    #[error("Base contract error: {0}")]
-    Base(String),
-
-    #[error("Hash mismatch - state has been modified")]
-    HashMismatch {},
-
-    #[error("Invalid pixel update")]
-    InvalidPixelUpdate {},
-
-    #[error("Invalid color format")]
-    InvalidColorFormat {},
-
-    #[error("Invalid expiration")]
-    InvalidExpiration {},
-
-    #[error("Message too large")]
-    MessageTooLarge {},
-
-    #[error("Invalid fee percent")]
-    InvalidFeePercent {},
-
-    #[error("Invalid price")]
-    InvalidPrice {},
-
-    #[error("Invalid price scaling")]
-    InvalidPriceScaling {},
+    #[error("{0}")]
+    Sg721Error(#[from] Sg721ContractError),
 
     #[error("Unauthorized")]
     Unauthorized {},
-}
 
-impl From<sg721_base::ContractError> for ContractError {
-    fn from(err: sg721_base::ContractError) -> Self {
-        ContractError::Base(err.to_string())
-    }
+    #[error("Invalid color format: {color}")]
+    InvalidColorFormat { color: String },
+
+    #[error("Invalid expiration: min {min}, max {max}, got {value}")]
+    InvalidExpiration { min: u64, max: u64, value: u64 },
+
+    #[error("Invalid pixel update: id {id} exceeds max {max}")]
+    InvalidPixelUpdate { id: u32, max: u32 },
+
+    #[error("Invalid price: {value}")]
+    InvalidPrice { value: String },
+
+    #[error("Invalid price scaling: {error}")]
+    InvalidPriceScaling { error: String },
+
+    #[error("Hash mismatch")]
+    HashMismatch {},
+
+    #[error("Batch size exceeded: {kind} max {max}, got {got}")]
+    BatchSizeExceeded { kind: String, max: u32, got: u32 },
 }

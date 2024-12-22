@@ -1,57 +1,12 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use sg721::ExecuteMsg as Sg721ExecuteMsg;
 use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
-use crate::defaults::pixels::default_tile_pixels;
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, SetPixelColorMsg, UpdateConfigMsg};
-use crate::state::{Extension, CONFIG};
-use crate::validation::config;
-use crate::validation::pixel;
-
-pub fn execute(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: ExecuteMsg,
-) -> Result<Response<StargazeMsgWrapper>, ContractError> {
-    match msg {
-        ExecuteMsg::Mint {
-            token_id,
-            owner,
-            token_uri,
-            extension: _,
-        } => {
-            let config = CONFIG.load(deps.storage)?;
-            if info.sender != config.minter {
-                return Err(ContractError::Unauthorized {});
-            }
-            let owner_addr = deps.api.addr_validate(&owner)?;
-            let creation_time = env.block.time.seconds();
-
-            // Create default pixels using the defaults module
-            let pixels = default_tile_pixels(&owner_addr, creation_time);
-
-            // Initialize extension with just the hash
-            let extension = Extension {
-                tile_hash: Extension::generate_hash(&token_id, &pixels),
-            };
-
-            // Forward mint message to sg721 with our extension
-            let contract: Sg721Contract<Extension> = Sg721Contract::default();
-            let mint_msg = Sg721ExecuteMsg::Mint {
-                token_id,
-                owner,
-                token_uri,
-                extension,
-            };
-            Ok(contract.execute(deps, env, info, mint_msg)?)
-        }
-        ExecuteMsg::SetPixelColor(msg) => execute_set_pixel_color(deps, env, info, msg),
-        ExecuteMsg::UpdateConfig(msg) => execute_update_config(deps, env, info, msg),
-    }
-}
+use crate::msg::{SetPixelColorMsg, UpdateConfigMsg};
+use crate::state::CONFIG;
+use crate::types::Extension;
+use crate::utils::{hash, price, validation};
 
 pub fn execute_set_pixel_color(
     deps: DepsMut,
@@ -60,9 +15,11 @@ pub fn execute_set_pixel_color(
     msg: SetPixelColorMsg,
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
     // Validate message size
-    pixel::validate_message_size(&msg)?;
+    validation::validate_message_size(&msg)?;
 
     let contract: Sg721Contract<Extension> = Sg721Contract::default();
+    let mut total_pixels_updated = 0u32;
+    let updates_len = msg.updates.len();
 
     // Process each tile update
     for update in msg.updates {
@@ -70,18 +27,20 @@ pub fn execute_set_pixel_color(
         let mut token = contract.parent.tokens.load(deps.storage, &update.tile_id)?;
 
         // Verify current state matches what client thinks it is
-        token
-            .extension
-            .verify_metadata(&update.tile_id, &update.current_metadata)?;
+        hash::verify_metadata(
+            &token.extension,
+            &update.tile_id,
+            &update.current_metadata,
+        )?;
 
         // Validate the current metadata structure
-        pixel::tile_metadata(&update.current_metadata)?;
+        validation::validate_tile_metadata(&update.current_metadata)?;
 
         // Apply pixel updates
         let mut pixels = update.current_metadata.pixels;
         for pixel_update in update.updates.pixels {
             // Validate pixel update
-            pixel::pixel_update(
+            validation::validate_pixel_update(
                 pixel_update.id,
                 &pixel_update.color,
                 pixel_update.expiration,
@@ -94,13 +53,17 @@ pub fn execute_set_pixel_color(
                 pixel.expiration = pixel_update.expiration;
                 pixel.last_updated_by = info.sender.clone();
                 pixel.last_updated_at = env.block.time.seconds();
+                total_pixels_updated += 1;
             } else {
-                return Err(ContractError::InvalidPixelUpdate {});
+                return Err(ContractError::InvalidPixelUpdate {
+                    id: pixel_update.id,
+                    max: pixels.len() as u32 - 1,
+                });
             }
         }
 
         // Generate new hash from updated pixels
-        let new_hash = Extension::generate_hash(&update.tile_id, &pixels);
+        let new_hash = hash::generate_tile_hash(&update.tile_id, &pixels);
 
         // Save updated extension with just the hash
         token.extension = Extension {
@@ -112,7 +75,13 @@ pub fn execute_set_pixel_color(
             .save(deps.storage, &update.tile_id, &token)?;
     }
 
-    Ok(Response::new().add_attribute("action", "set_pixel_color"))
+    Ok(Response::new()
+        .add_attributes(vec![
+            ("action", "set_pixel_color"),
+            ("tiles_updated", &updates_len.to_string()),
+            ("pixels_updated", &total_pixels_updated.to_string()),
+            ("updater", info.sender.as_str()),
+        ]))
 }
 
 pub fn execute_update_config(
@@ -123,29 +92,46 @@ pub fn execute_update_config(
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
     let mut config = CONFIG.load(deps.storage)?;
 
-    // Only admin can update config
-    if info.sender != config.admin {
+    // Only minter can update config
+    if info.sender != config.minter {
         return Err(ContractError::Unauthorized {});
     }
 
-    // Validate config update
-    config::validate_config_update(&msg)?;
+    // Track changes for response
+    let mut updated_fields = Vec::new();
 
     // Update config fields
     if let Some(dev_address) = msg.dev_address {
-        config.dev_address = deps.api.addr_validate(&dev_address)?;
+        let new_dev_address = deps.api.addr_validate(&dev_address)?;
+        if new_dev_address != config.dev_address {
+            config.dev_address = new_dev_address;
+            updated_fields.push("dev_address");
+        }
     }
     if let Some(dev_fee_percent) = msg.dev_fee_percent {
-        config.dev_fee_percent = dev_fee_percent;
+        if dev_fee_percent != config.dev_fee_percent {
+            config.dev_fee_percent = dev_fee_percent;
+            updated_fields.push("dev_fee_percent");
+        }
     }
     if let Some(base_price) = msg.base_price {
-        config.base_price = base_price;
+        if base_price != config.base_price {
+            config.base_price = base_price;
+            updated_fields.push("base_price");
+        }
     }
     if let Some(price_scaling) = msg.price_scaling {
-        config.price_scaling = Some(price_scaling);
+        // Validate new price scaling
+        price::validate_price_scaling(&price_scaling)?;
+        config.price_scaling = price_scaling;
+        updated_fields.push("price_scaling");
     }
 
     CONFIG.save(deps.storage, &config)?;
 
-    Ok(Response::new().add_attribute("action", "update_config"))
+    Ok(Response::new().add_attributes(vec![
+        ("action", "update_config"),
+        ("updated_fields", &updated_fields.join(",")),
+        ("admin", info.sender.as_str()),
+    ]))
 }

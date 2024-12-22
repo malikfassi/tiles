@@ -6,12 +6,10 @@ pub mod mock;
 pub mod tiles_contract;
 pub mod vending_factory;
 
-pub use mock::*;
+pub use fixtures::TestSetup;
+pub use mock::init_modules;
 pub use tiles_contract::TilesContract;
-pub use vending_factory::VendingFactoryContract;
-
-pub const NATIVE_DENOM: &str = "ustars";
-pub const INITIAL_BALANCE: u128 = 1_000_000_000;
+pub use vending_factory::VendingFactory;
 
 pub struct TestResponse {
     pub events: Vec<Event>,
