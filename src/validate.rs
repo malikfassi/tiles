@@ -17,7 +17,7 @@ pub fn validate_color(color: &str) -> Result<(), ContractError> {
 /// Validates expiration time relative to current block time
 pub fn validate_expiration(expiration: u64, env: &Env) -> Result<(), ContractError> {
     let duration = expiration.saturating_sub(env.block.time.seconds());
-    if duration < MIN_EXPIRATION || duration > MAX_EXPIRATION {
+    if !(MIN_EXPIRATION..=MAX_EXPIRATION).contains(&duration) {
         return Err(ContractError::InvalidExpiration {});
     }
     Ok(())
