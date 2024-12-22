@@ -1,11 +1,11 @@
 pub mod contract;
+pub mod defaults;
 pub mod error;
 pub mod execute;
 pub mod msg;
 pub mod query;
 pub mod state;
 pub mod validate;
-pub mod defaults;
 
 pub use crate::error::ContractError;
 

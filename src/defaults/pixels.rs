@@ -1,7 +1,7 @@
 use cosmwasm_std::Addr;
 
+use super::constants::{DEFAULT_PIXEL_COLOR, PIXELS_PER_TILE};
 use crate::state::{PixelData, TileMetadata};
-use super::constants::{PIXELS_PER_TILE, DEFAULT_PIXEL_COLOR};
 
 pub fn default_pixel(id: u32, owner: Addr, creation_time: u64) -> PixelData {
     PixelData {
@@ -24,4 +24,4 @@ pub fn default_tile_metadata(token_id: String, owner: Addr, creation_time: u64) 
         tile_id: token_id,
         pixels: default_tile_pixels(owner, creation_time),
     }
-} 
+}

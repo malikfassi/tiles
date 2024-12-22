@@ -75,4 +75,4 @@ pub fn mock_user2() -> Addr {
 
 pub fn mock_unauthorized() -> Addr {
     Addr::unchecked(UNAUTHORIZED)
-} 
+}

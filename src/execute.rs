@@ -3,10 +3,10 @@ use sg721::ExecuteMsg as Sg721ExecuteMsg;
 use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
+use crate::defaults::constants::PIXELS_PER_TILE;
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, SetPixelColorMsg, UpdateConfigMsg};
-use crate::state::{CONFIG, PixelData, Extension};
-use crate::defaults::constants::PIXELS_PER_TILE;
+use crate::state::{Extension, PixelData, CONFIG};
 use crate::validate;
 
 pub fn execute(
@@ -71,7 +71,9 @@ pub fn execute_set_pixel_color(
         let mut token = contract.parent.tokens.load(deps.storage, &update.tile_id)?;
 
         // Verify current state matches what client thinks it is
-        token.extension.verify_metadata(&update.tile_id, &update.current_metadata)?;
+        token
+            .extension
+            .verify_metadata(&update.tile_id, &update.current_metadata)?;
 
         // Apply pixel updates
         let mut pixels = update.current_metadata.pixels;
@@ -102,7 +104,10 @@ pub fn execute_set_pixel_color(
         token.extension = Extension {
             tile_hash: new_hash,
         };
-        contract.parent.tokens.save(deps.storage, &update.tile_id, &token)?;
+        contract
+            .parent
+            .tokens
+            .save(deps.storage, &update.tile_id, &token)?;
     }
 
     Ok(Response::new().add_attribute("action", "set_pixel_color"))

@@ -26,4 +26,4 @@ pub fn default_instantiate_msg(
         minter,
         collection_info: default_collection_info(creator),
     }
-} 
+}

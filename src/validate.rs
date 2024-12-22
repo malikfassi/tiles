@@ -1,7 +1,9 @@
-use cosmwasm_std::{Decimal, Env};
+use crate::defaults::constants::{
+    MAX_EXPIRATION, MAX_MESSAGE_SIZE, MIN_EXPIRATION, PIXELS_PER_TILE,
+};
 use crate::error::ContractError;
-use crate::defaults::constants::{PIXELS_PER_TILE, MIN_EXPIRATION, MAX_EXPIRATION, MAX_MESSAGE_SIZE};
 use crate::msg::{SetPixelColorMsg, UpdateConfigMsg};
+use cosmwasm_std::{Decimal, Env};
 
 /// Validates a color string format (#RRGGBB)
 pub fn validate_color(color: &str) -> Result<(), ContractError> {
@@ -61,4 +63,4 @@ pub fn validate_config_update(msg: &UpdateConfigMsg) -> Result<(), ContractError
         }
     }
     Ok(())
-} 
+}

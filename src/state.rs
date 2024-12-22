@@ -5,8 +5,8 @@ use hex;
 use sg721::{CollectionInfo, RoyaltyInfoResponse};
 use sha2::{Digest, Sha256};
 
-use crate::error::ContractError;
 use crate::defaults::constants::DEFAULT_PIXEL_COLOR;
+use crate::error::ContractError;
 
 #[cw_serde]
 pub struct Extension {
