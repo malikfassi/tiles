@@ -3,12 +3,12 @@ use sg721::ExecuteMsg as Sg721ExecuteMsg;
 use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
+use crate::defaults::pixels::default_tile_pixels;
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, SetPixelColorMsg, UpdateConfigMsg};
 use crate::state::{Extension, CONFIG};
-use crate::validation::pixel;
 use crate::validation::config;
-use crate::defaults::pixels::default_tile_pixels;
+use crate::validation::pixel;
 
 pub fn execute(
     deps: DepsMut,

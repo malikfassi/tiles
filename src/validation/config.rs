@@ -66,4 +66,4 @@ pub fn validate_config_update(msg: &UpdateConfigMsg) -> Result<(), ContractError
     }
 
     Ok(())
-} 
+}

@@ -35,7 +35,7 @@ pub fn mock_config(
         admin: admin.clone(),
         minter: minter.clone(),
         collection_info,
-        dev_address: admin.clone(),  // Use admin as dev address
+        dev_address: admin.clone(), // Use admin as dev address
         dev_fee_percent: default_dev_fee_percent(),
         base_price: default_base_price(),
         price_scaling: Some(default_price_scaling()),
