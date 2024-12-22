@@ -1,0 +1,46 @@
+[package]
+name = "tiles"
+version = "0.1.0"
+edition = "2021"
+description = "A Stargaze NFT collection with customizable tile colors"
+license = "Apache-2.0"
+rust-version = "1.73.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[dependencies]
+cosmwasm-schema = "1.5.0"
+cosmwasm-std = { version = "1.5.0", features = ["staking"] }
+cw-storage-plus = "1.2.0"
+cw2 = "1.1.2"
+cw721 = "0.18.0"
+cw721-base = { version = "0.18.0", features = ["library"] }
+schemars = "0.8.15"
+serde = { version = "1.0.195", default-features = false, features = ["derive"] }
+sg721 = { git = "https://github.com/public-awesome/stargaze-contracts", tag = "v3.15.0", package = "sg721", features = ["library"] }
+sg721-base = { git = "https://github.com/public-awesome/stargaze-contracts", tag = "v3.15.0", package = "sg721-base", features = ["library"] }
+sg2 = { git = "https://github.com/public-awesome/stargaze-contracts", tag = "v3.15.0", package = "sg2" }
+sg-std = { git = "https://github.com/public-awesome/stargaze-contracts", tag = "v3.15.0", package = "sg1" }
+thiserror = "1.0.56"
+sha2 = { version = "0.10.8", default-features = false }
+hex = "0.4.3"
+serde_json = "1.0.108"
+vending-factory = { git = "https://github.com/public-awesome/stargaze-contracts", tag = "v3.15.0", package = "vending-factory", features = ["library"] }
+vending-minter = { git = "https://github.com/public-awesome/stargaze-contracts", tag = "v3.15.0", package = "vending-minter", features = ["library"] }
+sg-multi-test = "3.1.0"
+anyhow = "1.0.75"
+cw-multi-test = { version = "0.16.5", features = ["staking"] }
+cosmwasm-storage = "1.5.0"
+
+[dev-dependencies]
+cw-multi-test = { version = "0.16.5", features = ["staking"] }
+anyhow = "1.0.75"
+sg-multi-test = "3.1.0"
