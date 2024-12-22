@@ -3,3 +3,4 @@
 vendor/
 /.history
 .DS_Store
+/.vscode
