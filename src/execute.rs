@@ -1,4 +1,4 @@
-use cosmwasm_std::{DepsMut, Empty, Env, MessageInfo, Response};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use sg721::ExecuteMsg as Sg721ExecuteMsg;
 use sg_std::StargazeMsgWrapper;
 use sg721_base::Sg721Contract;

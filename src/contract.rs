@@ -123,7 +123,7 @@ mod tests {
 
         // it worked, let's query the state
         let res = query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap();
-        let config: Config = from_json(&res).unwrap();
+        let config: Config = from_json(res).unwrap();
         assert_eq!("creator", config.admin);
         assert_eq!("minter", config.minter);
         assert_eq!("dev", config.dev_address);

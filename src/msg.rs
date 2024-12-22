@@ -2,7 +2,7 @@ use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Binary, Decimal, Uint128, Empty};
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 use sg721::{CollectionInfo, ExecuteMsg as Sg721ExecuteMsg};
-use sg_std::StargazeMsgWrapper;
+
 
 use crate::state::{PriceScaling, TileMetadata, Extension};
 

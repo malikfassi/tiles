@@ -1,10 +1,10 @@
-use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
+use cosmwasm_std::{Addr, Coin};
 use sg_multi_test::StargazeApp;
 use cw_multi_test::Executor;
 use vending_factory::msg::{VendingMinterCreateMsg, VendingMinterInitMsgExtension};
 use sg2::msg::CollectionParams;
 use sg721::CollectionInfo;
-use serde_json::to_string;
+
 
 use crate::common::{
     mock::mock_app,

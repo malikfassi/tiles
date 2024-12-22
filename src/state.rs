@@ -4,8 +4,8 @@ use cw_storage_plus::Item;
 use sg721::CollectionInfo;
 use sha2::{Sha256, Digest};
 use hex;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+
+
 
 use crate::msg::TileUpdates;
 
