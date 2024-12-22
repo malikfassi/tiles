@@ -31,23 +31,17 @@ sha2 = { version = "0.10.8", default-features = false }
 
 ### 1.2. State Management
 ```rust
-// Core contract structure inheriting from sg721-base
-pub struct TilesContract<'a> {
-    pub base: Sg721Contract<'a, Extension>, // Base sg721 contract
-    pub config: Item<'a, Config>,  // Contract configuration
-}
-
 // Extension type for storing tile data in sg721 token
 #[cw_serde]
 pub struct Extension {
     pub tile_hash: String,  // Hash of current off-chain metadata
-    pub pixels: Vec<PixelData>,  // Current pixel states
 }
 
 // Configuration (stored on-chain)
 pub struct Config {
     pub admin: Addr,          // Contract admin
     pub minter: Addr,         // Minting contract address
+    pub collection_info: CollectionInfo<RoyaltyInfoResponse>, // Collection info
     pub dev_address: Addr,    // Developer fee recipient
     pub dev_fee_percent: Decimal,  // Fee on pixel updates (e.g., 5%)
     pub base_price: Uint128,  // Base price per pixel
@@ -61,6 +55,14 @@ pub struct PriceScaling {
     pub hour_24_price: Uint128,   // ≤24 hours price
     pub quadratic_base: Uint128,  // Base for >24 hours
 }
+
+// Constants
+pub const PIXELS_PER_TILE: u32 = 100;
+pub const MAX_MESSAGE_SIZE: u32 = 128 * 1024;  // 128KB
+pub const NATIVE_DENOM: &str = "ustars";
+pub const MIN_EXPIRATION: u64 = 60;          // 1 minute
+pub const MAX_EXPIRATION: u64 = 31_536_000;  // 1 year
+pub const DEFAULT_PIXEL_COLOR: &str = "#FFFFFF";  // White
 ```
 
 ### 1.3. Messages & Entry Points
@@ -70,8 +72,12 @@ pub struct PriceScaling {
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     // Standard sg721 messages
-    #[serde(flatten)]
-    Base(sg721::ExecuteMsg<Extension>),
+    Mint {
+        token_id: String,
+        owner: String,
+        token_uri: String,
+        extension: Option<Extension>,
+    },
     
     // Custom messages
     SetPixelColor(SetPixelColorMsg),
@@ -84,11 +90,10 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     // Standard sg721 queries
     #[serde(flatten)]
-    Base(sg721::QueryMsg),
+    Sg721Base(Sg721QueryMsg),
     
     // Custom queries
     Config {},
-    TileState { token_id: String },
 }
 
 // Instantiate message
@@ -98,7 +103,7 @@ pub struct InstantiateMsg {
     pub name: String,
     pub symbol: String,
     pub minter: String,
-    pub collection_info: CollectionInfo,
+    pub collection_info: CollectionInfo<RoyaltyInfoResponse>,
     
     // Our custom config
     pub dev_address: String,
@@ -116,7 +121,7 @@ pub enum ContractError {
     Std(#[from] StdError),
 
     #[error("{0}")]
-    Base(#[from] sg721::ContractError),
+    Sg721Error(#[from] Sg721ContractError),
 
     #[error("Hash mismatch - state has been modified")]
     HashMismatch {},
@@ -158,6 +163,7 @@ pub struct PixelData {
     pub color: String,         // Hex color (#RRGGBB)
     pub expiration: u64,       // Timestamp when pixel expires
     pub last_updated_by: Addr, // Address that last updated the pixel
+    pub last_updated_at: u64,  // Timestamp of last update
 }
 
 pub struct PixelUpdate {
@@ -176,6 +182,18 @@ pub struct TileUpdate {
     pub tile_id: String,
     pub current_metadata: TileMetadata,  // For hash verification
     pub updates: TileUpdates,            // Only the pixels being changed
+}
+
+impl PixelData {
+    pub fn new_at_mint(id: u32, owner: Addr, creation_time: u64) -> Self {
+        Self {
+            id,
+            color: DEFAULT_PIXEL_COLOR.to_string(),
+            expiration: creation_time,
+            last_updated_by: owner,
+            last_updated_at: creation_time,
+        }
+    }
 }
 ```
 
@@ -209,29 +227,21 @@ fn validate_expiration(expiration: u64) -> Result<(), ContractError> {
 
 ### 2.3. Hash Verification
 ```rust
-// Hash input structure
-#[derive(Serialize)]
-pub struct HashInput<'a> {
-    pub tile_id: &'a str,
-    pub pixels: &'a [PixelData],
-}
-
-impl TileState {
-    // Generate hash from metadata
+impl Extension {
     pub fn generate_hash(tile_id: &str, pixels: &[PixelData]) -> String {
-        let input = HashInput { tile_id, pixels };
-        let hash = Sha256::new()
-            .chain_update(to_vec(&input).unwrap())
-            .finalize();
-        hex::encode(hash)
+        let mut hasher = Sha256::new();
+        hasher.update(tile_id.as_bytes());
+        for pixel in pixels {
+            hasher.update(pixel.id.to_be_bytes());
+            hasher.update(pixel.color.as_bytes());
+            hasher.update(pixel.expiration.to_be_bytes());
+            hasher.update(pixel.last_updated_by.as_bytes());
+            hasher.update(pixel.last_updated_at.to_be_bytes());
+        }
+        hex::encode(hasher.finalize())
     }
 
-    // Verify current metadata matches stored hash
-    pub fn verify_metadata(
-        &self,
-        tile_id: &str,
-        metadata: &TileMetadata,
-    ) -> Result<(), ContractError> {
+    pub fn verify_metadata(&self, tile_id: &str, metadata: &TileMetadata) -> Result<(), ContractError> {
         let current_hash = Self::generate_hash(tile_id, &metadata.pixels);
         if current_hash != self.tile_hash {
             return Err(ContractError::HashMismatch {});
@@ -287,8 +297,8 @@ The contract is now properly integrated with sg721-base, inheriting its NFT func
 
 ### 3.1. State Management
 - The contract inherits from `Sg721Contract<Extension>` to leverage standard NFT functionality
-- Tile data is stored directly in the NFT token's extension, providing better data cohesion
-- Configuration and custom state are managed separately from the base contract
+- Tile data is stored off-chain, with only the hash stored in the NFT token's extension
+- Configuration is managed separately from the base contract
 
 ### 3.2. Message Handling
 - Base NFT messages (mint, transfer, etc.) are handled through the sg721 implementation
@@ -302,7 +312,7 @@ The contract is now properly integrated with sg721-base, inheriting its NFT func
 
 ### 3.4. Benefits of Integration
 1. **Standard Compliance**: Full compatibility with Stargaze NFT standards
-2. **Efficient Storage**: Tile data is directly associated with NFT tokens
+2. **Efficient Storage**: Only tile hashes are stored on-chain
 3. **Type Safety**: Extension type ensures proper data handling
 4. **Maintainability**: Clear separation between base and custom functionality
 5. **Ecosystem Integration**: Works seamlessly with Stargaze tools and interfaces
