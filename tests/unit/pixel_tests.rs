@@ -1,6 +1,8 @@
 use cosmwasm_std::Coin;
-use tiles::msg::{PixelUpdate, SetPixelColorMsg, TileUpdate, TileUpdates};
-use tiles::state::{PixelData, TileMetadata, PIXELS_PER_TILE};
+
+use tiles::state::{PixelData, TileMetadata};
+use tiles::msg::{SetPixelColorMsg, TileUpdate, TileUpdates, PixelUpdate};
+use tiles::defaults::constants::PIXELS_PER_TILE;
 
 use crate::common::fixtures::{setup_test, TestSetup};
 

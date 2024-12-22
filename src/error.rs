@@ -6,7 +6,7 @@ pub enum ContractError {
     #[error("{0}")]
     Std(#[from] StdError),
 
-    #[error("{0}")]
+    #[error("Base contract error: {0}")]
     Base(String),
 
     #[error("Hash mismatch - state has been modified")]
@@ -26,6 +26,9 @@ pub enum ContractError {
 
     #[error("Unauthorized")]
     Unauthorized {},
+
+    #[error("Invalid fee percent - must be between 0 and 100")]
+    InvalidFeePercent {},
 }
 
 impl From<sg721_base::ContractError> for ContractError {

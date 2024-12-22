@@ -6,12 +6,7 @@ use sg721::{CollectionInfo, RoyaltyInfoResponse};
 use sha2::{Digest, Sha256};
 
 use crate::error::ContractError;
-
-pub const MAX_MESSAGE_SIZE: u32 = 128 * 1024; // 128KB
-pub const MIN_EXPIRATION: u64 = 60; // 1 minute
-pub const MAX_EXPIRATION: u64 = 31_536_000; // 1 year
-pub const PIXELS_PER_TILE: u32 = 100; // 10x10 grid
-pub const DEFAULT_PIXEL_COLOR: &str = "#FFFFFF"; // White
+use crate::defaults::constants::DEFAULT_PIXEL_COLOR;
 
 #[cw_serde]
 pub struct Extension {

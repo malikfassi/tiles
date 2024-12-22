@@ -1,6 +1,5 @@
 use cosmwasm_std::{
     entry_point, to_json_binary, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, StdResult,
-    Uint128,
 };
 
 use cw2::set_contract_version;
@@ -16,12 +15,10 @@ use crate::{
     state::{Config, Extension, PriceScaling, CONFIG},
 };
 
-const CONTRACT_NAME: &str = "crates.io:tiles";
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-// Default values for config
-const DEFAULT_DEV_FEE_PERCENT: u64 = 5; // 5%
-const DEFAULT_BASE_PRICE: u128 = 100_000; // 0.1 STARS
+use crate::defaults::constants::{
+    CONTRACT_NAME, CONTRACT_VERSION, DEFAULT_DEV_FEE_PERCENT, BASE_PRICE,
+    HOUR_1_PRICE, HOUR_12_PRICE, HOUR_24_PRICE, QUADRATIC_BASE,
+};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -43,19 +40,18 @@ pub fn instantiate(
     sg721_base.instantiate(deps.branch(), env, info.clone(), sg721_msg)?;
 
     // Set default config values
-    let base_price = Uint128::new(DEFAULT_BASE_PRICE);
     let config = Config {
         admin: info.sender.clone(),
         minter: deps.api.addr_validate(&msg.minter)?,
         collection_info: msg.collection_info,
         dev_address: info.sender.clone(), // Default to sender
         dev_fee_percent: Decimal::percent(DEFAULT_DEV_FEE_PERCENT),
-        base_price,
+        base_price: BASE_PRICE,
         price_scaling: Some(PriceScaling {
-            hour_1_price: base_price,
-            hour_12_price: base_price.checked_mul(Uint128::from(2u128)).unwrap(),
-            hour_24_price: base_price.checked_mul(Uint128::from(3u128)).unwrap(),
-            quadratic_base: base_price.checked_mul(Uint128::from(4u128)).unwrap(),
+            hour_1_price: HOUR_1_PRICE,
+            hour_12_price: HOUR_12_PRICE,
+            hour_24_price: HOUR_24_PRICE,
+            quadratic_base: QUADRATIC_BASE,
         }),
     };
     CONFIG.save(deps.storage, &config)?;
