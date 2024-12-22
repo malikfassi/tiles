@@ -23,4 +23,4 @@ pub fn mock_app() -> (StargazeApp, Addr) {
     .unwrap();
 
     (app, sender)
-} 
+}

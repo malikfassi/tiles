@@ -1,8 +1,8 @@
 use cosmwasm_std::Event;
 use cw_multi_test::AppResponse;
 
-pub mod mock;
 pub mod fixtures;
+pub mod mock;
 pub mod tiles_contract;
 pub mod vending_factory;
 
@@ -24,4 +24,3 @@ impl TestResponse {
         }
     }
 }
-  

@@ -11,7 +11,8 @@ fn test_query_config() {
         sender,
         factory: _,
         tiles,
-    }) = setup_test() else {
+    }) = setup_test()
+    else {
         panic!("Failed to setup test");
     };
 
@@ -49,7 +50,8 @@ fn test_update_config() {
         sender: _,
         factory: _,
         tiles,
-    }) = setup_test() else {
+    }) = setup_test()
+    else {
         panic!("Failed to setup test");
     };
 
@@ -80,7 +82,10 @@ fn test_update_config() {
     // Verify only price scaling was updated
     assert_eq!(updated_config.admin, initial_config.admin);
     assert_eq!(updated_config.dev_address, initial_config.dev_address);
-    assert_eq!(updated_config.dev_fee_percent, initial_config.dev_fee_percent);
+    assert_eq!(
+        updated_config.dev_fee_percent,
+        initial_config.dev_fee_percent
+    );
     assert_eq!(updated_config.base_price, initial_config.base_price);
     assert_eq!(updated_config.price_scaling, Some(new_price_scaling));
 }
@@ -92,7 +97,8 @@ fn test_update_config_unauthorized() {
         sender: _,
         factory: _,
         tiles,
-    }) = setup_test() else {
+    }) = setup_test()
+    else {
         panic!("Failed to setup test");
     };
 
@@ -114,4 +120,4 @@ fn test_update_config_unauthorized() {
         }),
     );
     assert!(res.is_err());
-} 
+}

@@ -3,7 +3,7 @@ use cosmwasm_std::{Binary, Decimal, Uint128};
 use sg721::{CollectionInfo, RoyaltyInfoResponse};
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 
-use crate::state::{PriceScaling, Extension, TileMetadata};
+use crate::state::{Extension, PriceScaling, TileMetadata};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -66,4 +66,4 @@ pub enum QueryMsg {
     Sg721Base(Sg721QueryMsg),
     #[returns(crate::state::Config)]
     Config {},
-} 
+}

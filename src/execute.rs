@@ -1,11 +1,11 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use sg721::ExecuteMsg as Sg721ExecuteMsg;
-use sg_std::StargazeMsgWrapper;
 use sg721_base::Sg721Contract;
+use sg_std::StargazeMsgWrapper;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, SetPixelColorMsg, UpdateConfigMsg};
-use crate::state::{CONFIG, PIXELS_PER_TILE, PixelData, Extension, MIN_EXPIRATION, MAX_EXPIRATION};
+use crate::state::{Extension, PixelData, CONFIG, MAX_EXPIRATION, MIN_EXPIRATION, PIXELS_PER_TILE};
 
 pub fn execute(
     deps: DepsMut,
@@ -14,14 +14,19 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
     match msg {
-        ExecuteMsg::Mint { token_id, owner, token_uri, extension: _ } => {
+        ExecuteMsg::Mint {
+            token_id,
+            owner,
+            token_uri,
+            extension: _,
+        } => {
             let config = CONFIG.load(deps.storage)?;
             if info.sender != config.minter {
                 return Err(ContractError::Unauthorized {});
             }
             let owner_addr = deps.api.addr_validate(&owner)?;
             let creation_time = env.block.time.seconds();
-            
+
             // Create default pixels (all white, expired)
             let pixels: Vec<PixelData> = (0..PIXELS_PER_TILE)
                 .map(|id| PixelData::new_at_mint(id, owner_addr.clone(), creation_time))
@@ -66,7 +71,9 @@ pub fn execute_set_pixel_color(
         let mut token = contract.parent.tokens.load(deps.storage, &update.tile_id)?;
 
         // Verify current state matches what client thinks it is
-        token.extension.verify_metadata(&update.tile_id, &update.current_metadata)?;
+        token
+            .extension
+            .verify_metadata(&update.tile_id, &update.current_metadata)?;
 
         // Apply pixel updates
         let mut pixels = update.current_metadata.pixels;
@@ -75,12 +82,17 @@ pub fn execute_set_pixel_color(
             if !pixel_update.color.starts_with('#') || pixel_update.color.len() != 7 {
                 return Err(ContractError::InvalidColorFormat {});
             }
-            if !pixel_update.color[1..].chars().all(|c| c.is_ascii_hexdigit()) {
+            if !pixel_update.color[1..]
+                .chars()
+                .all(|c| c.is_ascii_hexdigit())
+            {
                 return Err(ContractError::InvalidColorFormat {});
             }
 
             // Validate expiration duration
-            let duration = pixel_update.expiration.saturating_sub(env.block.time.seconds());
+            let duration = pixel_update
+                .expiration
+                .saturating_sub(env.block.time.seconds());
             if !(MIN_EXPIRATION..=MAX_EXPIRATION).contains(&duration) {
                 return Err(ContractError::InvalidExpiration {});
             }
@@ -103,7 +115,10 @@ pub fn execute_set_pixel_color(
         token.extension = Extension {
             tile_hash: new_hash,
         };
-        contract.parent.tokens.save(deps.storage, &update.tile_id, &token)?;
+        contract
+            .parent
+            .tokens
+            .save(deps.storage, &update.tile_id, &token)?;
     }
 
     Ok(Response::new().add_attribute("action", "set_pixel_color"))
@@ -139,4 +154,4 @@ pub fn execute_update_config(
     CONFIG.save(deps.storage, &config)?;
 
     Ok(Response::new().add_attribute("action", "update_config"))
-} 
+}

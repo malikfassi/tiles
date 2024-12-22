@@ -1,15 +1,13 @@
+use anyhow::Error as AnyhowError;
 use cosmwasm_std::{Addr, Coin};
-use sg_multi_test::StargazeApp;
 use cw_multi_test::Executor;
-use vending_factory::msg::{VendingMinterCreateMsg, VendingMinterInitMsgExtension};
 use sg2::msg::CollectionParams;
 use sg721::{CollectionInfo, RoyaltyInfoResponse};
-use anyhow::Error as AnyhowError;
+use sg_multi_test::StargazeApp;
+use vending_factory::msg::{VendingMinterCreateMsg, VendingMinterInitMsgExtension};
 
 use crate::common::{
-    mock::mock_app,
-    tiles_contract::TilesContract,
-    vending_factory::VendingFactoryContract,
+    mock::mock_app, tiles_contract::TilesContract, vending_factory::VendingFactoryContract,
     NATIVE_DENOM,
 };
 
@@ -126,4 +124,4 @@ pub fn setup_test() -> Result<TestSetup, Box<dyn std::error::Error>> {
         factory,
         tiles,
     })
-} 
+}

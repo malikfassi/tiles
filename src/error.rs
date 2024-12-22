@@ -33,4 +33,3 @@ impl From<sg721_base::ContractError> for ContractError {
         ContractError::Base(err.to_string())
     }
 }
-  

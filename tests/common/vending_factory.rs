@@ -1,8 +1,8 @@
 use cosmwasm_std::{Addr, Coin};
 use cw_multi_test::{ContractWrapper, Executor};
 use sg_multi_test::StargazeApp;
-use vending_factory::msg::VendingMinterCreateMsg;
 use std::fmt;
+use vending_factory::msg::VendingMinterCreateMsg;
 
 use crate::common::NATIVE_DENOM;
 
@@ -17,8 +17,12 @@ impl fmt::Display for VendingFactoryError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             VendingFactoryError::ExecuteError(msg) => write!(f, "Execute error: {}", msg),
-            VendingFactoryError::MinterAddressNotFound => write!(f, "Minter address not found in events"),
-            VendingFactoryError::CollectionAddressNotFound => write!(f, "Collection address not found in events"),
+            VendingFactoryError::MinterAddressNotFound => {
+                write!(f, "Minter address not found in events")
+            }
+            VendingFactoryError::CollectionAddressNotFound => {
+                write!(f, "Collection address not found in events")
+            }
         }
     }
 }
@@ -111,19 +115,23 @@ impl VendingFactoryContract {
     ) -> Result<(Addr, Addr), Box<dyn std::error::Error>> {
         // Update collection code ID
         msg.collection_params.code_id = self.sg721_code_id;
-        println!("Creating minter with collection code ID: {}", self.sg721_code_id);
+        println!(
+            "Creating minter with collection code ID: {}",
+            self.sg721_code_id
+        );
 
         println!("Executing CreateMinter message...");
-        let res = app.execute_contract(
-            sender.clone(),
-            self.contract_addr.clone(),
-            &vending_factory::msg::ExecuteMsg::CreateMinter(msg),
-            &[Coin::new(1_000_000, NATIVE_DENOM)],
-        )
-        .map_err(|e| {
-            println!("Failed to execute CreateMinter: {}", e);
-            VendingFactoryError::ExecuteError(e.to_string())
-        })?;
+        let res = app
+            .execute_contract(
+                sender.clone(),
+                self.contract_addr.clone(),
+                &vending_factory::msg::ExecuteMsg::CreateMinter(msg),
+                &[Coin::new(1_000_000, NATIVE_DENOM)],
+            )
+            .map_err(|e| {
+                println!("Failed to execute CreateMinter: {}", e);
+                VendingFactoryError::ExecuteError(e.to_string())
+            })?;
         println!("CreateMinter message executed");
 
         // Extract minter and collection addresses from events
@@ -135,7 +143,7 @@ impl VendingFactoryContract {
             println!("Event type: {}", event.ty);
             for attr in &event.attributes {
                 println!("  {}: {}", attr.key, attr.value);
-                
+
                 if event.ty == "instantiate" && attr.key == "_contract_addr" {
                     if minter_addr.is_none() {
                         println!("Found minter address: {}", attr.value);
@@ -145,18 +153,19 @@ impl VendingFactoryContract {
                         collection_addr = Some(attr.value.to_string());
                     }
                 } else if event.ty == "wasm" && attr.key == "sg721_address" {
-                    println!("Found collection address from sg721_address: {}", attr.value);
+                    println!(
+                        "Found collection address from sg721_address: {}",
+                        attr.value
+                    );
                     collection_addr = Some(attr.value.to_string());
                 }
             }
         }
 
-        let minter_addr = Addr::unchecked(
-            minter_addr.ok_or(VendingFactoryError::MinterAddressNotFound)?,
-        );
-        let collection_addr = Addr::unchecked(
-            collection_addr.ok_or(VendingFactoryError::CollectionAddressNotFound)?,
-        );
+        let minter_addr =
+            Addr::unchecked(minter_addr.ok_or(VendingFactoryError::MinterAddressNotFound)?);
+        let collection_addr =
+            Addr::unchecked(collection_addr.ok_or(VendingFactoryError::CollectionAddressNotFound)?);
 
         println!("Minter created at: {}", minter_addr);
         println!("Collection created at: {}", collection_addr);
@@ -165,4 +174,4 @@ impl VendingFactoryContract {
 
         Ok((minter_addr, collection_addr))
     }
-} 
+}

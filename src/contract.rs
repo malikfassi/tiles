@@ -1,12 +1,11 @@
 use cosmwasm_std::{
-    entry_point, to_json_binary, Binary, Deps, DepsMut,
-    Env, MessageInfo, StdResult, Decimal,
+    entry_point, to_json_binary, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, StdResult,
     Uint128,
 };
 
 use cw2::set_contract_version;
-use sg721_base::Sg721Contract;
 use sg721::InstantiateMsg as Sg721InstantiateMsg;
+use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
 pub type ContractResponse = cosmwasm_std::Response<StargazeMsgWrapper>;
@@ -14,15 +13,15 @@ pub type ContractResponse = cosmwasm_std::Response<StargazeMsgWrapper>;
 use crate::{
     error::ContractError,
     msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
-    state::{Config, PriceScaling, CONFIG, Extension},
+    state::{Config, Extension, PriceScaling, CONFIG},
 };
 
 const CONTRACT_NAME: &str = "crates.io:tiles";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // Default values for config
-const DEFAULT_DEV_FEE_PERCENT: u64 = 5;  // 5%
-const DEFAULT_BASE_PRICE: u128 = 100_000;  // 0.1 STARS
+const DEFAULT_DEV_FEE_PERCENT: u64 = 5; // 5%
+const DEFAULT_BASE_PRICE: u128 = 100_000; // 0.1 STARS
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(

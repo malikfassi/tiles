@@ -1,10 +1,10 @@
 use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
-use cw_multi_test::Executor;
-use sg_multi_test::StargazeApp;
-use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 use cw721::TokensResponse;
+use cw_multi_test::Executor;
+use sg721_base::msg::QueryMsg as Sg721QueryMsg;
+use sg_multi_test::StargazeApp;
 
-use tiles::msg::{ExecuteMsg, QueryMsg, UpdateConfigMsg, SetPixelColorMsg};
+use tiles::msg::{ExecuteMsg, QueryMsg, SetPixelColorMsg, UpdateConfigMsg};
 use tiles::state::{Config, PriceScaling};
 
 pub struct TilesContract {
@@ -62,30 +62,36 @@ impl TilesContract {
         Ok(config)
     }
 
-    pub fn query_owner_of(&self, app: &StargazeApp, token_id: String) -> Result<String, Box<dyn std::error::Error>> {
-        let owner: String = app
-            .wrap()
-            .query_wasm_smart(
-                self.contract_addr.clone(),
-                &QueryMsg::Sg721Base(Sg721QueryMsg::OwnerOf {
-                    token_id,
-                    include_expired: None,
-                }),
-            )?;
+    pub fn query_owner_of(
+        &self,
+        app: &StargazeApp,
+        token_id: String,
+    ) -> Result<String, Box<dyn std::error::Error>> {
+        let owner: String = app.wrap().query_wasm_smart(
+            self.contract_addr.clone(),
+            &QueryMsg::Sg721Base(Sg721QueryMsg::OwnerOf {
+                token_id,
+                include_expired: None,
+            }),
+        )?;
         Ok(owner)
     }
 
-    pub fn query_tokens(&self, app: &StargazeApp, owner: String, start_after: Option<String>, limit: Option<u32>) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-        let response: TokensResponse = app
-            .wrap()
-            .query_wasm_smart(
-                self.contract_addr.clone(),
-                &QueryMsg::Sg721Base(Sg721QueryMsg::Tokens {
-                    owner,
-                    start_after,
-                    limit,
-                }),
-            )?;
+    pub fn query_tokens(
+        &self,
+        app: &StargazeApp,
+        owner: String,
+        start_after: Option<String>,
+        limit: Option<u32>,
+    ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+        let response: TokensResponse = app.wrap().query_wasm_smart(
+            self.contract_addr.clone(),
+            &QueryMsg::Sg721Base(Sg721QueryMsg::Tokens {
+                owner,
+                start_after,
+                limit,
+            }),
+        )?;
         Ok(response.tokens)
     }
-} 
+}
