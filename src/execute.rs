@@ -3,11 +3,11 @@ use sg721::ExecuteMsg as Sg721ExecuteMsg;
 use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
-use crate::defaults::constants::PIXELS_PER_TILE;
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, SetPixelColorMsg, UpdateConfigMsg};
-use crate::state::{Extension, PixelData, CONFIG};
+use crate::state::{Extension, CONFIG};
 use crate::validate;
+use crate::defaults::pixels::default_tile_pixels;
 
 pub fn execute(
     deps: DepsMut,
@@ -29,10 +29,8 @@ pub fn execute(
             let owner_addr = deps.api.addr_validate(&owner)?;
             let creation_time = env.block.time.seconds();
 
-            // Create default pixels (all white, expired)
-            let pixels: Vec<PixelData> = (0..PIXELS_PER_TILE)
-                .map(|id| PixelData::new_at_mint(id, owner_addr.clone(), creation_time))
-                .collect();
+            // Create default pixels using the defaults module
+            let pixels = default_tile_pixels(owner_addr.clone(), creation_time);
 
             // Initialize extension with just the hash
             let extension = Extension {
