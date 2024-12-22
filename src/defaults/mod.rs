@@ -1,5 +1,5 @@
 pub mod config;
-pub mod constants;
+pub mod msg;
 
 pub use config::*;
-pub use constants::*;
+pub use msg::*;

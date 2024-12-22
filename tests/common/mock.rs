@@ -1,27 +1,24 @@
-use cosmwasm_std::{Addr, Coin, Timestamp};
-use sg_multi_test::StargazeApp;
+use cosmwasm_std::{Addr, Coin};
+use cw_multi_test::{App, AppBuilder};
 
-use crate::defaults::config::DEFAULT_INITIAL_BALANCE;
-use crate::defaults::constants::NATIVE_DENOM;
+use tiles::defaults::config::DEFAULT_INITIAL_BALANCE;
+use tiles::defaults::constants::NATIVE_DENOM;
 
-pub fn mock_app() -> (StargazeApp, Addr) {
-    let mut app = StargazeApp::default();
-    let sender = Addr::unchecked("owner");
+pub fn init_modules() -> (App, Addr) {
+    // Create app with initial balance
+    let mut app = AppBuilder::new().build(|router, _api, storage| {
+        router
+            .bank
+            .init_balance(
+                storage,
+                &Addr::unchecked("sender"),
+                vec![Coin::new(DEFAULT_INITIAL_BALANCE, NATIVE_DENOM)],
+            )
+            .unwrap();
+    });
 
-    // Set block time (2023-01-01)
-    let mut block = app.block_info();
-    block.time = Timestamp::from_seconds(1672531200);
-    app.set_block(block);
-
-    // Fund sender
-    app.init_modules(|router, _, storage| {
-        router.bank.init_balance(
-            storage,
-            &sender,
-            vec![Coin::new(DEFAULT_INITIAL_BALANCE, NATIVE_DENOM)],
-        )
-    })
-    .expect("Failed to init modules");
+    // Create sender address
+    let sender = Addr::unchecked("sender");
 
     (app, sender)
 }

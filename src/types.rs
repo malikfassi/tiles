@@ -35,14 +35,14 @@ pub struct TileMetadata {
 /// Contract configuration
 #[cw_serde]
 pub struct Config {
+    /// Contract admin address
+    pub admin: Addr,
     /// Minting contract address
     pub minter: Addr,
-    /// Developer fee recipient address
-    pub dev_address: Addr,
-    /// Fee percentage on pixel updates (e.g., 5%)
-    pub dev_fee_percent: Decimal,
-    /// Base price per pixel update
-    pub base_price: Uint128,
+    /// Tiles royalty payment address
+    pub tiles_royalty_payment_address: Addr,
+    /// Tiles royalty percentage on pixel updates (e.g., 5%)
+    pub tiles_royalties: Decimal,
     /// Price scaling parameters
     pub price_scaling: PriceScaling,
 }
@@ -56,6 +56,6 @@ pub struct PriceScaling {
     pub hour_12_price: Uint128,
     /// Price for updates expiring within 24 hours
     pub hour_24_price: Uint128,
-    /// Base price for updates expiring after 24 hours
+    /// Base price for quadratic scaling (>24 hours)
     pub quadratic_base: Uint128,
 } 

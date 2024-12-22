@@ -46,10 +46,10 @@ pub fn instantiate(
     CONFIG.save(
         deps.storage,
         &Config {
+            admin: info.sender.clone(),
             minter: deps.api.addr_validate(&msg.minter)?,
-            dev_address: deps.api.addr_validate(&msg.dev_address)?,
-            dev_fee_percent: msg.dev_fee_percent,
-            base_price: msg.base_price,
+            tiles_royalty_payment_address: deps.api.addr_validate(&msg.tiles_royalty_payment_address)?,
+            tiles_royalties: msg.tiles_royalties,
             price_scaling: msg.price_scaling,
         },
     )?;
@@ -57,7 +57,8 @@ pub fn instantiate(
     Ok(Response::new()
         .add_attribute("method", "instantiate")
         .add_attribute("contract_name", msg.name)
-        .add_attribute("contract_version", env.contract.address.to_string()))
+        .add_attribute("admin", info.sender)
+        .add_attribute("minter", msg.minter))
 }
 
 pub fn execute(

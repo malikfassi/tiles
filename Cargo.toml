@@ -29,3 +29,8 @@ hex = "0.4.3"
 
 [dev-dependencies]
 cw-multi-test = "0.20.0"
+sg-multi-test = "3.1.0"
+sg2 = { git = "https://github.com/public-awesome/stargaze-contracts", tag = "v3.15.0" }
+vending-factory = { git = "https://github.com/public-awesome/stargaze-contracts", tag = "v3.15.0", features = ["library"] }
+vending-minter = { git = "https://github.com/public-awesome/stargaze-contracts", tag = "v3.15.0", features = ["library"] }
+anyhow = "1.0.75"

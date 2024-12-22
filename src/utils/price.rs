@@ -1,7 +1,7 @@
-use cosmwasm_std::Uint128;
+use cosmwasm_std::{Addr, Decimal, Uint128};
 
 use crate::error::ContractError;
-use crate::types::PriceScaling;
+use crate::types::{Config, PriceScaling, PixelUpdate};
 
 /// Calculate price based on expiration duration
 pub fn calculate_price(scaling: &PriceScaling, duration_seconds: u64) -> Uint128 {
@@ -16,6 +16,31 @@ pub fn calculate_price(scaling: &PriceScaling, duration_seconds: u64) -> Uint128
                 Uint128::from(duration_seconds).pow(2) / Uint128::from(1_000_000u128)
         }
     }
+}
+
+/// Calculate fees for a batch of pixel updates
+pub fn calculate_batch_fees(
+    config: &Config,
+    updates: &[PixelUpdate],
+    current_time: u64,
+) -> Result<UpdateFees, ContractError> {
+    let mut total_amount = Uint128::zero();
+
+    // Calculate base price for each pixel update
+    for update in updates {
+        let duration = update.expiration.saturating_sub(current_time);
+        total_amount += calculate_price(&config.price_scaling, duration);
+    }
+
+    // Calculate fee splits
+    let royalty_fee = total_amount * config.tiles_royalties;
+    let remaining_after_royalty = total_amount - royalty_fee;
+
+    Ok(UpdateFees {
+        total_amount,
+        royalty_fee,
+        royalty_address: config.tiles_royalty_payment_address.clone(),
+    })
 }
 
 /// Validate price scaling configuration
@@ -50,4 +75,26 @@ pub fn validate_price_scaling(scaling: &PriceScaling) -> Result<(), ContractErro
     }
 
     Ok(())
+}
+
+/// Validate payment amount matches required fees
+pub fn validate_payment(
+    payment_amount: Uint128,
+    required_amount: Uint128,
+) -> Result<(), ContractError> {
+    if payment_amount < required_amount {
+        return Err(ContractError::InsufficientFunds {
+            required: required_amount,
+            received: payment_amount,
+        });
+    }
+    Ok(())
+}
+
+/// Struct to hold fee calculation results
+#[derive(Debug, Clone)]
+pub struct UpdateFees {
+    pub total_amount: Uint128,
+    pub royalty_fee: Uint128,
+    pub royalty_address: Addr,
 } 

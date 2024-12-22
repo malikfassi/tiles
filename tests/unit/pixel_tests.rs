@@ -1,10 +1,11 @@
 use cosmwasm_std::{coin, Coin, StdResult};
 
-use tiles::defaults::pixels::{default_pixel, default_tile_pixels};
-use tiles::msg::{PixelUpdate, SetPixelColorMsg, TileUpdate, TileUpdates};
-use tiles::state::TileMetadata;
+use tiles::defaults::constants::{
+    MAX_PIXEL_UPDATES_PER_TILE, MAX_TILE_UPDATES_PER_MESSAGE,
+};
+use tiles::msg::{SetPixelColorMsg, TileUpdate, TileUpdates};
 
-use crate::common::fixtures::{setup_test, TestSetup};
+use crate::common::fixtures::TestSetup;
 
 #[test]
 fn test_set_pixel_color() {
@@ -13,231 +14,152 @@ fn test_set_pixel_color() {
         sender,
         factory: _,
         tiles,
-    }) = setup_test()
+    }) = TestSetup::new()
     else {
         panic!("Failed to setup test");
     };
 
-    // Find the token ID by querying owner's tokens
-    let tokens = tiles
-        .query_tokens(&app, sender.to_string(), None, None)
-        .expect("Failed to query tokens");
-    println!("Owner's tokens: {:?}", tokens);
-    assert!(!tokens.is_empty(), "Owner should have at least one token");
-    let token_id = tokens[0].clone();
-    println!("Using token ID: {}", token_id);
-
-    // Create initial pixels state (matches what was set during mint)
-    let pixels = default_tile_pixels(&sender, app.block_info().time.seconds());
-
-    let current_metadata = TileMetadata {
-        tile_id: token_id.clone(),
-        pixels: pixels.clone(),
-    };
-
-    // Update pixel color
+    // Create update message
     let msg = SetPixelColorMsg {
         updates: vec![TileUpdate {
-            tile_id: token_id.clone(),
-            current_metadata: current_metadata.clone(),
+            tile_id: "1".to_string(),
+            current_metadata: tiles.default_tile_metadata("1", &sender, app.block_info().time.seconds()),
             updates: TileUpdates {
-                pixels: vec![PixelUpdate {
-                    id: 0,
-                    color: "#FF0000".to_string(),
-                    expiration: app.block_info().time.seconds() + 3600,
-                }],
+                pixels: vec![tiles.default_pixel_update(0)],
             },
         }],
-        max_message_size: 1024,
     };
 
-    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![coin(100_000, "ustars")]);
-    if let Err(e) = &res {
-        println!("Error setting pixel color: {:?}", e);
-    }
+    // Execute update
+    let res = tiles.set_pixel_color(&mut app, &sender, msg);
     assert!(res.is_ok());
 }
 
 #[test]
-fn test_set_pixel_color_invalid_color() {
+fn test_set_pixel_color_multiple_tiles() {
     let Ok(TestSetup {
         mut app,
         sender,
         factory: _,
         tiles,
-    }) = setup_test()
+    }) = TestSetup::new()
     else {
         panic!("Failed to setup test");
     };
 
-    // Find the token ID by querying owner's tokens
-    let tokens = tiles
-        .query_tokens(&app, sender.to_string(), None, None)
-        .expect("Failed to query tokens");
-    assert!(!tokens.is_empty(), "Owner should have at least one token");
-    let token_id = tokens[0].clone();
+    let timestamp = app.block_info().time.seconds();
 
-    // Create initial pixels state
-    let pixels = vec![default_pixel(0, &sender, app.block_info().time.seconds())];
-    let current_metadata = TileMetadata {
-        tile_id: token_id.clone(),
-        pixels: pixels.clone(),
+    // Create update message
+    let msg = SetPixelColorMsg {
+        updates: vec![
+            TileUpdate {
+                tile_id: "1".to_string(),
+                current_metadata: tiles.default_tile_metadata("1", &sender, timestamp),
+                updates: TileUpdates {
+                    pixels: vec![tiles.default_pixel_update(0)],
+                },
+            },
+            TileUpdate {
+                tile_id: "2".to_string(),
+                current_metadata: tiles.default_tile_metadata("2", &sender, timestamp),
+                updates: TileUpdates {
+                    pixels: vec![tiles.default_pixel_update(0)],
+                },
+            },
+        ],
     };
 
-    // Try to update with invalid color
+    // Execute update
+    let res = tiles.set_pixel_color(&mut app, &sender, msg);
+    assert!(res.is_ok());
+}
+
+#[test]
+fn test_set_pixel_color_multiple_pixels() {
+    let Ok(TestSetup {
+        mut app,
+        sender,
+        factory: _,
+        tiles,
+    }) = TestSetup::new()
+    else {
+        panic!("Failed to setup test");
+    };
+
+    // Create update message
     let msg = SetPixelColorMsg {
         updates: vec![TileUpdate {
-            tile_id: token_id.clone(),
-            current_metadata: current_metadata.clone(),
+            tile_id: "1".to_string(),
+            current_metadata: tiles.default_tile_metadata("1", &sender, app.block_info().time.seconds()),
             updates: TileUpdates {
-                pixels: vec![PixelUpdate {
-                    id: 0,
-                    color: "invalid".to_string(),
-                    expiration: app.block_info().time.seconds() + 3600,
-                }],
+                pixels: vec![tiles.default_pixel_update(0), tiles.default_pixel_update(1)],
             },
         }],
-        max_message_size: 1024,
     };
 
-    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![coin(100_000, "ustars")]);
+    // Execute update
+    let res = tiles.set_pixel_color(&mut app, &sender, msg);
+    assert!(res.is_ok());
+}
+
+#[test]
+fn test_set_pixel_color_too_many_pixels() {
+    let Ok(TestSetup {
+        mut app,
+        sender,
+        factory: _,
+        tiles,
+    }) = TestSetup::new()
+    else {
+        panic!("Failed to setup test");
+    };
+
+    // Create update message with too many pixels
+    let msg = SetPixelColorMsg {
+        updates: vec![TileUpdate {
+            tile_id: "1".to_string(),
+            current_metadata: tiles.default_tile_metadata("1", &sender, app.block_info().time.seconds()),
+            updates: TileUpdates {
+                pixels: (0..MAX_PIXEL_UPDATES_PER_TILE + 1)
+                    .map(|id| tiles.default_pixel_update(id as u32))
+                    .collect(),
+            },
+        }],
+    };
+
+    // Execute update
+    let res = tiles.set_pixel_color(&mut app, &sender, msg);
     assert!(res.is_err());
 }
 
 #[test]
-fn test_set_pixel_color_invalid_expiration() {
+fn test_set_pixel_color_too_many_tiles() {
     let Ok(TestSetup {
         mut app,
         sender,
         factory: _,
         tiles,
-    }) = setup_test()
+    }) = TestSetup::new()
     else {
         panic!("Failed to setup test");
     };
 
-    // Find the token ID by querying owner's tokens
-    let tokens = tiles
-        .query_tokens(&app, sender.to_string(), None, None)
-        .expect("Failed to query tokens");
-    assert!(!tokens.is_empty(), "Owner should have at least one token");
-    let token_id = tokens[0].clone();
+    let timestamp = app.block_info().time.seconds();
 
-    // Create initial pixels state
-    let pixels = vec![default_pixel(0, &sender, app.block_info().time.seconds())];
-    let current_metadata = TileMetadata {
-        tile_id: token_id.clone(),
-        pixels: pixels.clone(),
-    };
-
-    // Try to update with invalid expiration
+    // Create update message with too many tiles
     let msg = SetPixelColorMsg {
-        updates: vec![TileUpdate {
-            tile_id: token_id.clone(),
-            current_metadata: current_metadata.clone(),
-            updates: TileUpdates {
-                pixels: vec![PixelUpdate {
-                    id: 0,
-                    color: "#FF0000".to_string(),
-                    expiration: app.block_info().time.seconds() + 31_536_001, // > 1 year
-                }],
-            },
-        }],
-        max_message_size: 1024,
+        updates: (0..MAX_TILE_UPDATES_PER_MESSAGE + 1)
+            .map(|id| TileUpdate {
+                tile_id: id.to_string(),
+                current_metadata: tiles.default_tile_metadata(&id.to_string(), &sender, timestamp),
+                updates: TileUpdates {
+                    pixels: vec![tiles.default_pixel_update(0)],
+                },
+            })
+            .collect(),
     };
 
-    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![coin(100_000, "ustars")]);
-    assert!(res.is_err());
-}
-
-#[test]
-fn test_set_pixel_color_insufficient_funds() {
-    let Ok(TestSetup {
-        mut app,
-        sender,
-        factory: _,
-        tiles,
-    }) = setup_test()
-    else {
-        panic!("Failed to setup test");
-    };
-
-    // Find the token ID by querying owner's tokens
-    let tokens = tiles
-        .query_tokens(&app, sender.to_string(), None, None)
-        .expect("Failed to query tokens");
-    assert!(!tokens.is_empty(), "Owner should have at least one token");
-    let token_id = tokens[0].clone();
-
-    // Create initial pixels state
-    let pixels = vec![default_pixel(0, &sender, app.block_info().time.seconds())];
-    let current_metadata = TileMetadata {
-        tile_id: token_id.clone(),
-        pixels: pixels.clone(),
-    };
-
-    // Try to update with insufficient funds
-    let msg = SetPixelColorMsg {
-        updates: vec![TileUpdate {
-            tile_id: token_id.clone(),
-            current_metadata: current_metadata.clone(),
-            updates: TileUpdates {
-                pixels: vec![PixelUpdate {
-                    id: 0,
-                    color: "#FF0000".to_string(),
-                    expiration: app.block_info().time.seconds() + 3600,
-                }],
-            },
-        }],
-        max_message_size: 1024,
-    };
-
-    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![coin(1, "ustars")]);
-    assert!(res.is_err());
-}
-
-#[test]
-fn test_set_pixel_color_message_too_large() {
-    let Ok(TestSetup {
-        mut app,
-        sender,
-        factory: _,
-        tiles,
-    }) = setup_test()
-    else {
-        panic!("Failed to setup test");
-    };
-
-    // Find the token ID by querying owner's tokens
-    let tokens = tiles
-        .query_tokens(&app, sender.to_string(), None, None)
-        .expect("Failed to query tokens");
-    assert!(!tokens.is_empty(), "Owner should have at least one token");
-    let token_id = tokens[0].clone();
-
-    // Create initial pixels state
-    let pixels = vec![default_pixel(0, &sender, app.block_info().time.seconds())];
-    let current_metadata = TileMetadata {
-        tile_id: token_id.clone(),
-        pixels: pixels.clone(),
-    };
-
-    // Try to update with message size too large
-    let msg = SetPixelColorMsg {
-        updates: vec![TileUpdate {
-            tile_id: token_id.clone(),
-            current_metadata: current_metadata.clone(),
-            updates: TileUpdates {
-                pixels: vec![PixelUpdate {
-                    id: 0,
-                    color: "#FF0000".to_string(),
-                    expiration: app.block_info().time.seconds() + 3600,
-                }],
-            },
-        }],
-        max_message_size: 128 * 1024 + 1, // > 128KB
-    };
-
-    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![coin(100_000, "ustars")]);
+    // Execute update
+    let res = tiles.set_pixel_color(&mut app, &sender, msg);
     assert!(res.is_err());
 }

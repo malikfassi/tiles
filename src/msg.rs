@@ -11,9 +11,8 @@ pub struct InstantiateMsg {
     pub symbol: String,
     pub minter: String,
     pub collection_info: CollectionInfoResponse,
-    pub dev_address: String,
-    pub dev_fee_percent: Decimal,
-    pub base_price: Uint128,
+    pub tiles_royalty_payment_address: String,
+    pub tiles_royalties: Decimal,
     pub price_scaling: PriceScaling,
 }
 
@@ -50,9 +49,8 @@ pub struct PixelUpdate {
 
 #[cw_serde]
 pub struct UpdateConfigMsg {
-    pub dev_address: Option<String>,
-    pub dev_fee_percent: Option<Decimal>,
-    pub base_price: Option<Uint128>,
+    pub tiles_royalty_payment_address: Option<String>,
+    pub tiles_royalties: Option<Decimal>,
     pub price_scaling: Option<PriceScaling>,
 }
 
@@ -73,9 +71,8 @@ pub enum QueryMsg {
 pub struct ConfigResponse {
     pub admin: String,
     pub minter: String,
-    pub dev_address: String,
-    pub dev_fee_percent: Decimal,
-    pub base_price: Uint128,
+    pub tiles_royalty_payment_address: String,
+    pub tiles_royalties: Decimal,
     pub price_scaling: PriceScaling,
 }
 
