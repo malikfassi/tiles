@@ -5,7 +5,6 @@ use hex;
 use sg721::{CollectionInfo, RoyaltyInfoResponse};
 use sha2::{Digest, Sha256};
 
-use crate::defaults::constants::DEFAULT_PIXEL_COLOR;
 use crate::error::ContractError;
 
 #[cw_serde]
@@ -52,18 +51,6 @@ impl Extension {
             return Err(ContractError::HashMismatch {});
         }
         Ok(())
-    }
-}
-
-impl PixelData {
-    pub fn new_at_mint(id: u32, owner: Addr, creation_time: u64) -> Self {
-        Self {
-            id,
-            color: DEFAULT_PIXEL_COLOR.to_string(),
-            expiration: creation_time,
-            last_updated_by: owner,
-            last_updated_at: creation_time,
-        }
     }
 }
 

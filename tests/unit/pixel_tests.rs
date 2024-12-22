@@ -1,8 +1,8 @@
 use cosmwasm_std::Coin;
 
-use tiles::defaults::constants::PIXELS_PER_TILE;
+use tiles::defaults::pixels::{default_pixel, default_tile_pixels};
 use tiles::msg::{PixelUpdate, SetPixelColorMsg, TileUpdate, TileUpdates};
-use tiles::state::{PixelData, TileMetadata};
+use tiles::state::TileMetadata;
 
 use crate::common::fixtures::{setup_test, TestSetup};
 
@@ -28,9 +28,7 @@ fn test_set_pixel_color() {
     println!("Using token ID: {}", token_id);
 
     // Create initial pixels state (matches what was set during mint)
-    let pixels: Vec<PixelData> = (0..PIXELS_PER_TILE)
-        .map(|id| PixelData::new_at_mint(id, sender.clone(), app.block_info().time.seconds()))
-        .collect();
+    let pixels = default_tile_pixels(sender.clone(), app.block_info().time.seconds());
 
     let current_metadata = TileMetadata {
         tile_id: token_id.clone(),
@@ -80,11 +78,7 @@ fn test_set_pixel_color_invalid_color() {
     let token_id = tokens[0].clone();
 
     // Create initial pixels state
-    let pixels = vec![PixelData::new_at_mint(
-        0,
-        sender.clone(),
-        app.block_info().time.seconds(),
-    )];
+    let pixels = vec![default_pixel(0, sender.clone(), app.block_info().time.seconds())];
     let current_metadata = TileMetadata {
         tile_id: token_id.clone(),
         pixels: pixels.clone(),
@@ -130,11 +124,7 @@ fn test_set_pixel_color_invalid_expiration() {
     let token_id = tokens[0].clone();
 
     // Create initial pixels state
-    let pixels = vec![PixelData::new_at_mint(
-        0,
-        sender.clone(),
-        app.block_info().time.seconds(),
-    )];
+    let pixels = vec![default_pixel(0, sender.clone(), app.block_info().time.seconds())];
     let current_metadata = TileMetadata {
         tile_id: token_id.clone(),
         pixels: pixels.clone(),
@@ -180,11 +170,7 @@ fn test_set_pixel_color_insufficient_funds() {
     let token_id = tokens[0].clone();
 
     // Create initial pixels state
-    let pixels = vec![PixelData::new_at_mint(
-        0,
-        sender.clone(),
-        app.block_info().time.seconds(),
-    )];
+    let pixels = vec![default_pixel(0, sender.clone(), app.block_info().time.seconds())];
     let current_metadata = TileMetadata {
         tile_id: token_id.clone(),
         pixels: pixels.clone(),
@@ -230,11 +216,7 @@ fn test_set_pixel_color_message_too_large() {
     let token_id = tokens[0].clone();
 
     // Create initial pixels state
-    let pixels = vec![PixelData::new_at_mint(
-        0,
-        sender.clone(),
-        app.block_info().time.seconds(),
-    )];
+    let pixels = vec![default_pixel(0, sender.clone(), app.block_info().time.seconds())];
     let current_metadata = TileMetadata {
         tile_id: token_id.clone(),
         pixels: pixels.clone(),
