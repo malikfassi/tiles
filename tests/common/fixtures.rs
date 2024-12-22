@@ -102,7 +102,7 @@ pub fn setup_test() -> Result<TestSetup, Box<dyn std::error::Error>> {
         &[Coin::new(100_000_000, NATIVE_DENOM)],
     );
 
-    let res = match mint_result {
+    let _res = match mint_result {
         Ok(res) => {
             println!("Token minted successfully");
             println!("Mint events:");

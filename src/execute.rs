@@ -81,7 +81,7 @@ pub fn execute_set_pixel_color(
 
             // Validate expiration duration
             let duration = pixel_update.expiration.saturating_sub(env.block.time.seconds());
-            if duration < MIN_EXPIRATION || duration > MAX_EXPIRATION {
+            if !(MIN_EXPIRATION..=MAX_EXPIRATION).contains(&duration) {
                 return Err(ContractError::InvalidExpiration {});
             }
 
