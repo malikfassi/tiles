@@ -24,11 +24,17 @@ pub enum ContractError {
     #[error("Message too large")]
     MessageTooLarge {},
 
+    #[error("Invalid fee percent")]
+    InvalidFeePercent {},
+
+    #[error("Invalid price")]
+    InvalidPrice {},
+
+    #[error("Invalid price scaling")]
+    InvalidPriceScaling {},
+
     #[error("Unauthorized")]
     Unauthorized {},
-
-    #[error("Invalid fee percent - must be between 0 and 100")]
-    InvalidFeePercent {},
 }
 
 impl From<sg721_base::ContractError> for ContractError {

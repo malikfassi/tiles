@@ -6,7 +6,8 @@ use sg_std::StargazeMsgWrapper;
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, SetPixelColorMsg, UpdateConfigMsg};
 use crate::state::{Extension, CONFIG};
-use crate::validation;
+use crate::validation::pixel;
+use crate::validation::config;
 use crate::defaults::pixels::default_tile_pixels;
 
 pub fn execute(
@@ -59,7 +60,7 @@ pub fn execute_set_pixel_color(
     msg: SetPixelColorMsg,
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
     // Validate message size
-    validation::validate_message_size(&msg)?;
+    pixel::validate_message_size(&msg)?;
 
     let contract: Sg721Contract<Extension> = Sg721Contract::default();
 
@@ -73,11 +74,14 @@ pub fn execute_set_pixel_color(
             .extension
             .verify_metadata(&update.tile_id, &update.current_metadata)?;
 
+        // Validate the current metadata structure
+        pixel::tile_metadata(&update.current_metadata)?;
+
         // Apply pixel updates
         let mut pixels = update.current_metadata.pixels;
         for pixel_update in update.updates.pixels {
             // Validate pixel update
-            validation::validate_pixel_update(
+            pixel::pixel_update(
                 pixel_update.id,
                 &pixel_update.color,
                 pixel_update.expiration,
@@ -125,7 +129,7 @@ pub fn execute_update_config(
     }
 
     // Validate config update
-    validation::validate_config_update(&msg)?;
+    config::validate_config_update(&msg)?;
 
     // Update config fields
     if let Some(dev_address) = msg.dev_address {
