@@ -1,5 +1,5 @@
 use cosmwasm_std::{Addr, Decimal, Uint128};
-use sg721::{CollectionInfo, RoyaltyInfoResponse};
+
 use tiles::state::PriceScaling;
 
 use crate::common::fixtures::{setup_test, TestSetup};
@@ -46,7 +46,7 @@ fn test_query_config() {
 fn test_update_config() {
     let Ok(TestSetup {
         mut app,
-        sender,
+        sender: _,
         factory: _,
         tiles,
     }) = setup_test() else {

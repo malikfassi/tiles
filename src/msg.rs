@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Binary, Decimal, Empty, Uint128};
+use cosmwasm_std::{Binary, Decimal, Uint128};
 use sg721::{CollectionInfo, RoyaltyInfoResponse};
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 
