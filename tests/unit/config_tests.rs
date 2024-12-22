@@ -1,4 +1,5 @@
 use cosmwasm_std::{Addr, Decimal, Uint128};
+use sg721::{CollectionInfo, RoyaltyInfoResponse};
 use tiles::state::PriceScaling;
 
 use crate::common::fixtures::{setup_test, TestSetup};
@@ -17,13 +18,23 @@ fn test_query_config() {
     // Query config
     let config = tiles.query_config(&app).unwrap();
 
-    // Verify config values
-    assert_eq!(config.admin, sender);
-    assert_eq!(config.dev_address, sender);
+    // Verify config values match defaults
+    assert_eq!(config.admin, Addr::unchecked("contract1"));
+    assert_eq!(config.minter, Addr::unchecked("contract1"));
+    assert_eq!(config.dev_address, Addr::unchecked("contract1"));
     assert_eq!(config.dev_fee_percent, Decimal::percent(5));
     assert_eq!(config.base_price, Uint128::from(100_000u128));
 
-    // Verify price scaling
+    // Verify collection info matches setup
+    assert_eq!(config.collection_info.creator, sender.to_string());
+    assert_eq!(config.collection_info.description, "Test collection");
+    assert_eq!(config.collection_info.image, "ipfs://test.png");
+    assert_eq!(config.collection_info.external_link, None);
+    assert_eq!(config.collection_info.explicit_content, None);
+    assert_eq!(config.collection_info.start_trading_time, None);
+    assert_eq!(config.collection_info.royalty_info, None);
+
+    // Verify default price scaling
     let price_scaling = config.price_scaling.unwrap();
     assert_eq!(price_scaling.hour_1_price, Uint128::from(100_000u128));
     assert_eq!(price_scaling.hour_12_price, Uint128::from(200_000u128));
@@ -35,7 +46,7 @@ fn test_query_config() {
 fn test_update_config() {
     let Ok(TestSetup {
         mut app,
-        sender: _,
+        sender,
         factory: _,
         tiles,
     }) = setup_test() else {
@@ -55,7 +66,7 @@ fn test_update_config() {
 
     let res = tiles.update_config(
         &mut app,
-        &initial_config.admin,
+        &Addr::unchecked("contract1"),
         None,
         None,
         None,
@@ -71,7 +82,7 @@ fn test_update_config() {
     assert_eq!(updated_config.dev_address, initial_config.dev_address);
     assert_eq!(updated_config.dev_fee_percent, initial_config.dev_fee_percent);
     assert_eq!(updated_config.base_price, initial_config.base_price);
-    assert_eq!(updated_config.price_scaling.unwrap(), new_price_scaling);
+    assert_eq!(updated_config.price_scaling, Some(new_price_scaling));
 }
 
 #[test]

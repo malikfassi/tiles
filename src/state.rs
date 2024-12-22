@@ -1,13 +1,11 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Decimal, Uint128, Empty};
+use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw_storage_plus::Item;
-use sg721::CollectionInfo;
+use sg721::{CollectionInfo, RoyaltyInfoResponse};
 use sha2::{Sha256, Digest};
 use hex;
 
-
-
-use crate::msg::TileUpdates;
+use crate::error::ContractError;
 
 pub const MAX_MESSAGE_SIZE: u32 = 128 * 1024;  // 128KB
 pub const MIN_EXPIRATION: u64 = 60;          // 1 minute
@@ -17,7 +15,22 @@ pub const DEFAULT_PIXEL_COLOR: &str = "#FFFFFF";  // White
 
 #[cw_serde]
 pub struct Extension {
-    pub tile_hash: String,
+    pub tile_hash: String,       // Hash of current off-chain metadata
+}
+
+#[cw_serde]
+pub struct PixelData {
+    pub id: u32,               // Position within tile (0 to pixels_per_tile-1)
+    pub color: String,         // Hex color (#RRGGBB)
+    pub expiration: u64,       // Timestamp when pixel expires
+    pub last_updated_by: Addr, // Address that last updated the pixel
+    pub last_updated_at: u64,  // Timestamp of last update
+}
+
+#[cw_serde]
+pub struct TileMetadata {
+    pub tile_id: String,
+    pub pixels: Vec<PixelData>,
 }
 
 impl Extension {
@@ -34,75 +47,13 @@ impl Extension {
         hex::encode(hasher.finalize())
     }
 
-    pub fn verify_metadata(&self, tile_id: &str, metadata: &TileMetadata) -> Result<(), crate::error::ContractError> {
+    pub fn verify_metadata(&self, tile_id: &str, metadata: &TileMetadata) -> Result<(), ContractError> {
         let current_hash = Self::generate_hash(tile_id, &metadata.pixels);
         if current_hash != self.tile_hash {
-            return Err(crate::error::ContractError::HashMismatch {});
+            return Err(ContractError::HashMismatch {});
         }
         Ok(())
     }
-
-    pub fn apply_updates(
-        &self,
-        current_metadata: &TileMetadata,
-        updates: &TileUpdates,
-        sender: &Addr,
-        current_time: u64,
-    ) -> Result<String, crate::error::ContractError> {
-        let mut new_metadata = current_metadata.clone();
-
-        // Apply each pixel update
-        for update in &updates.pixels {
-            // Find and update pixel
-            let pixel = new_metadata.pixels
-                .iter_mut()
-                .find(|p| p.id == update.id)
-                .ok_or(crate::error::ContractError::InvalidPixelUpdate {})?;
-
-            // Update pixel
-            pixel.color = update.color.clone();
-            pixel.expiration = update.expiration;
-            pixel.last_updated_by = sender.clone();
-            pixel.last_updated_at = current_time;
-        }
-
-        // Generate new hash
-        Ok(Self::generate_hash(&current_metadata.tile_id, &new_metadata.pixels))
-    }
-}
-
-#[cw_serde]
-pub struct Config {
-    pub admin: Addr,
-    pub minter: Addr,
-    pub collection_info: CollectionInfo<Empty>,
-    pub dev_address: Addr,
-    pub dev_fee_percent: Decimal,
-    pub base_price: Uint128,
-    pub price_scaling: Option<PriceScaling>,
-}
-
-#[cw_serde]
-pub struct PriceScaling {
-    pub hour_1_price: Uint128,
-    pub hour_12_price: Uint128,
-    pub hour_24_price: Uint128,
-    pub quadratic_base: Uint128,
-}
-
-#[cw_serde]
-pub struct TileMetadata {
-    pub tile_id: String,
-    pub pixels: Vec<PixelData>,
-}
-
-#[cw_serde]
-pub struct PixelData {
-    pub id: u32,
-    pub color: String,
-    pub expiration: u64,
-    pub last_updated_by: Addr,
-    pub last_updated_at: u64,
 }
 
 impl PixelData {
@@ -115,6 +66,25 @@ impl PixelData {
             last_updated_at: creation_time,
         }
     }
+}
+
+#[cw_serde]
+pub struct Config {
+    pub admin: Addr,          // Contract admin
+    pub minter: Addr,         // Minting contract address
+    pub collection_info: CollectionInfo<RoyaltyInfoResponse>, // Collection info
+    pub dev_address: Addr,    // Developer fee recipient
+    pub dev_fee_percent: Decimal,  // Fee on pixel updates (e.g., 5%)
+    pub base_price: Uint128,  // Base price per pixel
+    pub price_scaling: Option<PriceScaling>,  // Price scaling parameters
+}
+
+#[cw_serde]
+pub struct PriceScaling {
+    pub hour_1_price: Uint128,    // ≤1 hour price
+    pub hour_12_price: Uint128,   // ≤12 hours price
+    pub hour_24_price: Uint128,   // ≤24 hours price
+    pub quadratic_base: Uint128,  // Base for >24 hours
 }
 
 pub const CONFIG: Item<Config> = Item::new("config");

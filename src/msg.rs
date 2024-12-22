@@ -1,26 +1,27 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Binary, Decimal, Uint128, Empty};
+use cosmwasm_std::{Binary, Decimal, Empty, Uint128};
+use sg721::{CollectionInfo, RoyaltyInfoResponse};
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
-use sg721::{CollectionInfo, ExecuteMsg as Sg721ExecuteMsg};
 
-
-use crate::state::{PriceScaling, TileMetadata, Extension};
+use crate::state::{PriceScaling, Extension, TileMetadata};
 
 #[cw_serde]
 pub struct InstantiateMsg {
     pub name: String,
     pub symbol: String,
     pub minter: String,
-    pub collection_info: CollectionInfo<Empty>,
-    pub dev_address: String,
-    pub dev_fee_percent: Decimal,
-    pub base_price: Uint128,
-    pub price_scaling: Option<PriceScaling>,
+    pub collection_info: CollectionInfo<RoyaltyInfoResponse>,
 }
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    Sg721Base(Sg721ExecuteMsg<Extension, Empty>),
+    #[serde(rename = "mint")]
+    Mint {
+        token_id: String,
+        owner: String,
+        token_uri: Option<String>,
+        extension: Option<Extension>,
+    },
     SetPixelColor(SetPixelColorMsg),
     UpdateConfig(UpdateConfigMsg),
 }
