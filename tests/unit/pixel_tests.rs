@@ -28,7 +28,7 @@ fn test_set_pixel_color() {
     println!("Using token ID: {}", token_id);
 
     // Create initial pixels state (matches what was set during mint)
-    let pixels = default_tile_pixels(sender.clone(), app.block_info().time.seconds());
+    let pixels = default_tile_pixels(&sender, app.block_info().time.seconds());
 
     let current_metadata = TileMetadata {
         tile_id: token_id.clone(),
@@ -78,7 +78,7 @@ fn test_set_pixel_color_invalid_color() {
     let token_id = tokens[0].clone();
 
     // Create initial pixels state
-    let pixels = vec![default_pixel(0, sender.clone(), app.block_info().time.seconds())];
+    let pixels = vec![default_pixel(0, &sender, app.block_info().time.seconds())];
     let current_metadata = TileMetadata {
         tile_id: token_id.clone(),
         pixels: pixels.clone(),
@@ -124,7 +124,7 @@ fn test_set_pixel_color_invalid_expiration() {
     let token_id = tokens[0].clone();
 
     // Create initial pixels state
-    let pixels = vec![default_pixel(0, sender.clone(), app.block_info().time.seconds())];
+    let pixels = vec![default_pixel(0, &sender, app.block_info().time.seconds())];
     let current_metadata = TileMetadata {
         tile_id: token_id.clone(),
         pixels: pixels.clone(),
@@ -170,7 +170,7 @@ fn test_set_pixel_color_insufficient_funds() {
     let token_id = tokens[0].clone();
 
     // Create initial pixels state
-    let pixels = vec![default_pixel(0, sender.clone(), app.block_info().time.seconds())];
+    let pixels = vec![default_pixel(0, &sender, app.block_info().time.seconds())];
     let current_metadata = TileMetadata {
         tile_id: token_id.clone(),
         pixels: pixels.clone(),
@@ -216,7 +216,7 @@ fn test_set_pixel_color_message_too_large() {
     let token_id = tokens[0].clone();
 
     // Create initial pixels state
-    let pixels = vec![default_pixel(0, sender.clone(), app.block_info().time.seconds())];
+    let pixels = vec![default_pixel(0, &sender, app.block_info().time.seconds())];
     let current_metadata = TileMetadata {
         tile_id: token_id.clone(),
         pixels: pixels.clone(),

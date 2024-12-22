@@ -27,16 +27,15 @@ pub fn default_base_price() -> Uint128 {
 
 // Used in tests to create a default config
 pub fn mock_config(
-    admin: Addr,
-    minter: Addr,
+    admin: &Addr,
+    minter: &Addr,
     collection_info: sg721::CollectionInfo<RoyaltyInfoResponse>,
 ) -> Config {
-    let admin = admin.clone(); // Clone admin first
     Config {
         admin: admin.clone(),
-        minter,
+        minter: minter.clone(),
         collection_info,
-        dev_address: admin, // Use the cloned admin
+        dev_address: admin.clone(),  // Use admin as dev address
         dev_fee_percent: default_dev_fee_percent(),
         base_price: default_base_price(),
         price_scaling: Some(default_price_scaling()),

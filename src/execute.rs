@@ -30,7 +30,7 @@ pub fn execute(
             let creation_time = env.block.time.seconds();
 
             // Create default pixels using the defaults module
-            let pixels = default_tile_pixels(owner_addr.clone(), creation_time);
+            let pixels = default_tile_pixels(&owner_addr, creation_time);
 
             // Initialize extension with just the hash
             let extension = Extension {
