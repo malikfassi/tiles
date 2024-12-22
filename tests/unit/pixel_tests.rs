@@ -1,4 +1,4 @@
-use cosmwasm_std::Coin;
+use cosmwasm_std::{coin, Coin, StdResult};
 
 use tiles::defaults::pixels::{default_pixel, default_tile_pixels};
 use tiles::msg::{PixelUpdate, SetPixelColorMsg, TileUpdate, TileUpdates};
@@ -21,7 +21,7 @@ fn test_set_pixel_color() {
     // Find the token ID by querying owner's tokens
     let tokens = tiles
         .query_tokens(&app, sender.to_string(), None, None)
-        .unwrap();
+        .expect("Failed to query tokens");
     println!("Owner's tokens: {:?}", tokens);
     assert!(!tokens.is_empty(), "Owner should have at least one token");
     let token_id = tokens[0].clone();
@@ -51,7 +51,7 @@ fn test_set_pixel_color() {
         max_message_size: 1024,
     };
 
-    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![Coin::new(100_000, "ustars")]);
+    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![coin(100_000, "ustars")]);
     if let Err(e) = &res {
         println!("Error setting pixel color: {:?}", e);
     }
@@ -73,7 +73,7 @@ fn test_set_pixel_color_invalid_color() {
     // Find the token ID by querying owner's tokens
     let tokens = tiles
         .query_tokens(&app, sender.to_string(), None, None)
-        .unwrap();
+        .expect("Failed to query tokens");
     assert!(!tokens.is_empty(), "Owner should have at least one token");
     let token_id = tokens[0].clone();
 
@@ -100,7 +100,7 @@ fn test_set_pixel_color_invalid_color() {
         max_message_size: 1024,
     };
 
-    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![Coin::new(100_000, "ustars")]);
+    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![coin(100_000, "ustars")]);
     assert!(res.is_err());
 }
 
@@ -119,7 +119,7 @@ fn test_set_pixel_color_invalid_expiration() {
     // Find the token ID by querying owner's tokens
     let tokens = tiles
         .query_tokens(&app, sender.to_string(), None, None)
-        .unwrap();
+        .expect("Failed to query tokens");
     assert!(!tokens.is_empty(), "Owner should have at least one token");
     let token_id = tokens[0].clone();
 
@@ -146,7 +146,7 @@ fn test_set_pixel_color_invalid_expiration() {
         max_message_size: 1024,
     };
 
-    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![Coin::new(100_000, "ustars")]);
+    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![coin(100_000, "ustars")]);
     assert!(res.is_err());
 }
 
@@ -165,7 +165,7 @@ fn test_set_pixel_color_insufficient_funds() {
     // Find the token ID by querying owner's tokens
     let tokens = tiles
         .query_tokens(&app, sender.to_string(), None, None)
-        .unwrap();
+        .expect("Failed to query tokens");
     assert!(!tokens.is_empty(), "Owner should have at least one token");
     let token_id = tokens[0].clone();
 
@@ -192,7 +192,7 @@ fn test_set_pixel_color_insufficient_funds() {
         max_message_size: 1024,
     };
 
-    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![Coin::new(1, "ustars")]);
+    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![coin(1, "ustars")]);
     assert!(res.is_err());
 }
 
@@ -211,7 +211,7 @@ fn test_set_pixel_color_message_too_large() {
     // Find the token ID by querying owner's tokens
     let tokens = tiles
         .query_tokens(&app, sender.to_string(), None, None)
-        .unwrap();
+        .expect("Failed to query tokens");
     assert!(!tokens.is_empty(), "Owner should have at least one token");
     let token_id = tokens[0].clone();
 
@@ -238,6 +238,6 @@ fn test_set_pixel_color_message_too_large() {
         max_message_size: 128 * 1024 + 1, // > 128KB
     };
 
-    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![Coin::new(100_000, "ustars")]);
+    let res = tiles.set_pixel_color(&mut app, &sender, msg, vec![coin(100_000, "ustars")]);
     assert!(res.is_err());
 }

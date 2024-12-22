@@ -20,7 +20,7 @@ pub fn mock_app() -> (StargazeApp, Addr) {
             vec![Coin::new(1_000_000_000, NATIVE_DENOM)],
         )
     })
-    .unwrap();
+    .expect("Failed to init modules");
 
     (app, sender)
 }
