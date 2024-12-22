@@ -31,7 +31,7 @@ fn test_query_config() {
     assert_eq!(config.collection_info.image, "ipfs://test.png");
     assert_eq!(config.collection_info.external_link, None);
     assert_eq!(config.collection_info.explicit_content, None);
-    assert_eq!(config.collection_info.start_trading_time, None);
+    assert!(config.collection_info.start_trading_time.is_some());
     assert_eq!(config.collection_info.royalty_info, None);
 
     // Verify default price scaling

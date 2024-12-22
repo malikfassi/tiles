@@ -79,8 +79,9 @@ pub fn execute_set_pixel_color(
                 return Err(ContractError::InvalidColorFormat {});
             }
 
-            // Validate expiration
-            if pixel_update.expiration < MIN_EXPIRATION || pixel_update.expiration > MAX_EXPIRATION {
+            // Validate expiration duration
+            let duration = pixel_update.expiration.saturating_sub(env.block.time.seconds());
+            if duration < MIN_EXPIRATION || duration > MAX_EXPIRATION {
                 return Err(ContractError::InvalidExpiration {});
             }
 
