@@ -4,3 +4,6 @@ vendor/
 /.history
 .DS_Store
 /.vscode
+
+# windsurf rules
+.windsurfrules

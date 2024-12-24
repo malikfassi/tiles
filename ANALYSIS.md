@@ -1,320 +1,112 @@
-# Tiles NFT Project - Implementation Specification
+# Tiles NFT Project Codebase Analysis
 
-## 1. Contract Architecture
+## Project Structure 
 
-### 1.1. Dependencies & Setup
-```toml
-[package]
-name = "tiles"
-version = "0.1.0"
-edition = "2021"
-description = "A Stargaze NFT collection with customizable tile colors"
-license = "Apache-2.0"
-rust-version = "1.73.0"
+## File Analysis
 
-[dependencies]
-cosmwasm-schema = "1.5.0"
-cosmwasm-std = "1.5.0"
-cw-storage-plus = "1.2.0"
-cw2 = "1.1.2"
-cw721 = "0.18.0"
-cw721-base = { version = "0.18.0", features = ["library"] }
-schemars = "0.8.15"
-serde = { version = "1.0.195", default-features = false, features = ["derive"] }
-sg721 = "3.15.0"
-sg721-base = "3.15.0"
-sg2 = "3.15.0"
-sg-std = "3.2.0"
-thiserror = "1.0.56"
-sha2 = { version = "0.10.8", default-features = false }
-```
+### src/lib.rs
+**Description**: Main contract implementation file containing core NFT tile functionality
+**Scope**: Contract implementation
+**Objects**:
+- Structs:
+  - `Contract` - Main contract struct
+  - `TileState` - On-chain tile state
+  - `Config` - Contract configuration
+  - `PriceScaling` - Price scaling parameters
+- Messages:
+  - `ExecuteMsg` - Contract execution messages
+  - `QueryMsg` - Contract query messages
+  - `InstantiateMsg` - Contract initialization
+- Functions:
+  - `execute_set_pixel_color` - Main pixel update logic
+  - `apply_updates` - Helper for applying pixel updates
+  - `validate_color` - Color format validation
+  - `validate_expiration` - Expiration time validation
 
-### 1.2. State Management
-```rust
-// Extension type for storing tile data in sg721 token
-#[cw_serde]
-pub struct Extension {
-    pub tile_hash: String,  // Hash of current off-chain metadata
-}
+### tests/mod.rs
+**Description**: Root test module organizing test structure
+**Scope**: Test organization
+**Objects**:
+- Modules:
+  - `common` - Common test utilities
+  - `unit` - Unit test cases
 
-// Configuration (stored on-chain)
-pub struct Config {
-    pub admin: Addr,          // Contract admin
-    pub minter: Addr,         // Minting contract address
-    pub collection_info: CollectionInfo<RoyaltyInfoResponse>, // Collection info
-    pub dev_address: Addr,    // Developer fee recipient
-    pub dev_fee_percent: Decimal,  // Fee on pixel updates (e.g., 5%)
-    pub base_price: Uint128,  // Base price per pixel
-    pub price_scaling: Option<PriceScaling>,  // Price scaling parameters
-}
+### tests/common/mod.rs
+**Description**: Common test utilities module definition
+**Scope**: Test utilities
+**Objects**:
+- Modules:
+  - `mock` - Mock data generation
+  - `tiles_contract` - Contract test helpers
+  - `vending_factory` - Factory integration helpers
 
-// Price scaling configuration
-pub struct PriceScaling {
-    pub hour_1_price: Uint128,    // ≤1 hour price
-    pub hour_12_price: Uint128,   // ≤12 hours price
-    pub hour_24_price: Uint128,   // ≤24 hours price
-    pub quadratic_base: Uint128,  // Base for >24 hours
-}
+### tests/common/mock.rs
+**Description**: Mock data generation for testing
+**Scope**: Test data
+**Objects**:
+- Functions:
+  - `mock_config` - Generate test configuration
+  - `mock_tile_state` - Generate test tile state
+  - `mock_pixel_updates` - Generate test pixel updates
 
-// Constants
-pub const PIXELS_PER_TILE: u32 = 100;
-pub const MAX_MESSAGE_SIZE: u32 = 128 * 1024;  // 128KB
-pub const NATIVE_DENOM: &str = "ustars";
-pub const MIN_EXPIRATION: u64 = 60;          // 1 minute
-pub const MAX_EXPIRATION: u64 = 31_536_000;  // 1 year
-pub const DEFAULT_PIXEL_COLOR: &str = "#FFFFFF";  // White
-```
+### tests/common/tiles_contract.rs
+**Description**: Test helpers for tiles contract interaction
+**Scope**: Contract testing
+**Objects**:
+- Structs:
+  - `TilesContract` - Test contract wrapper
+- Functions:
+  - `instantiate_tiles` - Test contract instantiation
+  - `execute_update` - Test pixel updates
+  - `query_state` - Test state queries
 
-### 1.3. Messages & Entry Points
-```rust
-// Execute messages
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum ExecuteMsg {
-    // Standard sg721 messages
-    Mint {
-        token_id: String,
-        owner: String,
-        token_uri: String,
-        extension: Option<Extension>,
-    },
-    
-    // Custom messages
-    SetPixelColor(SetPixelColorMsg),
-    UpdateConfig(UpdateConfigMsg),
-}
+### tests/common/vending_factory.rs
+**Description**: Test helpers for factory integration
+**Scope**: Factory integration testing
+**Objects**:
+- Structs:
+  - `VendingFactory` - Factory test wrapper
+- Functions:
+  - `deploy_collection` - Test collection deployment
+  - `mint_tile` - Test tile minting
 
-// Query messages
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum QueryMsg {
-    // Standard sg721 queries
-    #[serde(flatten)]
-    Sg721Base(Sg721QueryMsg),
-    
-    // Custom queries
-    Config {},
-}
+### tests/unit/mod.rs
+**Description**: Unit test module organization
+**Scope**: Unit tests
+**Objects**:
+- Modules:
+  - `hash_tests` - Hash verification tests
 
-// Instantiate message
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct InstantiateMsg {
-    // Standard sg721 fields (set by vending minter)
-    pub name: String,
-    pub symbol: String,
-    pub minter: String,
-    pub collection_info: CollectionInfo<RoyaltyInfoResponse>,
-    
-    // Our custom config
-    pub dev_address: String,
-    pub dev_fee_percent: Decimal,
-    pub base_price: Uint128,
-    pub price_scaling: Option<PriceScaling>,
-}
-```
+### tests/unit/hash_tests.rs
+**Description**: Tests for hash verification functionality
+**Scope**: Hash verification testing
+**Objects**:
+- Test Functions:
+  - `test_hash_generation`
+  - `test_hash_verification`
+  - `test_hash_mismatch`
 
-### 1.4. Error Handling
-```rust
-#[derive(Error, Debug, PartialEq)]
-pub enum ContractError {
-    #[error("{0}")]
-    Std(#[from] StdError),
+### Cargo.toml
+**Description**: Project configuration and dependencies
+**Scope**: Project setup
+**Objects**:
+- Dependencies:
+  - cosmwasm-std
+  - cw-storage-plus
+  - sg721
+  - Other core dependencies
+- Features:
+  - backtraces
+  - library
 
-    #[error("{0}")]
-    Sg721Error(#[from] Sg721ContractError),
+### .gitignore
+**Description**: Git ignore configuration
+**Scope**: Version control
+**Objects**:
+- Ignore patterns:
+  - Build artifacts
+  - IDE files
+  - System files
+  - Dependencies
 
-    #[error("Hash mismatch - state has been modified")]
-    HashMismatch {},
-
-    #[error("Invalid pixel update")]
-    InvalidPixelUpdate {},
-
-    #[error("Invalid color format")]
-    InvalidColorFormat {},
-
-    #[error("Invalid expiration")]
-    InvalidExpiration {},
-
-    #[error("Message too large")]
-    MessageTooLarge {},
-
-    #[error("Unauthorized")]
-    Unauthorized {},
-}
-```
-
-## 2. Core Features
-
-### 2.1. Pixel Management
-```rust
-// Off-chain metadata structure
-pub struct TileMetadata {
-    pub tile_id: String,
-    pub pixels: Vec<PixelData>,
-}
-
-// Update-specific metadata structure (optimized size)
-pub struct TileUpdates {
-    pub pixels: Vec<PixelUpdate>,  // Only pixels being updated
-}
-
-pub struct PixelData {
-    pub id: u32,               // Position within tile (0 to pixels_per_tile-1)
-    pub color: String,         // Hex color (#RRGGBB)
-    pub expiration: u64,       // Timestamp when pixel expires
-    pub last_updated_by: Addr, // Address that last updated the pixel
-    pub last_updated_at: u64,  // Timestamp of last update
-}
-
-pub struct PixelUpdate {
-    pub id: u32,               // Position to update
-    pub color: String,         // New color
-    pub expiration: u64,       // New expiration
-}
-
-// Update message
-pub struct SetPixelColorMsg {
-    pub updates: Vec<TileUpdate>,    // Multiple tiles can be updated
-    pub max_message_size: u32,       // Maximum message size in bytes
-}
-
-pub struct TileUpdate {
-    pub tile_id: String,
-    pub current_metadata: TileMetadata,  // For hash verification
-    pub updates: TileUpdates,            // Only the pixels being changed
-}
-
-impl PixelData {
-    pub fn new_at_mint(id: u32, owner: Addr, creation_time: u64) -> Self {
-        Self {
-            id,
-            color: DEFAULT_PIXEL_COLOR.to_string(),
-            expiration: creation_time,
-            last_updated_by: owner,
-            last_updated_at: creation_time,
-        }
-    }
-}
-```
-
-### 2.2. Constants & Validation
-```rust
-// Compile-time constants
-pub const PIXELS_PER_TILE: u32 = 100;
-pub const MAX_MESSAGE_SIZE: u32 = 128 * 1024;  // 128KB
-pub const NATIVE_DENOM: &str = "ustars";
-pub const MIN_EXPIRATION: u64 = 60;          // 1 minute
-pub const MAX_EXPIRATION: u64 = 31_536_000;  // 1 year
-
-// Validation functions
-fn validate_color(color: &str) -> Result<(), ContractError> {
-    if !color.starts_with('#') || color.len() != 7 {
-        return Err(ContractError::InvalidColorFormat {});
-    }
-    if !color[1..].chars().all(|c| c.is_ascii_hexdigit()) {
-        return Err(ContractError::InvalidColorFormat {});
-    }
-    Ok(())
-}
-
-fn validate_expiration(expiration: u64) -> Result<(), ContractError> {
-    if expiration < MIN_EXPIRATION || expiration > MAX_EXPIRATION {
-        return Err(ContractError::InvalidExpiration {});
-    }
-    Ok(())
-}
-```
-
-### 2.3. Hash Verification
-```rust
-impl Extension {
-    pub fn generate_hash(tile_id: &str, pixels: &[PixelData]) -> String {
-        let mut hasher = Sha256::new();
-        hasher.update(tile_id.as_bytes());
-        for pixel in pixels {
-            hasher.update(pixel.id.to_be_bytes());
-            hasher.update(pixel.color.as_bytes());
-            hasher.update(pixel.expiration.to_be_bytes());
-            hasher.update(pixel.last_updated_by.as_bytes());
-            hasher.update(pixel.last_updated_at.to_be_bytes());
-        }
-        hex::encode(hasher.finalize())
-    }
-
-    pub fn verify_metadata(&self, tile_id: &str, metadata: &TileMetadata) -> Result<(), ContractError> {
-        let current_hash = Self::generate_hash(tile_id, &metadata.pixels);
-        if current_hash != self.tile_hash {
-            return Err(ContractError::HashMismatch {});
-        }
-        Ok(())
-    }
-}
-```
-
-### 2.4. Fee Calculation
-```rust
-impl Config {
-    // Calculate price based on expiration time
-    pub fn calculate_pixel_price(&self, expiration_hours: u64) -> Uint128 {
-        match expiration_hours {
-            0..=1 => self.price_scaling.hour_1_price,
-            2..=12 => self.price_scaling.hour_12_price,
-            13..=24 => self.price_scaling.hour_24_price,
-            _ => {
-                // Quadratic scaling for >24h
-                let seconds = expiration_hours * 3600;
-                self.price_scaling.quadratic_base + 
-                    Uint128::from(seconds).pow(2) / Uint128::from(1_000_000u128)
-            }
-        }
-    }
-
-    // Calculate total fees for updates
-    pub fn calculate_fees(
-        &self,
-        updates: &TileUpdates,
-    ) -> StdResult<(Uint128, Uint128)> {
-        let mut total_amount = Uint128::zero();
-
-        // Sum up price for each pixel update
-        for update in &updates.pixels {
-            let hours = (update.expiration - MIN_EXPIRATION) / 3600;
-            total_amount += self.calculate_pixel_price(hours);
-        }
-
-        // Calculate fee split
-        let dev_fee = total_amount * self.dev_fee_percent;
-        let owner_payment = total_amount - dev_fee;
-
-        Ok((dev_fee, owner_payment))
-    }
-}
-```
-
-## 3. Integration with sg721-base
-
-The contract is now properly integrated with sg721-base, inheriting its NFT functionality while extending it with tile-specific features:
-
-### 3.1. State Management
-- The contract inherits from `Sg721Contract<Extension>` to leverage standard NFT functionality
-- Tile data is stored off-chain, with only the hash stored in the NFT token's extension
-- Configuration is managed separately from the base contract
-
-### 3.2. Message Handling
-- Base NFT messages (mint, transfer, etc.) are handled through the sg721 implementation
-- Custom messages for tile updates are added while maintaining compatibility
-- Query messages support both standard NFT queries and tile-specific data
-
-### 3.3. Error Handling
-- Errors from the base contract are properly propagated and converted
-- Custom errors for tile operations are maintained
-- All errors follow the standard CosmWasm error pattern
-
-### 3.4. Benefits of Integration
-1. **Standard Compliance**: Full compatibility with Stargaze NFT standards
-2. **Efficient Storage**: Only tile hashes are stored on-chain
-3. **Type Safety**: Extension type ensures proper data handling
-4. **Maintainability**: Clear separation between base and custom functionality
-5. **Ecosystem Integration**: Works seamlessly with Stargaze tools and interfaces
-
-This integration ensures that our contract maintains compatibility with the Stargaze ecosystem while adding the custom functionality needed for tile management.
+This analysis provides a comprehensive overview of the project structure and the purpose/content of each file. The codebase follows a clean separation of concerns between contract implementation, testing utilities, and integration tests.

@@ -1,165 +1,53 @@
-use cosmwasm_std::{coin, Coin, StdResult};
+use cosmwasm_std::Coin;
+use cw721::TokensResponse;
+use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 
-use tiles::defaults::constants::{
-    MAX_PIXEL_UPDATES_PER_TILE, MAX_TILE_UPDATES_PER_MESSAGE,
-};
-use tiles::msg::{SetPixelColorMsg, TileUpdate, TileUpdates};
-
-use crate::common::fixtures::TestSetup;
+use crate::common::{fixtures::setup_test, NATIVE_DENOM};
 
 #[test]
-fn test_set_pixel_color() {
-    let Ok(TestSetup {
-        mut app,
-        sender,
-        factory: _,
-        tiles,
-    }) = TestSetup::new()
-    else {
-        panic!("Failed to setup test");
-    };
+fn test_set_pixel_color() -> anyhow::Result<()> {
+    let mut setup = setup_test()?;
 
-    // Create update message
-    let msg = SetPixelColorMsg {
-        updates: vec![TileUpdate {
-            tile_id: "1".to_string(),
-            current_metadata: tiles.default_tile_metadata("1", &sender, app.block_info().time.seconds()),
-            updates: TileUpdates {
-                pixels: vec![tiles.default_pixel_update(0)],
-            },
-        }],
-    };
+    // Query all tokens
+    let tokens: TokensResponse = setup.app.wrap().query_wasm_smart(
+        setup.tiles.contract_addr.clone(),
+        &tiles::contract::msg::QueryMsg::Sg721(
+            Sg721QueryMsg::Tokens {
+                owner: setup.sender.to_string(),
+                start_after: None,
+                limit: None,
+            }
+        ),
+    )?;
 
-    // Execute update
-    let res = tiles.set_pixel_color(&mut app, &sender, msg);
-    assert!(res.is_ok());
-}
+    assert_eq!(tokens.tokens.len(), 1);
+    let token_id = tokens.tokens[0].clone();
 
-#[test]
-fn test_set_pixel_color_multiple_tiles() {
-    let Ok(TestSetup {
-        mut app,
-        sender,
-        factory: _,
-        tiles,
-    }) = TestSetup::new()
-    else {
-        panic!("Failed to setup test");
-    };
+    // Set pixel color
+    setup.tiles.set_pixel_color(
+        &mut setup.app,
+        &setup.sender,
+        token_id.clone(),
+        "#FF0000".to_string(),
+        0,
+        60,
+        vec![Coin::new(100_000_000, NATIVE_DENOM)],
+    )?;
 
-    let timestamp = app.block_info().time.seconds();
+    // Query pixel state
+    let state: tiles::contract::msg::PixelStateResponse = setup.app.wrap().query_wasm_smart(
+        setup.tiles.contract_addr,
+        &tiles::contract::msg::QueryMsg::Extension(
+            tiles::contract::msg::Extension::PixelState {
+                token_id,
+                position: 0,
+            }
+        ),
+    )?;
 
-    // Create update message
-    let msg = SetPixelColorMsg {
-        updates: vec![
-            TileUpdate {
-                tile_id: "1".to_string(),
-                current_metadata: tiles.default_tile_metadata("1", &sender, timestamp),
-                updates: TileUpdates {
-                    pixels: vec![tiles.default_pixel_update(0)],
-                },
-            },
-            TileUpdate {
-                tile_id: "2".to_string(),
-                current_metadata: tiles.default_tile_metadata("2", &sender, timestamp),
-                updates: TileUpdates {
-                    pixels: vec![tiles.default_pixel_update(0)],
-                },
-            },
-        ],
-    };
+    assert_eq!(state.color, "#FF0000");
+    assert_eq!(state.position, 0);
+    assert!(state.expiration > 0);
 
-    // Execute update
-    let res = tiles.set_pixel_color(&mut app, &sender, msg);
-    assert!(res.is_ok());
-}
-
-#[test]
-fn test_set_pixel_color_multiple_pixels() {
-    let Ok(TestSetup {
-        mut app,
-        sender,
-        factory: _,
-        tiles,
-    }) = TestSetup::new()
-    else {
-        panic!("Failed to setup test");
-    };
-
-    // Create update message
-    let msg = SetPixelColorMsg {
-        updates: vec![TileUpdate {
-            tile_id: "1".to_string(),
-            current_metadata: tiles.default_tile_metadata("1", &sender, app.block_info().time.seconds()),
-            updates: TileUpdates {
-                pixels: vec![tiles.default_pixel_update(0), tiles.default_pixel_update(1)],
-            },
-        }],
-    };
-
-    // Execute update
-    let res = tiles.set_pixel_color(&mut app, &sender, msg);
-    assert!(res.is_ok());
-}
-
-#[test]
-fn test_set_pixel_color_too_many_pixels() {
-    let Ok(TestSetup {
-        mut app,
-        sender,
-        factory: _,
-        tiles,
-    }) = TestSetup::new()
-    else {
-        panic!("Failed to setup test");
-    };
-
-    // Create update message with too many pixels
-    let msg = SetPixelColorMsg {
-        updates: vec![TileUpdate {
-            tile_id: "1".to_string(),
-            current_metadata: tiles.default_tile_metadata("1", &sender, app.block_info().time.seconds()),
-            updates: TileUpdates {
-                pixels: (0..MAX_PIXEL_UPDATES_PER_TILE + 1)
-                    .map(|id| tiles.default_pixel_update(id as u32))
-                    .collect(),
-            },
-        }],
-    };
-
-    // Execute update
-    let res = tiles.set_pixel_color(&mut app, &sender, msg);
-    assert!(res.is_err());
-}
-
-#[test]
-fn test_set_pixel_color_too_many_tiles() {
-    let Ok(TestSetup {
-        mut app,
-        sender,
-        factory: _,
-        tiles,
-    }) = TestSetup::new()
-    else {
-        panic!("Failed to setup test");
-    };
-
-    let timestamp = app.block_info().time.seconds();
-
-    // Create update message with too many tiles
-    let msg = SetPixelColorMsg {
-        updates: (0..MAX_TILE_UPDATES_PER_MESSAGE + 1)
-            .map(|id| TileUpdate {
-                tile_id: id.to_string(),
-                current_metadata: tiles.default_tile_metadata(&id.to_string(), &sender, timestamp),
-                updates: TileUpdates {
-                    pixels: vec![tiles.default_pixel_update(0)],
-                },
-            })
-            .collect(),
-    };
-
-    // Execute update
-    let res = tiles.set_pixel_color(&mut app, &sender, msg);
-    assert!(res.is_err());
+    Ok(())
 }
