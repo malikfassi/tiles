@@ -7,7 +7,7 @@ fn test_update_pixel() {
     let owner = Addr::unchecked("creator");
 
     // Mint a token through the minter and get the response
-    let mint_response = setup
+    let _mint_response = setup
         .tiles
         .mint_through_minter(&mut setup.app, &owner, &setup.minter)
         .unwrap();

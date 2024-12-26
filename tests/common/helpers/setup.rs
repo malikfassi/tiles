@@ -1,9 +1,9 @@
 use crate::common::{
-    constants::{CREATION_FEE, MINT_PRICE, NATIVE_DENOM},
+    constants::{MINT_PRICE, NATIVE_DENOM},
     contracts::{tiles::TilesContract, vending::VendingContract},
     test_module::TilesApp as App,
 };
-use cosmwasm_std::{Addr, BlockInfo, Coin, Timestamp};
+use cosmwasm_std::{Addr, Coin, Timestamp};
 use cw_multi_test::ContractWrapper;
 use sg2::msg::CollectionParams;
 use sg721::CollectionInfo;
@@ -44,7 +44,7 @@ impl TestSetup {
 
         // Set block time to genesis + 2 days
         let mut block = app.block_info();
-        let new_time = GENESIS_MINT_START_TIME + 2 * 86400_000_000_000u64;
+        let new_time = GENESIS_MINT_START_TIME + 2 * 86_400_000_000_000_u64;
         block.time = Timestamp::from_nanos(new_time);
         println!(
             "Setting block time to genesis + 2 days: {} ({} nanos)",
@@ -136,7 +136,7 @@ impl TestSetup {
         let init_msg = VendingMinterInitMsgExtension {
             base_token_uri: "ipfs://test/".to_string(),
             payment_address: None,
-            start_time: Timestamp::from_nanos(new_time + 86400_000_000_000u64), // Set start time to current block time + 1 day
+            start_time: Timestamp::from_nanos(new_time + 86_400_000_000_000_u64), // Set start time to current block time + 1 day
             num_tokens: 100,
             mint_price: Coin::new(MINT_PRICE, NATIVE_DENOM),
             per_address_limit: 3,
