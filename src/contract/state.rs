@@ -24,4 +24,3 @@ impl Default for Config {
 }
 
 pub const CONFIG: Item<Config> = Item::new("config");
-pub const SG721_ADDRESS: Item<Addr> = Item::new("sg721_address");

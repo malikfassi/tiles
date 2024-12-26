@@ -1,9 +1,12 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use sg721_base::{msg::NftParams, Sg721Contract};
+use cosmwasm_std::{DepsMut, Empty, Env, MessageInfo, Response, to_json_binary};
+use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
 use crate::{
-    contract::error::ContractError,
+    contract::{
+        error::ContractError,
+        msg::Sg721ExecuteMsg,
+    },
     core::tile::{metadata::TileMetadata, Tile},
 };
 
@@ -14,25 +17,28 @@ pub fn mint_handler(
     token_id: String,
     owner: String,
     token_uri: Option<String>,
-    extension: Option<Tile>,
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
     let contract: Sg721Contract<Tile> = Sg721Contract::default();
 
-    // Set default metadata if none provided
-    let extension = extension.unwrap_or_else(|| Tile {
+    // Generate our own extension
+    let extension = Tile {
         tile_hash: TileMetadata::default().hash(),
-    });
+    };
+
+    // Create mint message with our Tile extension
+    let mint_msg = Sg721ExecuteMsg::Mint {
+        token_id: token_id.clone(),
+        owner: owner.clone(),
+        token_uri: token_uri.clone(),
+        extension: extension.clone(),
+    };
+    println!("DEBUG: Sending mint message: {}", String::from_utf8_lossy(&to_json_binary(&mint_msg).unwrap()));
 
     // Forward to base contract with our extension
-    Ok(contract.mint(
+    Ok(contract.execute(
         deps,
         env,
         info,
-        NftParams::NftData {
-            token_id,
-            owner,
-            token_uri,
-            extension,
-        },
+        mint_msg,
     )?)
 }

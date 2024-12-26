@@ -1,6 +1,6 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::Decimal;
-use sg721_base::msg::ExecuteMsg as Sg721BaseExecuteMsg;
+use cosmwasm_std::{Decimal, Empty};
+use cw721_base::Extension;
 
 use crate::core::{
     pricing::PriceScaling,
@@ -28,8 +28,11 @@ pub enum TileExecuteMsg {
     },
 }
 
-// Use sg721_base's ExecuteMsg with our extension
-pub type ExecuteMsg = Sg721BaseExecuteMsg<Tile, TileExecuteMsg>;
+// For incoming messages (from vending minter), use Extension (Option<Empty>)
+pub type ExecuteMsg = sg721::ExecuteMsg<Extension, TileExecuteMsg>;
+
+// For outgoing messages (to sg721), use Tile
+pub type Sg721ExecuteMsg = sg721::ExecuteMsg<Tile, Empty>;
 
 // Define our custom query messages
 #[cw_serde]

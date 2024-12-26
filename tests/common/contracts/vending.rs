@@ -49,7 +49,7 @@ impl VendingContract {
                 max_trading_offset_secs: 60 * 60 * 24 * 7, // 1 week
                 extension: vending_factory::state::ParamsExtension {
                     max_token_limit: 10000,
-                    max_per_address_limit: 50,
+                    max_per_address_limit: 3,
                     airdrop_mint_price: cosmwasm_std::Coin::new(0, "ustars"),
                     airdrop_mint_fee_bps: 0,
                     shuffle_fee: cosmwasm_std::Coin::new(0, "ustars"),

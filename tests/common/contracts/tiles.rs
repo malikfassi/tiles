@@ -1,9 +1,13 @@
-use crate::common::test_module::TilesApp as App;
+use crate::common::{
+    test_module::TilesApp as App,
+    constants::{MINT_PRICE, NATIVE_DENOM},
+};
 use anyhow::Result;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Coin, to_json_binary};
 use cw_multi_test::{AppResponse, Executor};
 use tiles::contract::msg::{ExecuteMsg, TileExecuteMsg};
-use tiles::core::tile::metadata::TileMetadata;
+use tiles::core::tile::metadata::{TileMetadata, PixelUpdate};
+use tiles::defaults::constants::PIXEL_MIN_EXPIRATION;
 use vending_minter::msg::ExecuteMsg as MinterExecuteMsg;
 
 pub struct TilesContract {
@@ -23,11 +27,14 @@ impl TilesContract {
         owner: &Addr,
         minter: &Addr,
     ) -> Result<AppResponse> {
+        let mint_msg = MinterExecuteMsg::Mint {};
+        println!("DEBUG: Sending vending minter message: {}", String::from_utf8_lossy(&to_json_binary(&mint_msg).unwrap()));
+
         app.execute_contract(
             owner.clone(),
             minter.clone(),
-            &MinterExecuteMsg::Mint {},
-            &[],
+            &mint_msg,
+            &[Coin::new(MINT_PRICE, NATIVE_DENOM)],
         )
         .map_err(Into::into)
     }
@@ -37,8 +44,18 @@ impl TilesContract {
         app: &mut App,
         owner: &Addr,
         token_id: u32,
-        _color: String,
+        color: String,
     ) -> Result<AppResponse> {
+        // Get current block time
+        let current_time = app.block_info().time.seconds();
+
+        // Create a pixel update with minimum expiration
+        let update = PixelUpdate {
+            id: 0,  // Update first pixel
+            color,
+            expiration: current_time + PIXEL_MIN_EXPIRATION,  // Set expiration to current time + minimum duration
+        };
+
         app.execute_contract(
             owner.clone(),
             self.address.as_ref().unwrap().clone(),
@@ -46,10 +63,10 @@ impl TilesContract {
                 msg: TileExecuteMsg::SetPixelColor {
                     token_id: token_id.to_string(),
                     current_metadata: TileMetadata::default(),
-                    updates: vec![],
+                    updates: vec![update],
                 },
             },
-            &[],
+            &[Coin::new(MINT_PRICE, NATIVE_DENOM)],  // Send same amount as mint price for now
         )
         .map_err(Into::into)
     }

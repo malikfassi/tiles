@@ -23,4 +23,7 @@ pub enum ContractError {
 
     #[error("Invalid funds: {0}")]
     InvalidFunds(String),
+
+    #[error("Invalid extension - must be null")]
+    InvalidExtension {},
 }
