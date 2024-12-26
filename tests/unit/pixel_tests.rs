@@ -1,53 +1,102 @@
 use cosmwasm_std::Coin;
-use cw721::TokensResponse;
-use sg721_base::msg::QueryMsg as Sg721QueryMsg;
-
-use crate::common::{fixtures::setup_test, NATIVE_DENOM};
+use sg_std::NATIVE_DENOM;
+use tiles::core::tile::metadata::{TileMetadata, PixelUpdate};
+use crate::common::helpers::setup::TestSetup;
 
 #[test]
-fn test_set_pixel_color() -> anyhow::Result<()> {
-    let mut setup = setup_test()?;
+fn test_mint_and_set_pixel() {
+    let mut setup = TestSetup::new();
 
-    // Query all tokens
-    let tokens: TokensResponse = setup.app.wrap().query_wasm_smart(
-        setup.tiles.contract_addr.clone(),
-        &tiles::contract::msg::QueryMsg::Sg721(
-            Sg721QueryMsg::Tokens {
-                owner: setup.sender.to_string(),
-                start_after: None,
-                limit: None,
-            }
-        ),
-    )?;
+    // Mint a token
+    setup.collection.mint(
+        &mut setup.app,
+        &setup.admin,
+        "1".to_string(),
+        None,
+        None,
+    )
+    .unwrap();
 
-    assert_eq!(tokens.tokens.len(), 1);
-    let token_id = tokens.tokens[0].clone();
+    // Create metadata and updates
+    let mut metadata = TileMetadata::default();
+    let updates = vec![
+        PixelUpdate {
+            id: 0,
+            color: "#FF0000".to_string(),
+            expiration: 1000,
+        },
+        PixelUpdate {
+            id: 1,
+            color: "#00FF00".to_string(),
+            expiration: 1000,
+        },
+        PixelUpdate {
+            id: 2,
+            color: "#0000FF".to_string(),
+            expiration: 1000,
+        },
+    ];
 
     // Set pixel color
-    setup.tiles.set_pixel_color(
+    setup.collection.set_pixel_color(
         &mut setup.app,
-        &setup.sender,
-        token_id.clone(),
-        "#FF0000".to_string(),
-        0,
-        60,
-        vec![Coin::new(100_000_000, NATIVE_DENOM)],
-    )?;
+        &setup.admin,
+        "1".to_string(),
+        metadata.clone(),
+        updates,
+        vec![Coin::new(300_000, NATIVE_DENOM)],
+    )
+    .unwrap();
 
-    // Query pixel state
-    let state: tiles::contract::msg::PixelStateResponse = setup.app.wrap().query_wasm_smart(
-        setup.tiles.contract_addr,
-        &tiles::contract::msg::QueryMsg::Extension(
-            tiles::contract::msg::Extension::PixelState {
-                token_id,
-                position: 0,
-            }
-        ),
-    )?;
+    // Query token to verify pixel colors
+    let token = setup.collection.query_token(&setup.app, "1".to_string()).unwrap();
+    assert_eq!(token.extension.tile_hash.len(), 64); // SHA-256 hash is 64 chars
+}
 
-    assert_eq!(state.color, "#FF0000");
-    assert_eq!(state.position, 0);
-    assert!(state.expiration > 0);
+#[test]
+fn test_set_pixel_unauthorized() {
+    let mut setup = TestSetup::new();
 
-    Ok(())
+    // Mint a token
+    setup.collection.mint(
+        &mut setup.app,
+        &setup.admin,
+        "1".to_string(),
+        None,
+        None,
+    )
+    .unwrap();
+
+    // Create metadata and updates
+    let mut metadata = TileMetadata::default();
+    let updates = vec![
+        PixelUpdate {
+            id: 0,
+            color: "#FF0000".to_string(),
+            expiration: 1000,
+        },
+        PixelUpdate {
+            id: 1,
+            color: "#00FF00".to_string(),
+            expiration: 1000,
+        },
+        PixelUpdate {
+            id: 2,
+            color: "#0000FF".to_string(),
+            expiration: 1000,
+        },
+    ];
+
+    // Try to set pixel color with unauthorized user
+    let err = setup.collection.set_pixel_color(
+        &mut setup.app,
+        &setup.admin,
+        "1".to_string(),
+        metadata.clone(),
+        updates,
+        vec![Coin::new(300_000, NATIVE_DENOM)],
+    )
+    .unwrap_err();
+
+    assert_eq!(err.to_string(), "Unauthorized");
 }

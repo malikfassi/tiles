@@ -1,34 +1,31 @@
-use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdError, StdResult};
+use cosmwasm_std::{Deps, Env, Response, to_json_binary};
+use sg_std::StargazeMsgWrapper;
 
-use crate::{
-    contract::{
-        contract::Contract,
-        msg::{QueryMsg, Extension},
-        state::CONFIG,
-    },
-    core::tile::metadata::TileMetadata,
+use crate::contract::{
+    error::ContractError,
+    msg::{QueryMsg, CustomQueryMsg},
+    state::TILE_CONFIG,
+    contract::TilesContract,
 };
 
-pub fn handle_query(contract: &Contract, deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
-    match msg {
-        QueryMsg::Extension(extension) => match extension {
-            Extension::Config {} => to_json_binary(&CONFIG.load(deps.storage)?),
-            Extension::PixelState { token_id, position } => {
-                // Load tile metadata from storage
-                let metadata_bytes = deps.storage
-                    .get(format!("tile_metadata:{}", token_id).as_bytes())
-                    .ok_or_else(|| StdError::not_found("Tile metadata"))?;
-                
-                let metadata: TileMetadata = cosmwasm_std::from_json(&metadata_bytes)?;
-                
-                // Get pixel data
-                let pixel = metadata
-                    .get_pixel(position)
-                    .map_err(|e| StdError::generic_err(e.to_string()))?;
-                    
-                to_json_binary(&pixel)
+pub fn query(
+    deps: Deps,
+    env: Env,
+    msg: QueryMsg,
+) -> Result<Response<StargazeMsgWrapper>, ContractError> {
+    let contract = TilesContract::default();
+    
+    let response = match msg {
+        // Handle our custom queries
+        QueryMsg::Custom(custom_msg) => match custom_msg {
+            CustomQueryMsg::Config {} => {
+                let config = TILE_CONFIG.load(deps.storage)?;
+                to_json_binary(&config)?
             }
         },
-        QueryMsg::Sg721(msg) => contract.base.query(deps, env, msg),
-    }
-}
+        // Forward base queries to sg721-base
+        QueryMsg::Base(base_msg) => contract.query(deps, env, base_msg)?,
+    };
+
+    Ok(Response::new().set_data(response))
+} 

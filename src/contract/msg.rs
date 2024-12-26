@@ -1,50 +1,42 @@
-use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Empty, Binary};
-use sg721::{ExecuteMsg as Sg721ExecuteMsg, InstantiateMsg as Sg721InstantiateMsg};
+use cosmwasm_schema::cw_serde;
+use cosmwasm_std::Empty;
+use sg721::ExecuteMsg as Sg721ExecuteMsg;
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
+use sg721::InstantiateMsg as Sg721InstantiateMsg;
+
+use crate::core::tile::metadata::{TileMetadata, PixelUpdate};
+use crate::core::pricing::PriceScaling;
 use crate::core::tile::Tile;
 
 pub type InstantiateMsg = Sg721InstantiateMsg;
 
 #[cw_serde]
 pub enum ExecuteMsg {
+    Base(Sg721ExecuteMsg<Tile, Empty>),
+    Custom(CustomExecuteMsg),
+}
+
+#[cw_serde]
+pub enum CustomExecuteMsg {
     SetPixelColor {
         token_id: String,
-        color: String,
-        position: u32,
-        expiration: u64,
+        current_metadata: TileMetadata,
+        updates: Vec<PixelUpdate>,
     },
     UpdateConfig {
-        dev_address: Option<String>,
-        dev_fee_percent: Option<u64>,
-        base_price: Option<u128>,
-        price_scaling: Option<crate::contract::state::PriceScaling>,
-    },
-    Sg721(Sg721ExecuteMsg<Tile, Empty>),
-}
-
-#[cw_serde]
-pub enum Extension {
-    Config {},
-    PixelState {
-        token_id: String,
-        position: u32,
+        tile_royalty_payment_address: Option<String>,
+        tile_royalty_fee_percent: Option<cosmwasm_std::Decimal>,
+        price_scaling: Option<PriceScaling>,
     },
 }
 
 #[cw_serde]
-#[derive(QueryResponses)]
 pub enum QueryMsg {
-    #[returns(crate::contract::state::Config)]
-    Extension(Extension),
-    #[returns(Binary)]
-    Sg721(Sg721QueryMsg),
+    Base(Sg721QueryMsg),
+    Custom(CustomQueryMsg),
 }
 
 #[cw_serde]
-pub struct PixelStateResponse {
-    pub position: u32,
-    pub color: String,
-    pub expiration: u64,
-    pub last_updated_by: String,
+pub enum CustomQueryMsg {
+    Config {},
 }

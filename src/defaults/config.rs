@@ -1,14 +1,21 @@
-use cosmwasm_std::Decimal;
+use cosmwasm_std::{Decimal, Uint128};
+use crate::core::pricing::PriceScaling;
 
-// Royalty configuration
-pub const DEFAULT_ROYALTY_PERCENT: Decimal = Decimal::raw(50000000000000000); // 5%
+// Default addresses
+pub const DEFAULT_TILE_ADMIN_ADDRESS: &str = "creator";
+pub const DEFAULT_TILE_ROYALTY_PAYMENT_ADDRESS: &str = "creator";
 
-// Price scaling configuration
-pub const HOUR_1_PRICE: Decimal = Decimal::raw(1_000_000_000_000_000_000); // 1 STARS
-pub const HOUR_12_PRICE: Decimal = Decimal::raw(2_000_000_000_000_000_000); // 2 STARS
-pub const HOUR_24_PRICE: Decimal = Decimal::raw(3_000_000_000_000_000_000); // 3 STARS
-pub const QUADRATIC_BASE: Decimal = Decimal::raw(4_000_000_000_000_000_000); // 4 STARS
+// Default royalty fee percent
+pub const DEFAULT_TILE_ROYALTY_FEE_PERCENT: Decimal = Decimal::percent(5);
 
 // Network configuration
 pub const NATIVE_DENOM: &str = "ustars";
+
+// Default price scaling
+pub const DEFAULT_PRICE_SCALING: PriceScaling = PriceScaling {
+    hour_1_price: Uint128::new(100_000_000),
+    hour_12_price: Uint128::new(200_000_000),
+    hour_24_price: Uint128::new(300_000_000),
+    quadratic_base: Uint128::new(400_000_000),
+};
  

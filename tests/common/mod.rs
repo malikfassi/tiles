@@ -1,8 +1,5 @@
-pub mod fixtures;
-pub mod tiles_contract;
-pub mod vending_factory;
+pub mod contracts;
+pub mod helpers;
 
-pub use tiles_contract::TilesContract;
-pub use vending_factory::VendingFactory;
-
-pub const NATIVE_DENOM: &str = "ustars";
+pub use contracts::tiles::TilesContract;
+pub use helpers::setup::TestSetup;

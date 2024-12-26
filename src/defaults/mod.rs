@@ -1,14 +1,5 @@
 pub mod config;
 pub mod constants;
-pub mod tile;
 
-pub use constants::{
-    PIXEL_MIN_EXPIRATION,
-    PIXEL_MAX_EXPIRATION,
-    DEFAULT_COLOR,
-    NATIVE_DENOM,
-    PIXELS_PER_TILE,
-    TILE_SIZE,
-};
-
-pub use tile::DEFAULT_TILE_METADATA;
+pub use config::DEFAULT_PRICE_SCALING;
+pub use constants::{NATIVE_DENOM, PIXEL_MIN_EXPIRATION, PIXEL_MAX_EXPIRATION};

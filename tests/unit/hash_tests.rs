@@ -6,12 +6,14 @@ use tiles::core::tile::Tile;
 fn test_hash_generation() {
     let tile_id = "1";
     let owner = Addr::unchecked("owner");
+    let now = 1000u64;
 
     let pixels = vec![PixelData {
         id: 0,
         color: "#FFFFFF".to_string(),
         expiration: 3600,
         last_updated_by: owner.clone(),
+        last_updated_at: now,
     }];
 
     let metadata = TileMetadata { pixels };
@@ -24,12 +26,14 @@ fn test_hash_generation() {
 fn test_hash_verification() {
     let tile_id = "1";
     let owner = Addr::unchecked("owner");
+    let now = 1000u64;
 
     let pixels = vec![PixelData {
         id: 0,
         color: "#FFFFFF".to_string(),
         expiration: 3600,
         last_updated_by: owner.clone(),
+        last_updated_at: now,
     }];
 
     let metadata = TileMetadata { pixels };
@@ -47,12 +51,14 @@ fn test_hash_verification() {
 fn test_hash_mismatch() {
     let tile_id = "1";
     let owner = Addr::unchecked("owner");
+    let now = 1000u64;
 
     let pixels = vec![PixelData {
         id: 0,
         color: "#FFFFFF".to_string(),
         expiration: 3600,
         last_updated_by: owner.clone(),
+        last_updated_at: now,
     }];
 
     let metadata = TileMetadata { pixels };
@@ -63,6 +69,7 @@ fn test_hash_mismatch() {
         color: "#000000".to_string(), // Different color
         expiration: 3600,
         last_updated_by: owner.clone(),
+        last_updated_at: now,
     }];
 
     let extension = Tile {

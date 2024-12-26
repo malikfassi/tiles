@@ -28,6 +28,7 @@ impl Tile {
             hasher.update(pixel.color.as_bytes());
             hasher.update(pixel.expiration.to_be_bytes());
             hasher.update(pixel.last_updated_by.as_bytes());
+            hasher.update(pixel.last_updated_at.to_be_bytes());
         }
         hex::encode(hasher.finalize())
     }
@@ -40,5 +41,3 @@ impl Tile {
         Ok(())
     }
 }
-
-pub const PIXELS_PER_TILE: u32 = 100;
