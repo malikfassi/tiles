@@ -1,10 +1,10 @@
-use crate::common::helpers::mock::default_price_scaling;
-use cosmwasm_std::Uint128;
+use cosmwasm_std::Decimal;
 use tiles::core::pricing::PriceScaling;
+use cosmwasm_std::Uint128;
 
 #[test]
 fn test_calculate_price() {
-    let pricing = default_price_scaling();
+    let pricing = PriceScaling::default();
     let current_time = 1000;
 
     // Test 1 hour duration
@@ -26,7 +26,7 @@ fn test_calculate_price() {
 
 #[test]
 fn test_calculate_total_price() {
-    let pricing = default_price_scaling();
+    let pricing = PriceScaling::default();
     let current_time = 1000;
     let expirations = vec![
         current_time + 3600,  // 1 hour
@@ -42,18 +42,27 @@ fn test_calculate_total_price() {
 #[test]
 fn test_validate_price_scaling() {
     let valid = PriceScaling {
-        hour_1_price: Uint128::new(100),
-        hour_12_price: Uint128::new(200),
-        hour_24_price: Uint128::new(300),
-        quadratic_base: Uint128::new(400),
+        hour_1_price: Uint128::from(100_000_000u128),
+        hour_12_price: Uint128::from(200_000_000u128),
+        hour_24_price: Uint128::from(300_000_000u128),
+        quadratic_base: Uint128::from(400_000_000u128),
     };
     assert!(valid.validate().is_ok());
 
     let invalid = PriceScaling {
         hour_1_price: Uint128::zero(),
-        hour_12_price: Uint128::new(200),
-        hour_24_price: Uint128::new(300),
-        quadratic_base: Uint128::new(400),
+        hour_12_price: Uint128::from(200_000_000u128),
+        hour_24_price: Uint128::from(300_000_000u128),
+        quadratic_base: Uint128::from(400_000_000u128),
     };
     assert!(invalid.validate().is_err());
+}
+
+#[test]
+fn test_default_price_scaling() {
+    let default_pricing = PriceScaling::default();
+    assert_eq!(default_pricing.hour_1_price, Uint128::from(100_000_000u128));
+    assert_eq!(default_pricing.hour_12_price, Uint128::from(200_000_000u128));
+    assert_eq!(default_pricing.hour_24_price, Uint128::from(300_000_000u128));
+    assert_eq!(default_pricing.quadratic_base, Uint128::from(400_000_000u128));
 }

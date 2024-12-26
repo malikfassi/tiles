@@ -5,7 +5,7 @@ use crate::core::pricing::PriceScaling;
 
 #[cw_serde]
 pub struct Config {
-    pub dev_address: Addr,
+    pub tile_admin_address: Addr,
     pub tile_royalty_payment_address: String,
     pub tile_royalty_fee_percent: Decimal,
     pub price_scaling: PriceScaling,
@@ -14,7 +14,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
-            dev_address: Addr::unchecked(""),
+            tile_admin_address: Addr::unchecked(""),
             tile_royalty_payment_address: "".to_string(),
             tile_royalty_fee_percent: Decimal::percent(5),
             price_scaling: PriceScaling::default(),

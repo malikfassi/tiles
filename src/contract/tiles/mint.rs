@@ -1,32 +1,33 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use cw721_base::state::TokenInfo;
+use sg721_base::{Sg721Contract, msg::NftParams};
 use sg_std::StargazeMsgWrapper;
 
-use crate::contract::{contract::TilesContract, error::ContractError};
-use crate::core::tile::Tile;
+use crate::{
+    contract::error::ContractError,
+    core::tile::{Tile, metadata::TileMetadata},
+};
 
-pub fn mint(
+pub fn mint_handler(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     token_id: String,
     owner: String,
     token_uri: Option<String>,
+    extension: Option<Tile>,
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
-    let contract = TilesContract::default();
+    let contract: Sg721Contract<Tile> = Sg721Contract::default();
+    
+    // Set default metadata if none provided
+    let extension = extension.unwrap_or_else(|| Tile {
+        tile_hash: TileMetadata::default().hash(),
+    });
 
-    let token = TokenInfo {
-        owner: deps.api.addr_validate(&owner)?,
-        approvals: vec![],
+    // Forward to base contract with our extension
+    Ok(contract.mint(deps, env, info, NftParams::NftData {
+        token_id,
+        owner,
         token_uri,
-        extension: Tile::default(),
-    };
-
-    contract.tokens.save(deps.storage, &token_id, &token)?;
-
-    Ok(Response::new()
-        .add_attribute("action", "mint")
-        .add_attribute("minter", info.sender)
-        .add_attribute("token_id", token_id)
-        .add_attribute("owner", owner))
+        extension,
+    })?)
 }

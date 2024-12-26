@@ -1,7 +1,7 @@
-pub mod mock;
+pub mod mock_app;
 pub mod setup;
 
-pub use mock::*;
+pub use mock_app::*;
 pub use setup::TestSetup;
 
 use cosmwasm_std::Addr;

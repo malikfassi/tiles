@@ -26,6 +26,7 @@ sha2 = "0.10.8"
 hex = "0.4.3"
 
 [dev-dependencies]
+anyhow = "1.0.75"
 cw-multi-test = "0.16.5"
 sg-multi-test = "3.1.0"
 sg1 = "3.14.0"

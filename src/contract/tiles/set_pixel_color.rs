@@ -3,7 +3,7 @@ use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
 use crate::{
-    contract::{error::ContractError, state::TILE_CONFIG},
+    contract::{error::ContractError, state::CONFIG},
     core::tile::{
         metadata::{PixelUpdate, TileMetadata},
         Tile,
@@ -27,7 +27,7 @@ pub fn set_pixel_color(
     }
 
     // Calculate total price for updates
-    let config = TILE_CONFIG.load(deps.storage)?;
+    let config = CONFIG.load(deps.storage)?;
     let total_price = config.price_scaling.calculate_total_price(
         &updates.iter().map(|u| u.expiration).collect::<Vec<_>>(),
         env.block.time.seconds(),

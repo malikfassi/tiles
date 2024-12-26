@@ -1,23 +1,18 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::Empty;
-use sg721::ExecuteMsg as Sg721ExecuteMsg;
-use sg721::InstantiateMsg as Sg721InstantiateMsg;
-use sg721_base::msg::QueryMsg as Sg721QueryMsg;
+use cosmwasm_std::Decimal;
+use sg721_base::msg::ExecuteMsg as Sg721BaseExecuteMsg;
 
-use crate::core::pricing::PriceScaling;
-use crate::core::tile::metadata::{PixelUpdate, TileMetadata};
-use crate::core::tile::Tile;
+use crate::core::{
+    pricing::PriceScaling,
+    tile::{metadata::{PixelUpdate, TileMetadata}, Tile},
+};
 
-pub type InstantiateMsg = Sg721InstantiateMsg;
+// Use sg721's InstantiateMsg directly
+pub type InstantiateMsg = sg721::InstantiateMsg;
 
+// Define our custom extension messages
 #[cw_serde]
-pub enum ExecuteMsg {
-    Base(Sg721ExecuteMsg<Tile, Empty>),
-    Custom(CustomExecuteMsg),
-}
-
-#[cw_serde]
-pub enum CustomExecuteMsg {
+pub enum TileExecuteMsg {
     SetPixelColor {
         token_id: String,
         current_metadata: TileMetadata,
@@ -25,18 +20,17 @@ pub enum CustomExecuteMsg {
     },
     UpdateConfig {
         tile_royalty_payment_address: Option<String>,
-        tile_royalty_fee_percent: Option<cosmwasm_std::Decimal>,
+        tile_royalty_fee_percent: Option<Decimal>,
         price_scaling: Option<PriceScaling>,
     },
 }
 
+// Use sg721_base's ExecuteMsg with our extension
+pub type ExecuteMsg = Sg721BaseExecuteMsg<Tile, TileExecuteMsg>;
+
+// Define our custom query messages
 #[cw_serde]
 pub enum QueryMsg {
-    Base(Sg721QueryMsg),
-    Custom(CustomQueryMsg),
-}
-
-#[cw_serde]
-pub enum CustomQueryMsg {
     Config {},
+    Base(sg721_base::msg::QueryMsg),
 }

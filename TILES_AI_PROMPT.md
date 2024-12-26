@@ -76,8 +76,9 @@ pub type TilesContract<'a> = Sg721Contract<'a, Tile, StargazeMsgWrapper>;
 
 #[cw_serde]
 pub struct Config {
-    pub dev_address: Addr,    // Set to creator
-    pub dev_fee_percent: Decimal,  // Default: 5%
+    pub tile_admin_address: Addr,    // Set to creator
+    pub tile_royalty_fee_percent: Decimal,  // Default: 5%
+    pub tile_royalty_payment_address: String,  // Default: 5%
     pub price_scaling: PriceScaling<Decimal>, // Default scaling values
 }
 ```
@@ -100,10 +101,18 @@ pub enum ExecuteMsg {
         updates: Vec<PixelData>,
     },
     UpdateConfig {
-        dev_address: Option<String>,
-        dev_fee_percent: Option<Decimal>,
+        tile_royalty_payment_address: Option<String>,
+        tile_royalty_fee_percent: Option<Decimal>,
         price_scaling: Option<PriceScaling<Decimal>>,
     },
+}
+
+#[cw_serde]
+pub struct ConfigResponse {
+    pub tile_admin_address: Addr,
+    pub tile_royalty_payment_address: String,
+    pub tile_royalty_fee_percent: Decimal,
+    pub price_scaling: PriceScaling<Decimal>,
 }
 
 #[cw_serde]

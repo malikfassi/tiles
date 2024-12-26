@@ -1,15 +1,8 @@
-use cosmwasm_schema::cw_serde;
-use cosmwasm_std::Uint128;
-use thiserror::Error;
+use cosmwasm_std::{StdError, StdResult, Uint128};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
-#[derive(Error, Debug, PartialEq)]
-pub enum PricingError {
-    #[error("Invalid price scaling: {0}")]
-    InvalidPriceScaling(String),
-}
-
-#[cw_serde]
-#[derive(Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct PriceScaling {
     pub hour_1_price: Uint128,
     pub hour_12_price: Uint128,
@@ -17,29 +10,47 @@ pub struct PriceScaling {
     pub quadratic_base: Uint128,
 }
 
+impl Default for PriceScaling {
+    fn default() -> Self {
+        Self {
+            hour_1_price: Uint128::from(100_000_000u128),
+            hour_12_price: Uint128::from(200_000_000u128),
+            hour_24_price: Uint128::from(300_000_000u128),
+            quadratic_base: Uint128::from(400_000_000u128),
+        }
+    }
+}
+
 impl PriceScaling {
-    pub fn validate(&self) -> Result<(), PricingError> {
+    pub fn validate(&self) -> StdResult<()> {
         if self.hour_1_price.is_zero() {
-            return Err(PricingError::InvalidPriceScaling(
-                "hour_1_price cannot be zero".to_string(),
-            ));
+            return Err(StdError::generic_err("hour_1_price must be greater than 0"));
         }
         if self.hour_12_price.is_zero() {
-            return Err(PricingError::InvalidPriceScaling(
-                "hour_12_price cannot be zero".to_string(),
-            ));
+            return Err(StdError::generic_err("hour_12_price must be greater than 0"));
         }
         if self.hour_24_price.is_zero() {
-            return Err(PricingError::InvalidPriceScaling(
-                "hour_24_price cannot be zero".to_string(),
-            ));
+            return Err(StdError::generic_err("hour_24_price must be greater than 0"));
         }
         if self.quadratic_base.is_zero() {
-            return Err(PricingError::InvalidPriceScaling(
-                "quadratic_base cannot be zero".to_string(),
-            ));
+            return Err(StdError::generic_err("quadratic_base must be greater than 0"));
         }
         Ok(())
+    }
+
+    pub fn calculate_price(&self, expiration: u64, current_time: u64) -> Uint128 {
+        let duration = expiration.saturating_sub(current_time);
+
+        if duration <= 3600 {
+            self.hour_1_price
+        } else if duration <= 43200 {
+            self.hour_12_price
+        } else if duration <= 86400 {
+            self.hour_24_price
+        } else {
+            let hours = duration.saturating_sub(86400) / 3600;
+            self.quadratic_base + Uint128::from(hours * hours)
+        }
     }
 
     pub fn calculate_total_price(&self, expirations: &[u64], current_time: u64) -> Uint128 {
@@ -48,52 +59,11 @@ impl PriceScaling {
             .map(|expiration| self.calculate_price(*expiration, current_time))
             .sum()
     }
-
-    pub fn calculate_price(&self, expiration: u64, current_time: u64) -> Uint128 {
-        let duration = expiration.saturating_sub(current_time);
-
-        // Step-based pricing for durations up to 24 hours
-        if duration <= 3600 {
-            // 1 hour
-            self.hour_1_price
-        } else if duration <= 43200 {
-            // 12 hours
-            self.hour_12_price
-        } else if duration <= 86400 {
-            // 24 hours
-            self.hour_24_price
-        } else {
-            // Quadratic scaling based on seconds for durations beyond 24 hours
-            let excess_seconds = duration - 86400;
-            let quadratic_factor = excess_seconds.saturating_mul(excess_seconds);
-            self.quadratic_base
-                .saturating_add(Uint128::new(quadratic_factor.into()))
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_validate_price_scaling() {
-        let valid = PriceScaling {
-            hour_1_price: Uint128::new(100),
-            hour_12_price: Uint128::new(200),
-            hour_24_price: Uint128::new(300),
-            quadratic_base: Uint128::new(400),
-        };
-        assert!(valid.validate().is_ok());
-
-        let invalid = PriceScaling {
-            hour_1_price: Uint128::zero(),
-            hour_12_price: Uint128::new(200),
-            hour_24_price: Uint128::new(300),
-            quadratic_base: Uint128::new(400),
-        };
-        assert!(invalid.validate().is_err());
-    }
 
     #[test]
     fn test_calculate_price() {
@@ -130,5 +100,24 @@ mod tests {
         let total = pricing.calculate_total_price(&expirations, current_time);
         let expected = pricing.hour_1_price + pricing.hour_12_price + pricing.hour_24_price;
         assert_eq!(total, expected);
+    }
+
+    #[test]
+    fn test_validate_price_scaling() {
+        let valid = PriceScaling {
+            hour_1_price: Uint128::new(100),
+            hour_12_price: Uint128::new(200),
+            hour_24_price: Uint128::new(300),
+            quadratic_base: Uint128::new(400),
+        };
+        assert!(valid.validate().is_ok());
+
+        let invalid = PriceScaling {
+            hour_1_price: Uint128::zero(),
+            hour_12_price: Uint128::new(200),
+            hour_24_price: Uint128::new(300),
+            quadratic_base: Uint128::new(400),
+        };
+        assert!(invalid.validate().is_err());
     }
 }

@@ -1,7 +1,7 @@
 use cosmwasm_std::{Decimal, DepsMut, Env, MessageInfo, Response};
 use sg_std::StargazeMsgWrapper;
 
-use crate::contract::{error::ContractError, state::TILE_CONFIG};
+use crate::contract::{error::ContractError, state::CONFIG};
 use crate::core::pricing::PriceScaling;
 
 pub fn update_config(
@@ -12,28 +12,28 @@ pub fn update_config(
     tile_royalty_fee_percent: Option<Decimal>,
     price_scaling: Option<PriceScaling>,
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
-    let mut config = TILE_CONFIG.load(deps.storage)?;
+    let mut config = CONFIG.load(deps.storage)?;
 
-    // Only contract owner can update config
-    if info.sender != config.dev_address {
+    // Only owner can update config
+    if info.sender != config.tile_admin_address {
         return Err(ContractError::Unauthorized {});
     }
 
-    // Update config fields if provided
-    if let Some(addr) = tile_royalty_payment_address {
-        config.tile_royalty_payment_address = deps.api.addr_validate(&addr)?.to_string();
+    if let Some(tile_royalty_payment_address) = tile_royalty_payment_address {
+        config.tile_royalty_payment_address = tile_royalty_payment_address;
     }
 
-    if let Some(fee) = tile_royalty_fee_percent {
-        config.tile_royalty_fee_percent = fee;
+    if let Some(tile_royalty_fee_percent) = tile_royalty_fee_percent {
+        config.tile_royalty_fee_percent = tile_royalty_fee_percent;
     }
 
-    if let Some(scaling) = price_scaling {
-        config.price_scaling = scaling;
+    if let Some(price_scaling) = price_scaling {
+        config.price_scaling = price_scaling;
     }
 
-    // Save updated config
-    TILE_CONFIG.save(deps.storage, &config)?;
+    CONFIG.save(deps.storage, &config)?;
 
-    Ok(Response::new().add_attribute("action", "update_config"))
+    Ok(Response::new()
+        .add_attribute("action", "update_config")
+        .add_attribute("sender", info.sender))
 }
