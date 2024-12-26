@@ -27,13 +27,19 @@ impl PriceScaling {
             return Err(StdError::generic_err("hour_1_price must be greater than 0"));
         }
         if self.hour_12_price.is_zero() {
-            return Err(StdError::generic_err("hour_12_price must be greater than 0"));
+            return Err(StdError::generic_err(
+                "hour_12_price must be greater than 0",
+            ));
         }
         if self.hour_24_price.is_zero() {
-            return Err(StdError::generic_err("hour_24_price must be greater than 0"));
+            return Err(StdError::generic_err(
+                "hour_24_price must be greater than 0",
+            ));
         }
         if self.quadratic_base.is_zero() {
-            return Err(StdError::generic_err("quadratic_base must be greater than 0"));
+            return Err(StdError::generic_err(
+                "quadratic_base must be greater than 0",
+            ));
         }
         Ok(())
     }

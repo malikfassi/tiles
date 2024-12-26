@@ -1,12 +1,9 @@
-use cosmwasm_std::Addr;
-use cw_multi_test::{ContractWrapper, Executor, AppResponse};
-use crate::common::{
-    test_module::TilesApp as App,
-    constants::CREATION_FEE,
-};
-use sg2::msg::{CreateMinterMsg, CollectionParams, Sg2ExecuteMsg};
-use vending_factory::msg::{VendingMinterInitMsgExtension, InstantiateMsg};
+use crate::common::{constants::CREATION_FEE, test_module::TilesApp as App};
 use anyhow::Result;
+use cosmwasm_std::Addr;
+use cw_multi_test::{AppResponse, ContractWrapper, Executor};
+use sg2::msg::{CollectionParams, CreateMinterMsg, Sg2ExecuteMsg};
+use vending_factory::msg::{InstantiateMsg, VendingMinterInitMsgExtension};
 
 pub struct VendingContract {
     pub address: Option<Addr>,
@@ -21,7 +18,7 @@ impl VendingContract {
                 vending_factory::contract::instantiate,
                 vending_factory::contract::query,
             )
-            .with_reply(vending_minter::contract::reply)
+            .with_reply(vending_minter::contract::reply),
         );
         let code_id = app.store_code(contract);
         Self {
@@ -86,6 +83,7 @@ impl VendingContract {
                 collection_params,
             }),
             &[cosmwasm_std::Coin::new(CREATION_FEE, "ustars")],
-        ).map_err(Into::into)
+        )
+        .map_err(Into::into)
     }
 }

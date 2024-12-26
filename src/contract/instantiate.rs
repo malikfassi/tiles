@@ -3,11 +3,7 @@ use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
 use crate::{
-    contract::{
-        error::ContractError,
-        msg::InstantiateMsg,
-        state::CONFIG,
-    },
+    contract::{error::ContractError, msg::InstantiateMsg, state::CONFIG},
     core::tile::Tile,
 };
 
@@ -18,7 +14,7 @@ pub fn instantiate_handler(
     msg: InstantiateMsg,
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
     let contract: Sg721Contract<Tile> = Sg721Contract::default();
-    
+
     // Save default config first
     CONFIG.save(deps.storage, &Default::default())?;
 

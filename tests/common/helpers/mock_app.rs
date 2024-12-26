@@ -53,17 +53,16 @@ impl MockApp {
     where
         T: serde::Serialize + std::fmt::Debug,
     {
-        let res = self.app
-            .execute_contract(
-                Addr::unchecked(sender),
-                contract.clone(),
-                &msg,
-                &[],
-            )
-            .map_err(|e| tiles::contract::error::ContractError::Std(cosmwasm_std::StdError::generic_err(e.to_string())))?;
+        let res = self
+            .app
+            .execute_contract(Addr::unchecked(sender), contract.clone(), &msg, &[])
+            .map_err(|e| {
+                tiles::contract::error::ContractError::Std(cosmwasm_std::StdError::generic_err(
+                    e.to_string(),
+                ))
+            })?;
 
-        Ok(SgResponse::new()
-            .add_events(res.events))
+        Ok(SgResponse::new().add_events(res.events))
     }
 
     pub fn query_wasm_smart<T, U>(&self, contract: &Addr, msg: &T) -> StdResult<U>
@@ -76,4 +75,4 @@ impl MockApp {
             .query_wasm_smart(contract, msg)
             .map_err(|e| cosmwasm_std::StdError::generic_err(e.to_string()))
     }
-} 
+}

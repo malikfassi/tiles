@@ -1,7 +1,7 @@
-use cosmwasm_std::Addr;
-use cw_multi_test::{Executor, AppResponse};
 use crate::common::test_module::TilesApp as App;
 use anyhow::Result;
+use cosmwasm_std::Addr;
+use cw_multi_test::{AppResponse, Executor};
 use tiles::contract::msg::{ExecuteMsg, TileExecuteMsg};
 use tiles::core::tile::metadata::TileMetadata;
 use vending_minter::msg::ExecuteMsg as MinterExecuteMsg;
@@ -28,7 +28,8 @@ impl TilesContract {
             minter.clone(),
             &MinterExecuteMsg::Mint {},
             &[],
-        ).map_err(Into::into)
+        )
+        .map_err(Into::into)
     }
 
     pub fn update_pixel(
@@ -41,14 +42,15 @@ impl TilesContract {
         app.execute_contract(
             owner.clone(),
             self.address.as_ref().unwrap().clone(),
-            &ExecuteMsg::Extension { 
-                msg: TileExecuteMsg::SetPixelColor { 
+            &ExecuteMsg::Extension {
+                msg: TileExecuteMsg::SetPixelColor {
                     token_id: token_id.to_string(),
                     current_metadata: TileMetadata::default(),
                     updates: vec![],
-                }
+                },
             },
             &[],
-        ).map_err(Into::into)
+        )
+        .map_err(Into::into)
     }
 }

@@ -1,20 +1,16 @@
-use cosmwasm_std::{Addr, Timestamp, Coin};
-use cw_multi_test::ContractWrapper;
 use crate::common::{
+    constants::{CREATION_FEE, MINT_PRICE, NATIVE_DENOM},
     contracts::{tiles::TilesContract, vending::VendingContract},
-    constants::{NATIVE_DENOM, MINT_PRICE, CREATION_FEE},
     test_module::TilesApp as App,
 };
+use cosmwasm_std::{Addr, Coin, Timestamp};
+use cw_multi_test::ContractWrapper;
 use sg2::msg::CollectionParams;
-use vending_factory::msg::VendingMinterInitMsgExtension;
 use sg721::CollectionInfo;
-use tiles::{
-    contract::{
-        execute::execute_handler,
-        instantiate::instantiate_handler,
-        query::query_handler,
-    },
+use tiles::contract::{
+    execute::execute_handler, instantiate::instantiate_handler, query::query_handler,
 };
+use vending_factory::msg::VendingMinterInitMsgExtension;
 
 pub struct TestSetup {
     pub app: App,
@@ -26,24 +22,25 @@ pub struct TestSetup {
 impl TestSetup {
     pub fn new() -> Self {
         let mut app = App::default();
-        
+
         // Fund creator's account
         app.init_modules(|router, _, storage| {
-            router.bank.init_balance(
-                storage,
-                &Addr::unchecked("creator"),
-                vec![Coin::new(1_000_000_000, NATIVE_DENOM)],
-            ).unwrap();
+            router
+                .bank
+                .init_balance(
+                    storage,
+                    &Addr::unchecked("creator"),
+                    vec![Coin::new(1_000_000_000, NATIVE_DENOM)],
+                )
+                .unwrap();
         });
 
         // Store collection contract code
-        let collection_contract = Box::new(
-            ContractWrapper::new(
-                execute_handler,
-                instantiate_handler,
-                query_handler,
-            )
-        );
+        let collection_contract = Box::new(ContractWrapper::new(
+            execute_handler,
+            instantiate_handler,
+            query_handler,
+        ));
         let collection_code_id = app.store_code(collection_contract);
 
         // Store vending minter contract code
@@ -53,14 +50,21 @@ impl TestSetup {
                 vending_minter::contract::instantiate,
                 vending_minter::contract::query,
             )
-            .with_reply(vending_minter::contract::reply)
+            .with_reply(vending_minter::contract::reply),
         );
         let minter_code_id = app.store_code(minter_contract);
 
         // Store vending factory contract code
         let mut vending = VendingContract::new(&mut app, "vending");
         let factory_code_id = vending.store_code(&mut app).unwrap();
-        let _vending_addr = vending.instantiate(&mut app, factory_code_id, minter_code_id, collection_code_id).unwrap();
+        let _vending_addr = vending
+            .instantiate(
+                &mut app,
+                factory_code_id,
+                minter_code_id,
+                collection_code_id,
+            )
+            .unwrap();
 
         let collection_params = CollectionParams {
             code_id: collection_code_id,
@@ -87,15 +91,18 @@ impl TestSetup {
             whitelist: None,
         };
 
-        let res = vending.create_minter(
-            &mut app,
-            &Addr::unchecked("creator"),
-            collection_params,
-            init_msg,
-        ).unwrap();
+        let res = vending
+            .create_minter(
+                &mut app,
+                &Addr::unchecked("creator"),
+                collection_params,
+                init_msg,
+            )
+            .unwrap();
 
         // Extract minter address from events
-        let minter_addr = res.events
+        let minter_addr = res
+            .events
             .iter()
             .find(|e| e.ty == "wasm")
             .and_then(|e| e.attributes.iter().find(|a| a.key == "minter"))

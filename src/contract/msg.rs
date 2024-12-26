@@ -4,7 +4,10 @@ use sg721_base::msg::ExecuteMsg as Sg721BaseExecuteMsg;
 
 use crate::core::{
     pricing::PriceScaling,
-    tile::{metadata::{PixelUpdate, TileMetadata}, Tile},
+    tile::{
+        metadata::{PixelUpdate, TileMetadata},
+        Tile,
+    },
 };
 
 // Use sg721's InstantiateMsg directly

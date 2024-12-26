@@ -1,6 +1,6 @@
 use cosmwasm_std::Decimal;
-use tiles::core::pricing::PriceScaling;
 use cosmwasm_std::Uint128;
+use tiles::core::pricing::PriceScaling;
 
 #[test]
 fn test_calculate_price() {
@@ -62,7 +62,16 @@ fn test_validate_price_scaling() {
 fn test_default_price_scaling() {
     let default_pricing = PriceScaling::default();
     assert_eq!(default_pricing.hour_1_price, Uint128::from(100_000_000u128));
-    assert_eq!(default_pricing.hour_12_price, Uint128::from(200_000_000u128));
-    assert_eq!(default_pricing.hour_24_price, Uint128::from(300_000_000u128));
-    assert_eq!(default_pricing.quadratic_base, Uint128::from(400_000_000u128));
+    assert_eq!(
+        default_pricing.hour_12_price,
+        Uint128::from(200_000_000u128)
+    );
+    assert_eq!(
+        default_pricing.hour_24_price,
+        Uint128::from(300_000_000u128)
+    );
+    assert_eq!(
+        default_pricing.quadratic_base,
+        Uint128::from(400_000_000u128)
+    );
 }

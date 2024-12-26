@@ -1,11 +1,9 @@
 use anyhow::{bail, Result as AnyResult};
 use cosmwasm_std::{
-    Addr, Api, Binary, BlockInfo, CustomQuery, Empty, Querier, Storage,
     testing::{MockApi, MockQuerier, MockStorage},
+    Addr, Api, Binary, BlockInfo, CustomQuery, Empty, Querier, Storage,
 };
-use cw_multi_test::{
-    AppResponse, CosmosRouter, Module,
-};
+use cw_multi_test::{AppResponse, CosmosRouter, Module};
 use schemars::JsonSchema;
 use serde::de::DeserializeOwned;
 use sg_std::{StargazeMsgWrapper, StargazeQuery};
@@ -75,4 +73,4 @@ pub fn mock_tiles_deps() -> TilesDeps {
         querier: MockQuerier::default(),
         custom_query_type: PhantomData,
     }
-} 
+}

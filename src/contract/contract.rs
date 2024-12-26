@@ -1,4 +1,6 @@
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, to_json_binary};
+use cosmwasm_std::{
+    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response,
+};
 use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
@@ -34,20 +36,14 @@ pub fn execute(
 }
 
 #[entry_point]
-pub fn query(
-    deps: Deps,
-    env: Env,
-    msg: QueryMsg,
-) -> Result<Binary, ContractError> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
     let contract: Sg721Contract<Tile> = Sg721Contract::default();
-    
+
     match msg {
         QueryMsg::Config {} => {
             let config = CONFIG.load(deps.storage)?;
             Ok(to_json_binary(&config)?)
         }
-        QueryMsg::Base(base_msg) => {
-            Ok(contract.query(deps, env, base_msg)?)
-        }
+        QueryMsg::Base(base_msg) => Ok(contract.query(deps, env, base_msg)?),
     }
 }
