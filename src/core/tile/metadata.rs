@@ -1,9 +1,11 @@
-use std::collections::HashSet;
 use crate::contract::error::ContractError;
-use crate::defaults::constants::{PIXELS_PER_TILE, PIXEL_MAX_EXPIRATION, PIXEL_MIN_EXPIRATION, DEFAULT_COLOR};
+use crate::defaults::constants::{
+    DEFAULT_COLOR, PIXELS_PER_TILE, PIXEL_MAX_EXPIRATION, PIXEL_MIN_EXPIRATION,
+};
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
 use sha2::{Digest, Sha256};
+use std::collections::HashSet;
 
 #[cw_serde]
 pub struct PixelData {
@@ -40,12 +42,7 @@ impl Default for TileMetadata {
 }
 
 impl TileMetadata {
-    pub fn apply_updates(
-        &mut self,
-        updates: Vec<PixelUpdate>,
-        sender: &Addr,
-        current_time: u64
-    ) {
+    pub fn apply_updates(&mut self, updates: Vec<PixelUpdate>, sender: &Addr, current_time: u64) {
         // All updates are just modifications of existing pixels
         for update in updates {
             let pixel = &mut self.pixels[update.id as usize];
@@ -76,7 +73,7 @@ impl TileMetadata {
 pub struct PixelUpdate {
     pub id: u32,
     pub color: String,
-    pub expiration_duration: u64,  // Duration in seconds
+    pub expiration_duration: u64, // Duration in seconds
 }
 
 impl PixelUpdate {

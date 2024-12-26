@@ -168,13 +168,14 @@ impl TestSetup {
     pub fn new() -> Self {
         let mut app = App::default();
         let users = TestUsers::default();
-        
+
         // Setup initial state
         Self::setup_block_time(&mut app);
         users.fund_all(&mut app);
 
         // Store contract codes
-        let (collection_code_id, minter_code_id, factory_code_id) = Self::store_contract_codes(&mut app);
+        let (collection_code_id, minter_code_id, factory_code_id) =
+            Self::store_contract_codes(&mut app);
 
         // Setup vending minter and get contract addresses
         let mut vending = VendingContract::new(&mut app, "vending");
@@ -206,13 +207,14 @@ impl TestSetup {
     // Helper methods for common operations
     pub fn mint_token(&mut self, owner: &Addr) -> u32 {
         // Use the contract's mint_token method
-        let token_id = self.tiles
+        let token_id = self
+            .tiles
             .mint_token(&mut self.app, owner, &self.minter)
             .unwrap();
 
         // Store the minting information
         self.scenario.minted_tokens.push((owner.clone(), token_id));
-        
+
         token_id
     }
 

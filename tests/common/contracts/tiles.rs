@@ -2,11 +2,11 @@ use crate::common::test_module::TilesApp as App;
 use anyhow::Result;
 use cosmwasm_std::{Addr, Coin};
 use cw_multi_test::{AppResponse, Executor};
-use tiles::contract::msg::{ExecuteMsg, TileExecuteMsg};
-use tiles::core::tile::metadata::{PixelUpdate, TileMetadata};
-use tiles::core::pricing::PriceScaling;
-use tiles::defaults::constants::{PIXEL_MIN_EXPIRATION, MINT_PRICE};
 use sg_std::NATIVE_DENOM;
+use tiles::contract::msg::{ExecuteMsg, TileExecuteMsg};
+use tiles::core::pricing::PriceScaling;
+use tiles::core::tile::metadata::{PixelUpdate, TileMetadata};
+use tiles::defaults::constants::{MINT_PRICE, PIXEL_MIN_EXPIRATION};
 use vending_minter::msg::ExecuteMsg as MinterExecuteMsg;
 
 pub struct TilesContract {

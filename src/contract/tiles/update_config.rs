@@ -32,7 +32,9 @@ pub fn update_config(
     }
 
     // Validate entire config
-    config.validate(deps.api).map_err(|e| ContractError::InvalidConfig(e.to_string()))?;
+    config
+        .validate(deps.api)
+        .map_err(|e| ContractError::InvalidConfig(e.to_string()))?;
 
     // Save updated config
     CONFIG.save(deps.storage, &config)?;

@@ -3,12 +3,11 @@ use anyhow::Result;
 use cosmwasm_std::{Addr, Coin};
 use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 use sg2::msg::{CollectionParams, CreateMinterMsg, Sg2ExecuteMsg};
-use tiles::defaults::constants::{
-    AIRDROP_MINT_FEE_BPS, AIRDROP_MINT_PRICE, CREATION_FEE, MAX_PER_ADDRESS_LIMIT,
-    MAX_TOKEN_LIMIT, MAX_TRADING_OFFSET_SECS, MINT_FEE_BPS, MIN_MINT_PRICE,
-    SHUFFLE_FEE,
-};
 use sg_std::NATIVE_DENOM;
+use tiles::defaults::constants::{
+    AIRDROP_MINT_FEE_BPS, AIRDROP_MINT_PRICE, CREATION_FEE, MAX_PER_ADDRESS_LIMIT, MAX_TOKEN_LIMIT,
+    MAX_TRADING_OFFSET_SECS, MINT_FEE_BPS, MIN_MINT_PRICE, SHUFFLE_FEE,
+};
 use vending_factory::msg::{InstantiateMsg, VendingMinterInitMsgExtension};
 
 pub struct VendingContract {

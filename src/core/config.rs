@@ -2,7 +2,9 @@ use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Api, Decimal, StdError};
 
 use crate::core::pricing::PriceScaling;
-use crate::defaults::constants::{DEFAULT_ADMIN_ADDRESS, DEFAULT_ROYALTY_ADDRESS, DEFAULT_ROYALTY_PERCENT};
+use crate::defaults::constants::{
+    DEFAULT_ADMIN_ADDRESS, DEFAULT_ROYALTY_ADDRESS, DEFAULT_ROYALTY_PERCENT,
+};
 
 #[cw_serde]
 pub struct Config {
@@ -35,7 +37,9 @@ impl Config {
 
         // Validate royalty payment address
         if self.tile_royalty_payment_address.is_empty() {
-            return Err(StdError::generic_err("Royalty payment address cannot be empty"));
+            return Err(StdError::generic_err(
+                "Royalty payment address cannot be empty",
+            ));
         }
         api.addr_validate(&self.tile_royalty_payment_address)?;
 

@@ -1,7 +1,7 @@
-use std::collections::HashSet;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, Uint128};
 use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
+use std::collections::HashSet;
 
 use crate::{
     contract::{error::ContractError, state::CONFIG},
@@ -43,7 +43,9 @@ pub fn set_pixel_color(
         }
 
         // Add to total price
-        total_price += config.price_scaling.calculate_price(update.expiration_duration);
+        total_price += config
+            .price_scaling
+            .calculate_price(update.expiration_duration);
     }
 
     // Verify sent funds match total price

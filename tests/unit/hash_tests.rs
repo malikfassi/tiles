@@ -1,5 +1,8 @@
 use cosmwasm_std::Addr;
-use tiles::core::tile::{metadata::{PixelData, TileMetadata}, Tile};
+use tiles::core::tile::{
+    metadata::{PixelData, TileMetadata},
+    Tile,
+};
 
 #[test]
 fn test_generate_hash() {

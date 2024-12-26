@@ -52,23 +52,23 @@ impl TestUser {
 
 pub struct TestUsers {
     // Contract admins
-    pub contract_admin: TestUser,     // Admin of the tiles contract
-    pub factory_admin: TestUser,      // Admin of the vending factory
-    pub minter_admin: TestUser,       // Admin of the vending minter
+    pub contract_admin: TestUser, // Admin of the tiles contract
+    pub factory_admin: TestUser,  // Admin of the vending factory
+    pub minter_admin: TestUser,   // Admin of the vending minter
 
     // Collection roles
-    pub collection_owner: TestUser,   // Owner of the NFT collection
-    pub royalty_receiver: TestUser,   // Receives royalties from sales
-    pub minter: TestUser,            // Has permission to mint NFTs
+    pub collection_owner: TestUser, // Owner of the NFT collection
+    pub royalty_receiver: TestUser, // Receives royalties from sales
+    pub minter: TestUser,           // Has permission to mint NFTs
 
     // Buyers with different balances
-    pub whale_buyer: TestUser,       // Has lots of funds
-    pub regular_buyer: TestUser,     // Has enough funds for normal operations
-    pub poor_buyer: TestUser,        // Has insufficient funds
+    pub whale_buyer: TestUser,   // Has lots of funds
+    pub regular_buyer: TestUser, // Has enough funds for normal operations
+    pub poor_buyer: TestUser,    // Has insufficient funds
 
     // Special roles
-    pub operator: TestUser,          // Has special permissions (like updating metadata)
-    pub random_user: TestUser,       // Just a random user with no special permissions
+    pub operator: TestUser, // Has special permissions (like updating metadata)
+    pub random_user: TestUser, // Just a random user with no special permissions
 }
 
 impl Default for TestUsers {
@@ -117,5 +117,4 @@ impl TestUsers {
         self.operator.fund_account(app);
         self.random_user.fund_account(app);
     }
-
-} 
+}

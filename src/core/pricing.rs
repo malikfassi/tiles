@@ -1,14 +1,9 @@
+use crate::defaults::constants::{
+    DEFAULT_PRICE_12_HOURS, DEFAULT_PRICE_1_HOUR, DEFAULT_PRICE_24_HOURS,
+    DEFAULT_PRICE_QUADRATIC_BASE, ONE_HOUR, TWELVE_HOURS, TWENTY_FOUR_HOURS,
+};
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{StdError, Uint128};
-use crate::defaults::constants::{
-    DEFAULT_PRICE_1_HOUR,
-    DEFAULT_PRICE_12_HOURS,
-    DEFAULT_PRICE_24_HOURS,
-    DEFAULT_PRICE_QUADRATIC_BASE,
-    ONE_HOUR,
-    TWELVE_HOURS,
-    TWENTY_FOUR_HOURS,
-};
 
 #[cw_serde]
 pub struct PriceScaling {
@@ -31,17 +26,21 @@ impl Default for PriceScaling {
 
 impl PriceScaling {
     pub fn validate(&self) -> Result<(), StdError> {
-        if self.hour_1_price.is_zero() 
-            || self.hour_12_price.is_zero() 
-            || self.hour_24_price.is_zero() 
-            || self.quadratic_base.is_zero() {
+        if self.hour_1_price.is_zero()
+            || self.hour_12_price.is_zero()
+            || self.hour_24_price.is_zero()
+            || self.quadratic_base.is_zero()
+        {
             return Err(StdError::generic_err("Prices cannot be zero"));
         }
 
-        if !(self.hour_1_price < self.hour_12_price 
-            && self.hour_12_price < self.hour_24_price 
-            && self.hour_24_price < self.quadratic_base) {
-            return Err(StdError::generic_err("Prices must be strictly increasing: 1h < 12h < 24h < quadratic_base"));
+        if !(self.hour_1_price < self.hour_12_price
+            && self.hour_12_price < self.hour_24_price
+            && self.hour_24_price < self.quadratic_base)
+        {
+            return Err(StdError::generic_err(
+                "Prices must be strictly increasing: 1h < 12h < 24h < quadratic_base",
+            ));
         }
 
         Ok(())
@@ -100,11 +99,7 @@ mod tests {
     #[test]
     fn test_calculate_total_price() {
         let pricing = PriceScaling::default();
-        let durations = vec![
-            ONE_HOUR,
-            TWELVE_HOURS,
-            TWENTY_FOUR_HOURS,
-        ];
+        let durations = vec![ONE_HOUR, TWELVE_HOURS, TWENTY_FOUR_HOURS];
 
         let total = pricing.calculate_total_price(durations.iter());
         let expected = pricing.hour_1_price + pricing.hour_12_price + pricing.hour_24_price;
