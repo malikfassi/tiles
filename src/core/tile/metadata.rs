@@ -5,6 +5,7 @@ use cosmwasm_std::Addr;
 use sha2::{Digest, Sha256};
 
 #[cw_serde]
+#[derive(Default)]
 pub struct TileMetadata {
     pub pixels: Vec<PixelData>,
 }
@@ -25,11 +26,7 @@ pub struct PixelUpdate {
     pub expiration: u64,
 }
 
-impl Default for TileMetadata {
-    fn default() -> Self {
-        Self { pixels: Vec::new() }
-    }
-}
+
 
 impl TileMetadata {
     pub fn hash(&self) -> String {
@@ -81,7 +78,7 @@ impl PixelUpdate {
         }
 
         let duration = self.expiration.saturating_sub(current_time);
-        if duration < PIXEL_MIN_EXPIRATION || duration > PIXEL_MAX_EXPIRATION {
+        if !(PIXEL_MIN_EXPIRATION..=PIXEL_MAX_EXPIRATION).contains(&duration) {
             return Err(ContractError::InvalidConfig(format!(
                 "Expiration duration must be between {} and {} seconds",
                 PIXEL_MIN_EXPIRATION, PIXEL_MAX_EXPIRATION

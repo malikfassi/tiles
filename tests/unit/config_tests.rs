@@ -1,5 +1,5 @@
 use cosmwasm_std::{Addr, Decimal};
-use tiles::core::config::Config;
+
 use tiles::core::pricing::PriceScaling;
 
 #[test]

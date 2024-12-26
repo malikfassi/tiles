@@ -14,7 +14,7 @@ fn test_mint_and_set_pixel() {
         .unwrap();
 
     // Create metadata and updates
-    let mut metadata = TileMetadata::default();
+    let metadata = TileMetadata::default();
     let updates = vec![
         PixelUpdate {
             id: 0,
@@ -65,7 +65,7 @@ fn test_set_pixel_unauthorized() {
         .unwrap();
 
     // Create metadata and updates
-    let mut metadata = TileMetadata::default();
+    let metadata = TileMetadata::default();
     let updates = vec![
         PixelUpdate {
             id: 0,

@@ -1,7 +1,7 @@
 use crate::common::contracts::tiles::TilesContract;
 use crate::common::contracts::vending::VendingFactory;
 use cosmwasm_std::{Addr, Coin, Timestamp};
-use cw_multi_test::{ContractWrapper, Executor};
+use cw_multi_test::{ContractWrapper};
 use sg2::msg::{CollectionParams, CreateMinterMsg};
 use sg721::CollectionInfo;
 use sg721_base::entry::{
@@ -82,7 +82,7 @@ impl TestSetup {
             init_msg: vending_factory::msg::VendingMinterInitMsgExtension {
                 base_token_uri: "ipfs://QmYxw1rURvnbQbBRTfmVaZtxSrkrfsbodNzibgBrVrUrtN".to_string(),
                 payment_address: None,
-                start_time: start_time,
+                start_time,
                 num_tokens: 100,
                 mint_price: Coin::new(100_000, NATIVE_DENOM),
                 per_address_limit: 3,
