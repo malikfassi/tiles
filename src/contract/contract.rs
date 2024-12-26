@@ -9,6 +9,7 @@ use crate::{
         error::ContractError,
         execute::execute_handler,
         instantiate::instantiate_handler,
+        query::query_handler,
         msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
         state::CONFIG,
     },
@@ -37,13 +38,5 @@ pub fn execute(
 
 #[entry_point]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
-    let contract: Sg721Contract<Tile> = Sg721Contract::default();
-
-    match msg {
-        QueryMsg::Config {} => {
-            let config = CONFIG.load(deps.storage)?;
-            Ok(to_json_binary(&config)?)
-        }
-        QueryMsg::Base(base_msg) => Ok(contract.query(deps, env, base_msg)?),
-    }
+    query_handler(deps, env, msg)
 }
