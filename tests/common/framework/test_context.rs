@@ -2,7 +2,7 @@ use super::scenario::Scenario;
 use crate::common::app::TestApp;
 use crate::common::contracts::{TilesContract, VendingContract};
 use crate::common::users::{TestUsers, UserRole};
-use cosmwasm_std::{Addr, Coin, Timestamp};
+use cosmwasm_std::{Addr, Coin};
 use cw_multi_test::ContractWrapper;
 use sg2::msg::CollectionParams;
 use sg721::CollectionInfo;

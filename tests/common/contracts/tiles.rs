@@ -49,7 +49,7 @@ impl TilesContract {
         let price = price_scaling.calculate_price(PIXEL_MIN_EXPIRATION);
         let price_u128: u128 = price.u128();
 
-        let mut metadata = TileMetadata::default();
+        let metadata = TileMetadata::default();
 
         // Execute update through the tiles contract
         app.execute_contract(
