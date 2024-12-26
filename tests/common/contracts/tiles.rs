@@ -1,45 +1,36 @@
 use crate::common::test_module::TilesApp as App;
 use anyhow::Result;
-use cosmwasm_std::{to_json_binary, Addr, Coin, Uint128};
+use cosmwasm_std::{Addr, Coin};
 use cw_multi_test::{AppResponse, Executor};
 use tiles::contract::msg::{ExecuteMsg, TileExecuteMsg};
 use tiles::core::tile::metadata::{PixelUpdate, TileMetadata};
+use tiles::core::pricing::PriceScaling;
 use tiles::defaults::constants::{PIXEL_MIN_EXPIRATION, MINT_PRICE};
 use sg_std::NATIVE_DENOM;
 use vending_minter::msg::ExecuteMsg as MinterExecuteMsg;
 
-use crate::common::helpers::setup::TestSetup;
-
 pub struct TilesContract {
-    pub address: Option<Addr>,
+    pub contract_addr: Addr,
 }
 
 impl TilesContract {
-    pub fn new(address: Addr) -> Self {
-        Self {
-            address: Some(address),
-        }
+    pub fn new(contract_addr: Addr) -> Self {
+        Self { contract_addr }
     }
 
+    // Contract execution helpers
     pub fn mint_through_minter(
         &self,
         app: &mut App,
         owner: &Addr,
         minter: &Addr,
-    ) -> Result<AppResponse> {
-        let mint_msg = MinterExecuteMsg::Mint {};
-        println!(
-            "DEBUG: Sending vending minter message: {}",
-            String::from_utf8_lossy(&to_json_binary(&mint_msg).unwrap())
-        );
-
+    ) -> Result<AppResponse, anyhow::Error> {
         app.execute_contract(
             owner.clone(),
             minter.clone(),
-            &mint_msg,
+            &MinterExecuteMsg::Mint {},
             &[Coin::new(MINT_PRICE, NATIVE_DENOM)],
         )
-        .map_err(Into::into)
     }
 
     pub fn update_pixel(
@@ -48,29 +39,52 @@ impl TilesContract {
         owner: &Addr,
         token_id: u32,
         color: String,
-    ) -> Result<AppResponse> {
-        // Get current block time
-        let current_time = app.block_info().time.seconds();
-
-        // Create a pixel update with minimum expiration
-        let update = PixelUpdate {
-            id: 0, // Update first pixel
-            color,
-            expiration_duration: PIXEL_MIN_EXPIRATION,
-        };
+    ) -> Result<AppResponse, anyhow::Error> {
+        let price_scaling = PriceScaling::default();
+        let price = price_scaling.calculate_price(PIXEL_MIN_EXPIRATION);
+        let price_u128: u128 = price.u128();
 
         app.execute_contract(
             owner.clone(),
-            self.address.as_ref().unwrap().clone(),
+            self.contract_addr.clone(),
             &ExecuteMsg::Extension {
                 msg: TileExecuteMsg::SetPixelColor {
                     token_id: token_id.to_string(),
                     current_metadata: TileMetadata::default(),
-                    updates: vec![update],
+                    updates: vec![PixelUpdate {
+                        id: 0,
+                        expiration_duration: PIXEL_MIN_EXPIRATION,
+                        color,
+                    }],
                 },
             },
-            &[Coin::new(MINT_PRICE, NATIVE_DENOM)], // Send same amount as mint price for now
+            &[Coin::new(price_u128, NATIVE_DENOM)],
         )
-        .map_err(Into::into)
+    }
+
+    // High-level helper methods
+    pub fn mint_token(
+        &self,
+        app: &mut App,
+        owner: &Addr,
+        minter: &Addr,
+    ) -> Result<u32, anyhow::Error> {
+        // Mint the token and get the response
+        let mint_response = self.mint_through_minter(app, owner, minter)?;
+
+        // Extract token_id from the response events
+        let token_id = mint_response
+            .events
+            .iter()
+            .find(|e| e.ty == "wasm")
+            .and_then(|e| {
+                e.attributes
+                    .iter()
+                    .find(|a| a.key == "token_id")
+                    .map(|a| a.value.parse::<u32>().unwrap())
+            })
+            .expect("Token ID not found in mint response");
+
+        Ok(token_id)
     }
 }

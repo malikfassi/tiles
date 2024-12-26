@@ -205,23 +205,10 @@ impl TestSetup {
 
     // Helper methods for common operations
     pub fn mint_token(&mut self, owner: &Addr) -> u32 {
-        // Mint the token and get the response
-        let mint_response = self.tiles
-            .mint_through_minter(&mut self.app, owner, &self.minter)
+        // Use the contract's mint_token method
+        let token_id = self.tiles
+            .mint_token(&mut self.app, owner, &self.minter)
             .unwrap();
-
-        // Extract token_id from the response events
-        let token_id = mint_response
-            .events
-            .iter()
-            .find(|e| e.ty == "wasm")
-            .and_then(|e| {
-                e.attributes
-                    .iter()
-                    .find(|a| a.key == "token_id")
-                    .map(|a| a.value.parse::<u32>().unwrap())
-            })
-            .expect("Token ID not found in mint response");
 
         // Store the minting information
         self.scenario.minted_tokens.push((owner.clone(), token_id));
