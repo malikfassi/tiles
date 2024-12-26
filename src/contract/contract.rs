@@ -1,4 +1,4 @@
-use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response};
 use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
@@ -12,7 +12,7 @@ use crate::{
 
 pub type TilesContract<'a> = Sg721Contract<'a, Tile>;
 
-#[entry_point]
+#[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut,
     env: Env,
@@ -22,7 +22,7 @@ pub fn instantiate(
     crate::contract::instantiate::instantiate(deps, env, info, msg)
 }
 
-#[entry_point]
+#[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
     deps: DepsMut,
     env: Env,
@@ -32,11 +32,12 @@ pub fn execute(
     crate::contract::execute::execute(deps, env, info, msg)
 }
 
-#[entry_point]
-pub fn query(
-    deps: Deps,
-    env: Env,
-    msg: QueryMsg,
-) -> Result<Response<StargazeMsgWrapper>, ContractError> {
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
     crate::contract::query::query(deps, env, msg)
+}
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> Result<Response<StargazeMsgWrapper>, ContractError> {
+    crate::contract::reply::reply(deps, env, msg)
 }

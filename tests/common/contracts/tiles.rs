@@ -1,8 +1,8 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Coin, StdError, StdResult};
+use cw_multi_test::{ContractWrapper, Executor};
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 use sg_multi_test::StargazeApp as App;
-use sg_multi_test::{ContractWrapper, Executor};
 
 use tiles::{
     contract::{

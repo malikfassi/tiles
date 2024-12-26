@@ -1,9 +1,9 @@
 use crate::common::contracts::tiles::TilesContract;
 use cosmwasm_std::{Addr, Coin, StdError, StdResult};
+use cw_multi_test::{ContractWrapper, Executor};
 use sg2::msg::{CreateMinterMsg, Sg2ExecuteMsg};
 use sg_multi_test::StargazeApp as App;
-use sg_multi_test::{ContractWrapper, Executor};
-use sg_std::{Response, NATIVE_DENOM};
+use sg_std::NATIVE_DENOM;
 use vending_factory::contract::{execute, instantiate, query, sudo};
 use vending_factory::msg::InstantiateMsg;
 use vending_factory::state::VendingMinterParams;
@@ -75,7 +75,7 @@ impl VendingFactory {
         println!("Factory address: {}", self.addr);
         println!("Sender: {}", sender);
         println!("Creation fee: 1000000 {}", NATIVE_DENOM);
-
+        
         // First, execute the create_minter message on the factory
         println!("Executing create_minter message...");
         let res = match app.execute_contract(
@@ -87,21 +87,17 @@ impl VendingFactory {
             Ok(res) => {
                 println!("✓ Create minter message executed successfully");
                 res
-            }
+            },
             Err(e) => {
                 println!("❌ Failed to execute create_minter message");
                 println!("Error: {:#?}", e);
-                return Err(StdError::generic_err(format!(
-                    "Failed to create minter: {}",
-                    e
-                )));
+                return Err(StdError::generic_err(format!("Failed to create minter: {}", e)));
             }
         };
 
         println!("\nParsing response events...");
         // Get the minter address from the instantiate event
-        let minter_addr = match res
-            .events
+        let minter_addr = match res.events
             .iter()
             .find(|e| e.ty == "instantiate")
             .and_then(|e| e.attributes.iter().find(|a| a.key == "_contract_address"))
@@ -110,18 +106,15 @@ impl VendingFactory {
             Some(addr) => {
                 println!("✓ Found minter address: {}", addr);
                 addr
-            }
+            },
             None => {
                 println!("❌ Could not find minter address in response");
-                return Err(StdError::generic_err(
-                    "Could not find minter address in response",
-                ));
+                return Err(StdError::generic_err("Could not find minter address in response"));
             }
         };
 
         // Get the collection address from the instantiate event
-        let collection_addr = match res
-            .events
+        let collection_addr = match res.events
             .iter()
             .find(|e| e.ty == "instantiate")
             .and_then(|e| e.attributes.iter().find(|a| a.key == "_contract_address"))
@@ -130,12 +123,10 @@ impl VendingFactory {
             Some(addr) => {
                 println!("✓ Found collection address: {}", addr);
                 addr
-            }
+            },
             None => {
                 println!("❌ Could not find collection address in response");
-                return Err(StdError::generic_err(
-                    "Could not find collection address in response",
-                ));
+                return Err(StdError::generic_err("Could not find collection address in response"));
             }
         };
 
@@ -146,7 +137,8 @@ impl VendingFactory {
 
 pub fn store_vending_factory_code(app: &mut App) -> StdResult<u64> {
     println!("Creating vending factory contract wrapper...");
-    let contract = ContractWrapper::new(execute, instantiate, query).with_sudo(sudo);
+    let contract = ContractWrapper::new(execute, instantiate, query)
+        .with_sudo(sudo);
     println!("Storing vending factory code...");
     let code_id = app.store_code(Box::new(contract));
     println!("✓ Vending factory code stored successfully");
