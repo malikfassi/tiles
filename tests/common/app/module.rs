@@ -62,8 +62,6 @@ impl Module for TilesModule {
     }
 }
 
-pub type TilesApp = sg_multi_test::StargazeApp;
-
 pub type TilesDeps = cosmwasm_std::OwnedDeps<MockStorage, MockApi, MockQuerier, StargazeQuery>;
 
 pub fn mock_tiles_deps() -> TilesDeps {
@@ -73,4 +71,4 @@ pub fn mock_tiles_deps() -> TilesDeps {
         querier: MockQuerier::default(),
         custom_query_type: PhantomData,
     }
-}
+} 

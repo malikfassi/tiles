@@ -1,11 +1,13 @@
-use crate::common::test_module::TilesApp as App;
+use crate::common::app::TestApp;
 use anyhow::Result;
 use cosmwasm_std::{Addr, Coin};
-use cw_multi_test::{AppResponse, Executor};
+use cw721::NftInfoResponse;
+use cw_multi_test::AppResponse;
+use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 use sg_std::NATIVE_DENOM;
 use tiles::contract::msg::{ExecuteMsg, TileExecuteMsg};
+use tiles::core::tile::{Tile, metadata::{PixelUpdate, TileMetadata}};
 use tiles::core::pricing::PriceScaling;
-use tiles::core::tile::metadata::{PixelUpdate, TileMetadata};
 use tiles::defaults::constants::{MINT_PRICE, PIXEL_MIN_EXPIRATION};
 use vending_minter::msg::ExecuteMsg as MinterExecuteMsg;
 
@@ -21,7 +23,7 @@ impl TilesContract {
     // Contract execution helpers
     pub fn mint_through_minter(
         &self,
-        app: &mut App,
+        app: &mut TestApp,
         owner: &Addr,
         minter: &Addr,
     ) -> Result<AppResponse, anyhow::Error> {
@@ -35,7 +37,7 @@ impl TilesContract {
 
     pub fn update_pixel(
         &self,
-        app: &mut App,
+        app: &mut TestApp,
         owner: &Addr,
         token_id: u32,
         color: String,
@@ -44,13 +46,16 @@ impl TilesContract {
         let price = price_scaling.calculate_price(PIXEL_MIN_EXPIRATION);
         let price_u128: u128 = price.u128();
 
+        let mut metadata = TileMetadata::default();
+
+        // Execute update through the tiles contract
         app.execute_contract(
             owner.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::Extension {
                 msg: TileExecuteMsg::SetPixelColor {
                     token_id: token_id.to_string(),
-                    current_metadata: TileMetadata::default(),
+                    current_metadata: metadata,
                     updates: vec![PixelUpdate {
                         id: 0,
                         expiration_duration: PIXEL_MIN_EXPIRATION,
@@ -62,17 +67,48 @@ impl TilesContract {
         )
     }
 
+    // Query helpers
+    pub fn query_token_owner(&self, app: &TestApp, token_id: u32) -> Result<Addr, anyhow::Error> {
+        let owner: String = app.inner().wrap().query_wasm_smart(
+            self.contract_addr.clone(),
+            &Sg721QueryMsg::OwnerOf {
+                token_id: token_id.to_string(),
+                include_expired: None,
+            },
+        )?;
+        Ok(Addr::unchecked(owner))
+    }
+
+    pub fn query_tile_hash(&self, app: &TestApp, token_id: u32) -> Result<String, anyhow::Error> {
+        let nft_info: NftInfoResponse<Tile> = app.inner().wrap().query_wasm_smart(
+            self.contract_addr.clone(),
+            &Sg721QueryMsg::NftInfo {
+                token_id: token_id.to_string(),
+            },
+        )?;
+
+        Ok(nft_info.extension.tile_hash)
+    }
+
+    pub fn verify_tile_hash(
+        &self,
+        app: &TestApp,
+        token_id: u32,
+        expected_hash: String,
+    ) -> Result<bool, anyhow::Error> {
+        let stored_hash = self.query_tile_hash(app, token_id)?;
+        Ok(stored_hash == expected_hash)
+    }
+
     // High-level helper methods
     pub fn mint_token(
         &self,
-        app: &mut App,
+        app: &mut TestApp,
         owner: &Addr,
         minter: &Addr,
     ) -> Result<u32, anyhow::Error> {
-        // Mint the token and get the response
         let mint_response = self.mint_through_minter(app, owner, minter)?;
 
-        // Extract token_id from the response events
         let token_id = mint_response
             .events
             .iter()

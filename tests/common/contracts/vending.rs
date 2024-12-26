@@ -1,7 +1,7 @@
-use crate::common::test_module::TilesApp as App;
+use crate::common::app::TestApp;
 use anyhow::Result;
 use cosmwasm_std::{Addr, Coin};
-use cw_multi_test::{AppResponse, ContractWrapper, Executor};
+use cw_multi_test::{AppResponse, ContractWrapper};
 use sg2::msg::{CollectionParams, CreateMinterMsg, Sg2ExecuteMsg};
 use sg_std::NATIVE_DENOM;
 use tiles::defaults::constants::{
@@ -11,12 +11,11 @@ use tiles::defaults::constants::{
 use vending_factory::msg::{InstantiateMsg, VendingMinterInitMsgExtension};
 
 pub struct VendingContract {
-    pub address: Option<Addr>,
-    pub code_id: Option<u64>,
+    pub contract_addr: Option<Addr>,
 }
 
 impl VendingContract {
-    pub fn new(app: &mut App, _label: &str) -> Self {
+    pub fn new(app: &mut TestApp, _label: &str) -> Self {
         let contract = Box::new(
             ContractWrapper::new(
                 vending_factory::contract::execute,
@@ -25,20 +24,27 @@ impl VendingContract {
             )
             .with_reply(vending_minter::contract::reply),
         );
-        let code_id = app.store_code(contract);
+        let _code_id = app.store_code(contract);
         Self {
-            address: None,
-            code_id: Some(code_id),
+            contract_addr: None,
         }
     }
 
-    pub fn store_code(&self, _app: &mut App) -> Result<u64> {
-        Ok(self.code_id.unwrap())
+    pub fn store_code(&self, app: &mut TestApp) -> Result<u64> {
+        let contract = Box::new(
+            ContractWrapper::new(
+                vending_factory::contract::execute,
+                vending_factory::contract::instantiate,
+                vending_factory::contract::query,
+            )
+            .with_reply(vending_minter::contract::reply),
+        );
+        Ok(app.store_code(contract))
     }
 
     pub fn instantiate(
         &mut self,
-        app: &mut App,
+        app: &mut TestApp,
         code_id: u64,
         minter_code_id: u64,
         collection_code_id: u64,
@@ -69,26 +75,25 @@ impl VendingContract {
             "vending",
             None,
         )?;
-        self.address = Some(addr.clone());
+        self.contract_addr = Some(addr.clone());
         Ok(addr)
     }
 
     pub fn create_minter(
         &self,
-        app: &mut App,
+        app: &mut TestApp,
         owner: &Addr,
         collection_params: CollectionParams,
         init_msg: VendingMinterInitMsgExtension,
     ) -> Result<AppResponse> {
         app.execute_contract(
             owner.clone(),
-            self.address.as_ref().unwrap().clone(),
+            self.contract_addr.as_ref().unwrap().clone(),
             &Sg2ExecuteMsg::CreateMinter(CreateMinterMsg {
                 init_msg,
                 collection_params,
             }),
             &[Coin::new(CREATION_FEE, NATIVE_DENOM)],
         )
-        .map_err(Into::into)
     }
 }

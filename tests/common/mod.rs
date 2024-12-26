@@ -1,6 +1,7 @@
+pub mod app;
 pub mod contracts;
-pub mod helpers;
-pub mod test_module;
+pub mod framework;
+pub mod users;
 
-pub use contracts::tiles::TilesContract;
-pub use helpers::setup::TestSetup;
+pub use app::TestApp;
+pub use framework::{TestContext, Scenario};

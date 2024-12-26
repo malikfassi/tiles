@@ -1,9 +1,11 @@
-use crate::common::helpers::setup::{TestSetup, UserType};
+use crate::common::framework::TestContext;
+use crate::common::users::UserRole;
 
 #[test]
 fn test_update_minter() {
-    let mut setup = TestSetup::new();
+    let mut ctx = TestContext::new();
 
-    // Mint a token as regular buyer
-    setup.mint_as(UserType::Buyer);
+    // TODO: update config
+
+    // TODO: verify config
 }

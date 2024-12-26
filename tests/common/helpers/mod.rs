@@ -1,6 +1,2 @@
-pub mod mock_app;
-pub mod setup;
-pub mod users;
-
-pub use setup::{TestSetup, UserType};
-pub use users::TestUsers;
+// This module is deprecated and will be removed.
+// All functionality has been moved to app, framework, and users modules.
