@@ -1,5 +1,5 @@
-use cosmwasm_std::{Decimal, Uint128};
 use crate::core::pricing::PriceScaling;
+use cosmwasm_std::{Decimal, Uint128};
 
 // Default addresses
 pub const DEFAULT_TILE_ADMIN_ADDRESS: &str = "creator";
@@ -18,4 +18,3 @@ pub const DEFAULT_PRICE_SCALING: PriceScaling = PriceScaling {
     hour_24_price: Uint128::new(300_000_000),
     quadratic_base: Uint128::new(400_000_000),
 };
- 

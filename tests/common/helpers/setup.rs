@@ -1,13 +1,17 @@
+use crate::common::contracts::tiles::TilesContract;
+use crate::common::contracts::vending::VendingFactory;
 use cosmwasm_std::{Addr, Coin, Timestamp};
-use cw_multi_test::{ContractWrapper};
+use cw_multi_test::ContractWrapper;
+use sg2::msg::{CollectionParams, CreateMinterMsg};
+use sg721::CollectionInfo;
+use sg721_base::entry::{
+    execute as sg721_execute, instantiate as sg721_instantiate, query as sg721_query,
+};
 use sg_multi_test::StargazeApp as App;
 use sg_std::NATIVE_DENOM;
-use sg721_base::entry::{execute as sg721_execute, instantiate as sg721_instantiate, query as sg721_query};
-use vending_minter::contract::{execute as minter_execute, instantiate as minter_instantiate, query as minter_query};
-use sg2::msg::{CreateMinterMsg, CollectionParams};
-use sg721::CollectionInfo;
-use crate::common::contracts::vending::VendingFactory;
-use crate::common::contracts::tiles::TilesContract;
+use vending_minter::contract::{
+    execute as minter_execute, instantiate as minter_instantiate, query as minter_query,
+};
 
 pub struct TestSetup {
     pub app: App,
@@ -44,7 +48,10 @@ impl TestSetup {
                 )
                 .unwrap();
         });
-        println!("✓ App initialized with admin: {} and balance: {} {}", admin, 10_000_000_000, NATIVE_DENOM);
+        println!(
+            "✓ App initialized with admin: {} and balance: {} {}",
+            admin, 10_000_000_000, NATIVE_DENOM
+        );
 
         // Store contract codes
         println!("\nStoring contract codes...");
@@ -101,21 +108,27 @@ impl TestSetup {
         println!("- Base token URI: {}", msg.init_msg.base_token_uri);
         println!("- Start time: {}", msg.init_msg.start_time);
         println!("- Num tokens: {}", msg.init_msg.num_tokens);
-        println!("- Mint price: {} {}", msg.init_msg.mint_price.amount, msg.init_msg.mint_price.denom);
+        println!(
+            "- Mint price: {} {}",
+            msg.init_msg.mint_price.amount, msg.init_msg.mint_price.denom
+        );
         println!("- Per address limit: {}", msg.init_msg.per_address_limit);
         println!("Collection params:");
         println!("- Code ID: {}", msg.collection_params.code_id);
         println!("- Name: {}", msg.collection_params.name);
         println!("- Symbol: {}", msg.collection_params.symbol);
         println!("- Creator: {}", msg.collection_params.info.creator);
-        println!("- Start trading time: {:?}", msg.collection_params.info.start_trading_time);
+        println!(
+            "- Start trading time: {:?}",
+            msg.collection_params.info.start_trading_time
+        );
 
         let (minter, collection) = match factory.create_minter(&mut app, &admin, msg) {
             Ok((m, c)) => {
                 println!("✓ Successfully created minter at address: {}", m);
                 println!("✓ Successfully created collection at address: {}", c.addr);
                 (m, c)
-            },
+            }
             Err(e) => {
                 println!("❌ Failed to create minter and collection");
                 println!("Error details: {:#?}", e);
@@ -133,4 +146,4 @@ impl TestSetup {
             collection,
         }
     }
-} 
+}

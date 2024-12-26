@@ -72,11 +72,11 @@ fn test_hash_mismatch() {
         last_updated_at: now,
     }];
 
-    let extension = Tile {
-        tile_hash: hash,
-    };
+    let extension = Tile { tile_hash: hash };
 
-    let different_metadata = TileMetadata { pixels: different_pixels };
+    let different_metadata = TileMetadata {
+        pixels: different_pixels,
+    };
     let result = extension.verify_metadata(tile_id, &different_metadata);
     assert!(result.is_err());
 }

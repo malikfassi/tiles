@@ -1,8 +1,8 @@
-use std::fmt::Debug;
+use hex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
-use hex;
+use sha2::{Digest, Sha256};
+use std::fmt::Debug;
 
 pub mod metadata;
 
@@ -33,7 +33,11 @@ impl Tile {
         hex::encode(hasher.finalize())
     }
 
-    pub fn verify_metadata(&self, tile_id: &str, metadata: &metadata::TileMetadata) -> Result<(), crate::contract::error::ContractError> {
+    pub fn verify_metadata(
+        &self,
+        tile_id: &str,
+        metadata: &metadata::TileMetadata,
+    ) -> Result<(), crate::contract::error::ContractError> {
         let current_hash = Self::generate_hash(tile_id, &metadata.pixels);
         if current_hash != self.tile_hash {
             return Err(crate::contract::error::ContractError::HashMismatch {});

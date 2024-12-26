@@ -1,10 +1,7 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, Decimal};
+use cosmwasm_std::{Decimal, DepsMut, Env, MessageInfo, Response};
 use sg_std::StargazeMsgWrapper;
 
-use crate::contract::{
-    error::ContractError,
-    state::TILE_CONFIG,
-};
+use crate::contract::{error::ContractError, state::TILE_CONFIG};
 use crate::core::pricing::PriceScaling;
 
 pub fn update_config(
@@ -39,4 +36,4 @@ pub fn update_config(
     TILE_CONFIG.save(deps.storage, &config)?;
 
     Ok(Response::new().add_attribute("action", "update_config"))
-} 
+}

@@ -1,6 +1,6 @@
+use crate::common::helpers::mock::default_price_scaling;
 use cosmwasm_std::Uint128;
 use tiles::core::pricing::PriceScaling;
-use crate::common::helpers::mock::default_price_scaling;
 
 #[test]
 fn test_calculate_price() {
@@ -29,9 +29,9 @@ fn test_calculate_total_price() {
     let pricing = default_price_scaling();
     let current_time = 1000;
     let expirations = vec![
-        current_time + 3600,   // 1 hour
-        current_time + 43200,  // 12 hours
-        current_time + 86400,  // 24 hours
+        current_time + 3600,  // 1 hour
+        current_time + 43200, // 12 hours
+        current_time + 86400, // 24 hours
     ];
 
     let total = pricing.calculate_total_price(&expirations, current_time);
@@ -56,4 +56,4 @@ fn test_validate_price_scaling() {
         quadratic_base: Uint128::new(400),
     };
     assert!(invalid.validate().is_err());
-} 
+}

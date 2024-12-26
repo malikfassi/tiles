@@ -19,4 +19,4 @@ pub fn mock_creator() -> Addr {
 
 pub fn mock_user() -> Addr {
     Addr::unchecked("user")
-} 
+}

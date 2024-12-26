@@ -3,13 +3,10 @@ use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
 use crate::{
-    contract::{
-        error::ContractError,
-        state::TILE_CONFIG,
-    },
+    contract::{error::ContractError, state::TILE_CONFIG},
     core::tile::{
+        metadata::{PixelUpdate, TileMetadata},
         Tile,
-        metadata::{TileMetadata, PixelUpdate},
     },
 };
 
@@ -43,8 +40,7 @@ pub fn set_pixel_color(
         _ => {
             return Err(ContractError::InvalidFunds(format!(
                 "Expected {} ustars, got {:?}",
-                total_price,
-                info.funds
+                total_price, info.funds
             )));
         }
     }
@@ -64,4 +60,4 @@ pub fn set_pixel_color(
         .add_attribute("action", "set_pixel_color")
         .add_attribute("token_id", token_id)
         .add_attribute("sender", info.sender))
-} 
+}

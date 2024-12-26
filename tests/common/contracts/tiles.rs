@@ -1,22 +1,21 @@
-use cosmwasm_std::{Addr, Coin, StdResult, StdError};
-use sg_multi_test::{ContractWrapper, Executor};
-use sg_multi_test::StargazeApp as App;
-use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 use cosmwasm_schema::cw_serde;
+use cosmwasm_std::{Addr, Coin, StdError, StdResult};
+use sg721_base::msg::QueryMsg as Sg721QueryMsg;
+use sg_multi_test::StargazeApp as App;
+use sg_multi_test::{ContractWrapper, Executor};
 
 use tiles::{
     contract::{
-        execute,
-        instantiate,
+        execute, instantiate,
+        msg::{CustomExecuteMsg, ExecuteMsg, QueryMsg},
         query,
-        msg::{ExecuteMsg, QueryMsg, CustomExecuteMsg},
     },
     core::{
-        tile::{
-            Tile,
-            metadata::{TileMetadata, PixelUpdate},
-        },
         pricing::PriceScaling,
+        tile::{
+            metadata::{PixelUpdate, TileMetadata},
+            Tile,
+        },
     },
 };
 
@@ -49,7 +48,7 @@ impl TilesContract {
         let extension = extension.unwrap_or_else(|| Tile {
             tile_hash: TileMetadata::default().hash(),
         });
-        
+
         let msg = ExecuteMsg::Base(sg721::ExecuteMsg::Mint {
             token_id,
             owner: sender.to_string(),
@@ -113,4 +112,4 @@ impl TilesContract {
 pub struct TokenResponse {
     pub token_uri: Option<String>,
     pub extension: Tile,
-} 
+}

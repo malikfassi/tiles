@@ -20,22 +20,31 @@ pub struct PriceScaling {
 impl PriceScaling {
     pub fn validate(&self) -> Result<(), PricingError> {
         if self.hour_1_price.is_zero() {
-            return Err(PricingError::InvalidPriceScaling("hour_1_price cannot be zero".to_string()));
+            return Err(PricingError::InvalidPriceScaling(
+                "hour_1_price cannot be zero".to_string(),
+            ));
         }
         if self.hour_12_price.is_zero() {
-            return Err(PricingError::InvalidPriceScaling("hour_12_price cannot be zero".to_string()));
+            return Err(PricingError::InvalidPriceScaling(
+                "hour_12_price cannot be zero".to_string(),
+            ));
         }
         if self.hour_24_price.is_zero() {
-            return Err(PricingError::InvalidPriceScaling("hour_24_price cannot be zero".to_string()));
+            return Err(PricingError::InvalidPriceScaling(
+                "hour_24_price cannot be zero".to_string(),
+            ));
         }
         if self.quadratic_base.is_zero() {
-            return Err(PricingError::InvalidPriceScaling("quadratic_base cannot be zero".to_string()));
+            return Err(PricingError::InvalidPriceScaling(
+                "quadratic_base cannot be zero".to_string(),
+            ));
         }
         Ok(())
     }
 
     pub fn calculate_total_price(&self, expirations: &[u64], current_time: u64) -> Uint128 {
-        expirations.iter()
+        expirations
+            .iter()
             .map(|expiration| self.calculate_price(*expiration, current_time))
             .sum()
     }
@@ -44,17 +53,21 @@ impl PriceScaling {
         let duration = expiration.saturating_sub(current_time);
 
         // Step-based pricing for durations up to 24 hours
-        if duration <= 3600 {  // 1 hour
+        if duration <= 3600 {
+            // 1 hour
             self.hour_1_price
-        } else if duration <= 43200 {  // 12 hours
+        } else if duration <= 43200 {
+            // 12 hours
             self.hour_12_price
-        } else if duration <= 86400 {  // 24 hours
+        } else if duration <= 86400 {
+            // 24 hours
             self.hour_24_price
         } else {
             // Quadratic scaling based on seconds for durations beyond 24 hours
             let excess_seconds = duration - 86400;
             let quadratic_factor = excess_seconds.saturating_mul(excess_seconds);
-            self.quadratic_base.saturating_add(Uint128::new(quadratic_factor.into()))
+            self.quadratic_base
+                .saturating_add(Uint128::new(quadratic_factor.into()))
         }
     }
 }
@@ -109,9 +122,9 @@ mod tests {
         let pricing = PriceScaling::default();
         let current_time = 1000;
         let expirations = vec![
-            current_time + 3600,   // 1 hour
-            current_time + 43200,  // 12 hours
-            current_time + 86400,  // 24 hours
+            current_time + 3600,  // 1 hour
+            current_time + 43200, // 12 hours
+            current_time + 86400, // 24 hours
         ];
 
         let total = pricing.calculate_total_price(&expirations, current_time);

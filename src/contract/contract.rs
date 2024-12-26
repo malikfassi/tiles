@@ -1,13 +1,11 @@
-use cosmwasm_std::{
-    entry_point, DepsMut, Env, MessageInfo, Response, Deps,
-};
+use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response};
 use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
 use crate::{
     contract::{
         error::ContractError,
-        msg::{InstantiateMsg, ExecuteMsg, QueryMsg},
+        msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
     },
     core::tile::Tile,
 };

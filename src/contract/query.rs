@@ -1,11 +1,11 @@
-use cosmwasm_std::{Deps, Env, Response, to_json_binary};
+use cosmwasm_std::{to_json_binary, Deps, Env, Response};
 use sg_std::StargazeMsgWrapper;
 
 use crate::contract::{
-    error::ContractError,
-    msg::{QueryMsg, CustomQueryMsg},
-    state::TILE_CONFIG,
     contract::TilesContract,
+    error::ContractError,
+    msg::{CustomQueryMsg, QueryMsg},
+    state::TILE_CONFIG,
 };
 
 pub fn query(
@@ -14,7 +14,7 @@ pub fn query(
     msg: QueryMsg,
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
     let contract = TilesContract::default();
-    
+
     let response = match msg {
         // Handle our custom queries
         QueryMsg::Custom(custom_msg) => match custom_msg {
@@ -28,4 +28,4 @@ pub fn query(
     };
 
     Ok(Response::new().set_data(response))
-} 
+}

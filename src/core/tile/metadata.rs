@@ -1,8 +1,8 @@
+use crate::contract::error::ContractError;
+use crate::defaults::constants::{PIXELS_PER_TILE, PIXEL_MAX_EXPIRATION, PIXEL_MIN_EXPIRATION};
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
-use sha2::{Sha256, Digest};
-use crate::contract::error::ContractError;
-use crate::defaults::constants::{PIXELS_PER_TILE, PIXEL_MIN_EXPIRATION, PIXEL_MAX_EXPIRATION};
+use sha2::{Digest, Sha256};
 
 #[cw_serde]
 pub struct TileMetadata {
@@ -27,9 +27,7 @@ pub struct PixelUpdate {
 
 impl Default for TileMetadata {
     fn default() -> Self {
-        Self {
-            pixels: Vec::new(),
-        }
+        Self { pixels: Vec::new() }
     }
 }
 
@@ -51,34 +49,50 @@ impl TileMetadata {
 }
 
 impl PixelUpdate {
-    pub fn validate(&self, current_pixel: &PixelData, current_time: u64) -> Result<(), ContractError> {
+    pub fn validate(
+        &self,
+        current_pixel: &PixelData,
+        current_time: u64,
+    ) -> Result<(), ContractError> {
         // Validate pixel id
         if self.id >= PIXELS_PER_TILE {
-            return Err(ContractError::InvalidConfig(format!("Invalid pixel id: {}", self.id)));
+            return Err(ContractError::InvalidConfig(format!(
+                "Invalid pixel id: {}",
+                self.id
+            )));
         }
-        
+
         // Validate color format (#RRGGBB)
-        if !self.color.starts_with('#') || self.color.len() != 7 || !self.color[1..].chars().all(|c| c.is_ascii_hexdigit()) {
-            return Err(ContractError::InvalidConfig(format!("Invalid color format: {}", self.color)));
+        if !self.color.starts_with('#')
+            || self.color.len() != 7
+            || !self.color[1..].chars().all(|c| c.is_ascii_hexdigit())
+        {
+            return Err(ContractError::InvalidConfig(format!(
+                "Invalid color format: {}",
+                self.color
+            )));
         }
 
         // Validate expiration is in the future and within bounds
         if self.expiration <= current_time {
-            return Err(ContractError::InvalidConfig("Expiration must be in the future".to_string()));
+            return Err(ContractError::InvalidConfig(
+                "Expiration must be in the future".to_string(),
+            ));
         }
 
         let duration = self.expiration.saturating_sub(current_time);
         if duration < PIXEL_MIN_EXPIRATION || duration > PIXEL_MAX_EXPIRATION {
             return Err(ContractError::InvalidConfig(format!(
                 "Expiration duration must be between {} and {} seconds",
-                PIXEL_MIN_EXPIRATION,
-                PIXEL_MAX_EXPIRATION
+                PIXEL_MIN_EXPIRATION, PIXEL_MAX_EXPIRATION
             )));
         }
 
         // Validate current pixel is expired or not set
         if current_pixel.expiration < current_time {
-            return Err(ContractError::InvalidConfig("Pixel is not expired yet".to_string()));
+            return Err(ContractError::InvalidConfig(
+                "Pixel is not expired yet".to_string(),
+            ));
         }
 
         Ok(())
@@ -87,7 +101,7 @@ impl PixelUpdate {
     pub fn apply(&self, metadata: &mut TileMetadata, sender: &Addr, current_time: u64) {
         // Find existing pixel index
         let pixel_idx = metadata.pixels.iter().position(|p| p.id == self.id);
-        
+
         match pixel_idx {
             Some(idx) => {
                 // Update existing pixel
@@ -96,7 +110,7 @@ impl PixelUpdate {
                 pixel.expiration = self.expiration;
                 pixel.last_updated_by = sender.clone();
                 pixel.last_updated_at = current_time;
-            },
+            }
             None => {
                 // Create new pixel
                 metadata.pixels.push(PixelData {
@@ -109,4 +123,4 @@ impl PixelUpdate {
             }
         }
     }
-} 
+}

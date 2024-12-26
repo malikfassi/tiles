@@ -2,10 +2,7 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use sg_std::StargazeMsgWrapper;
 
 use crate::contract::{
-    error::ContractError,
-    msg::InstantiateMsg,
-    contract::TilesContract,
-    state::TILE_CONFIG,
+    contract::TilesContract, error::ContractError, msg::InstantiateMsg, state::TILE_CONFIG,
 };
 use crate::core::Config;
 
@@ -32,4 +29,4 @@ pub fn instantiate(
     Ok(Response::new()
         .add_attribute("method", "instantiate")
         .add_attribute("owner", info.sender))
-} 
+}
