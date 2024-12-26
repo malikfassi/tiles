@@ -6,6 +6,12 @@ pub const TILE_SIZE: u32 = 10; // 10x10 grid
 pub const PIXEL_MIN_EXPIRATION: u64 = 3600; // 1 hour
 pub const PIXEL_MAX_EXPIRATION: u64 = 86400; // 24 hours
 
+// Default price values (in ustars) - can be changed after instantiation
+pub const DEFAULT_PRICE_1_HOUR: u128 = 100_000_000;
+pub const DEFAULT_PRICE_12_HOURS: u128 = 200_000_000;
+pub const DEFAULT_PRICE_24_HOURS: u128 = 300_000_000;
+pub const DEFAULT_PRICE_QUADRATIC_BASE: u128 = 400_000_000;
+
 // Color validation
 pub const DEFAULT_COLOR: &str = "#FFFFFF"; // Default white color
 

@@ -1,8 +1,13 @@
+use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{StdError, StdResult, Uint128};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use crate::defaults::constants::{
+    DEFAULT_PRICE_1_HOUR,
+    DEFAULT_PRICE_12_HOURS,
+    DEFAULT_PRICE_24_HOURS,
+    DEFAULT_PRICE_QUADRATIC_BASE,
+};
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct PriceScaling {
     pub hour_1_price: Uint128,
     pub hour_12_price: Uint128,
@@ -13,34 +18,29 @@ pub struct PriceScaling {
 impl Default for PriceScaling {
     fn default() -> Self {
         Self {
-            hour_1_price: Uint128::from(100_000_000u128),
-            hour_12_price: Uint128::from(200_000_000u128),
-            hour_24_price: Uint128::from(300_000_000u128),
-            quadratic_base: Uint128::from(400_000_000u128),
+            hour_1_price: Uint128::from(DEFAULT_PRICE_1_HOUR),
+            hour_12_price: Uint128::from(DEFAULT_PRICE_12_HOURS),
+            hour_24_price: Uint128::from(DEFAULT_PRICE_24_HOURS),
+            quadratic_base: Uint128::from(DEFAULT_PRICE_QUADRATIC_BASE),
         }
     }
 }
 
 impl PriceScaling {
-    pub fn validate(&self) -> StdResult<()> {
-        if self.hour_1_price.is_zero() {
-            return Err(StdError::generic_err("hour_1_price must be greater than 0"));
+    pub fn validate(&self) -> Result<(), StdError> {
+        if self.hour_1_price.is_zero() 
+            || self.hour_12_price.is_zero() 
+            || self.hour_24_price.is_zero() 
+            || self.quadratic_base.is_zero() {
+            return Err(StdError::generic_err("Prices cannot be zero"));
         }
-        if self.hour_12_price.is_zero() {
-            return Err(StdError::generic_err(
-                "hour_12_price must be greater than 0",
-            ));
+
+        if !(self.hour_1_price < self.hour_12_price 
+            && self.hour_12_price < self.hour_24_price 
+            && self.hour_24_price < self.quadratic_base) {
+            return Err(StdError::generic_err("Prices must be strictly increasing: 1h < 12h < 24h < quadratic_base"));
         }
-        if self.hour_24_price.is_zero() {
-            return Err(StdError::generic_err(
-                "hour_24_price must be greater than 0",
-            ));
-        }
-        if self.quadratic_base.is_zero() {
-            return Err(StdError::generic_err(
-                "quadratic_base must be greater than 0",
-            ));
-        }
+
         Ok(())
     }
 
