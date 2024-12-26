@@ -6,6 +6,11 @@ pub const TILE_SIZE: u32 = 10; // 10x10 grid
 pub const PIXEL_MIN_EXPIRATION: u64 = 3600; // 1 hour
 pub const PIXEL_MAX_EXPIRATION: u64 = 86400; // 24 hours
 
+// Time thresholds for pricing (in seconds)
+pub const ONE_HOUR: u64 = 3600;
+pub const TWELVE_HOURS: u64 = 43200;
+pub const TWENTY_FOUR_HOURS: u64 = 86400;
+
 // Default config values
 pub const DEFAULT_ADMIN_ADDRESS: &str = "DEFAULT_ADMIN_ADDRESS";
 pub const DEFAULT_ROYALTY_ADDRESS: &str = "DEFAULT_ROYALTY_ADDRESS";

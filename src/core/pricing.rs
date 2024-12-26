@@ -1,13 +1,18 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{StdError, StdResult, Uint128};
+use cosmwasm_std::{StdError, Uint128};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use crate::defaults::constants::{
     DEFAULT_PRICE_1_HOUR,
     DEFAULT_PRICE_12_HOURS,
     DEFAULT_PRICE_24_HOURS,
     DEFAULT_PRICE_QUADRATIC_BASE,
+    ONE_HOUR,
+    TWELVE_HOURS,
+    TWENTY_FOUR_HOURS,
 };
 
-#[cw_serde]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct PriceScaling {
     pub hour_1_price: Uint128,
     pub hour_12_price: Uint128,
@@ -44,25 +49,23 @@ impl PriceScaling {
         Ok(())
     }
 
-    pub fn calculate_price(&self, expiration: u64, current_time: u64) -> Uint128 {
-        let duration = expiration.saturating_sub(current_time);
-
-        if duration <= 3600 {
+    pub fn calculate_price(&self, duration_seconds: u64) -> Uint128 {
+        if duration_seconds <= ONE_HOUR {
             self.hour_1_price
-        } else if duration <= 43200 {
+        } else if duration_seconds <= TWELVE_HOURS {
             self.hour_12_price
-        } else if duration <= 86400 {
+        } else if duration_seconds <= TWENTY_FOUR_HOURS {
             self.hour_24_price
         } else {
-            let hours = duration.saturating_sub(86400) / 3600;
-            self.quadratic_base + Uint128::from(hours * hours)
+            // Calculate quadratic price based on seconds beyond 24 hours
+            let extra_seconds = duration_seconds.saturating_sub(TWENTY_FOUR_HOURS);
+            self.quadratic_base + Uint128::from(extra_seconds * extra_seconds)
         }
     }
 
-    pub fn calculate_total_price(&self, expirations: &[u64], current_time: u64) -> Uint128 {
-        expirations
-            .iter()
-            .map(|expiration| self.calculate_price(*expiration, current_time))
+    pub fn calculate_total_price<'a>(&self, durations: impl Iterator<Item = &'a u64>) -> Uint128 {
+        durations
+            .map(|duration| self.calculate_price(*duration))
             .sum()
     }
 }
@@ -74,36 +77,38 @@ mod tests {
     #[test]
     fn test_calculate_price() {
         let pricing = PriceScaling::default();
-        let current_time = 1000;
 
         // Test 1 hour duration
-        let price = pricing.calculate_price(current_time + 3600, current_time);
+        let price = pricing.calculate_price(ONE_HOUR);
         assert_eq!(price, pricing.hour_1_price);
 
         // Test 12 hour duration
-        let price = pricing.calculate_price(current_time + 43200, current_time);
+        let price = pricing.calculate_price(TWELVE_HOURS);
         assert_eq!(price, pricing.hour_12_price);
 
         // Test 24 hour duration
-        let price = pricing.calculate_price(current_time + 86400, current_time);
+        let price = pricing.calculate_price(TWENTY_FOUR_HOURS);
         assert_eq!(price, pricing.hour_24_price);
 
         // Test beyond 24 hours
-        let price = pricing.calculate_price(current_time + 90000, current_time);
-        assert!(price > pricing.quadratic_base);
+        let extra_seconds = 1000;
+        let price = pricing.calculate_price(TWENTY_FOUR_HOURS + extra_seconds);
+        assert_eq!(
+            price,
+            pricing.quadratic_base + Uint128::from(extra_seconds * extra_seconds)
+        );
     }
 
     #[test]
     fn test_calculate_total_price() {
         let pricing = PriceScaling::default();
-        let current_time = 1000;
-        let expirations = vec![
-            current_time + 3600,  // 1 hour
-            current_time + 43200, // 12 hours
-            current_time + 86400, // 24 hours
+        let durations = vec![
+            ONE_HOUR,
+            TWELVE_HOURS,
+            TWENTY_FOUR_HOURS,
         ];
 
-        let total = pricing.calculate_total_price(&expirations, current_time);
+        let total = pricing.calculate_total_price(durations.iter());
         let expected = pricing.hour_1_price + pricing.hour_12_price + pricing.hour_24_price;
         assert_eq!(total, expected);
     }

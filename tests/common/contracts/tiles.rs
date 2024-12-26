@@ -3,12 +3,14 @@ use crate::common::{
     test_module::TilesApp as App,
 };
 use anyhow::Result;
-use cosmwasm_std::{to_json_binary, Addr, Coin};
+use cosmwasm_std::{to_json_binary, Addr, Coin, Uint128};
 use cw_multi_test::{AppResponse, Executor};
 use tiles::contract::msg::{ExecuteMsg, TileExecuteMsg};
 use tiles::core::tile::metadata::{PixelUpdate, TileMetadata};
 use tiles::defaults::constants::PIXEL_MIN_EXPIRATION;
 use vending_minter::msg::ExecuteMsg as MinterExecuteMsg;
+
+use crate::common::helpers::setup::TestSetup;
 
 pub struct TilesContract {
     pub address: Option<Addr>,
@@ -56,7 +58,7 @@ impl TilesContract {
         let update = PixelUpdate {
             id: 0, // Update first pixel
             color,
-            expiration: current_time + PIXEL_MIN_EXPIRATION, // Set expiration to current time + minimum duration
+            duration_seconds: PIXEL_MIN_EXPIRATION, // Set expiration to current time + minimum duration
         };
 
         app.execute_contract(

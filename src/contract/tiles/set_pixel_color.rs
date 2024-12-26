@@ -33,7 +33,7 @@ pub fn set_pixel_color(
     let mut total_price = Uint128::zero();
 
     // Single pass: validate duplicates, calculate price, and apply updates
-    for update in updates {
+    for update in &updates {
         // Check for duplicates
         if !seen_ids.insert(update.id) {
             return Err(ContractError::InvalidConfig(format!(
@@ -43,10 +43,7 @@ pub fn set_pixel_color(
         }
 
         // Add to total price
-        total_price += config.price_scaling.calculate_price(update.expiration, current_time);
-
-        // Apply update
-        update.apply(&mut current_metadata, &info.sender, current_time);
+        total_price += config.price_scaling.calculate_price(update.duration_seconds);
     }
 
     // Verify sent funds match total price
@@ -60,6 +57,9 @@ pub fn set_pixel_color(
             )));
         }
     }
+
+    // Apply all updates at once
+    current_metadata.apply_updates(updates, &info.sender, current_time);
 
     // Update token extension with new metadata hash
     token.extension.tile_hash = current_metadata.hash();
