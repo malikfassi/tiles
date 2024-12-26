@@ -1,5 +1,5 @@
 use crate::common::{
-    constants::{CREATION_FEE, MINT_PRICE, NATIVE_DENOM},
+    constants::{MINT_PRICE, NATIVE_DENOM},
     contracts::{tiles::TilesContract, vending::VendingContract},
     test_module::TilesApp as App,
 };

@@ -1,6 +1,6 @@
 use crate::common::helpers::setup::TestSetup;
 use cosmwasm_std::Addr;
-use cw_multi_test::Executor;
+
 
 #[test]
 fn test_update_minter() {

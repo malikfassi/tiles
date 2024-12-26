@@ -8,7 +8,7 @@ use crate::{
 };
 
 pub fn instantiate_handler(
-    mut deps: DepsMut,
+    deps: DepsMut,
     env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,

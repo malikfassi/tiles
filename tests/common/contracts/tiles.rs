@@ -37,7 +37,7 @@ impl TilesContract {
         app: &mut App,
         owner: &Addr,
         token_id: u32,
-        color: String,
+        _color: String,
     ) -> Result<AppResponse> {
         app.execute_contract(
             owner.clone(),
