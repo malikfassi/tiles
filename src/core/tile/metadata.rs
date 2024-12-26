@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use crate::contract::error::ContractError;
 use crate::defaults::constants::{PIXELS_PER_TILE, PIXEL_MAX_EXPIRATION, PIXEL_MIN_EXPIRATION};
 use cosmwasm_schema::cw_serde;
@@ -40,6 +41,19 @@ impl TileMetadata {
             ));
         }
         format!("{:x}", hasher.finalize())
+    }
+
+    pub fn validate_no_duplicate_pixels(&self, updates: &[PixelUpdate]) -> Result<(), ContractError> {
+        let mut seen_ids = HashSet::new();
+        for update in updates {
+            if !seen_ids.insert(update.id) {
+                return Err(ContractError::InvalidConfig(format!(
+                    "Duplicate pixel id: {}",
+                    update.id
+                )));
+            }
+        }
+        Ok(())
     }
 }
 
