@@ -1,8 +1,8 @@
 use cosmwasm_std::{Addr, Timestamp};
 use cw_multi_test::{Contract, Executor};
 use sg_multi_test::StargazeApp;
-use sg_std::GENESIS_MINT_START_TIME;
 use sg_std::StargazeMsgWrapper;
+use sg_std::GENESIS_MINT_START_TIME;
 
 pub struct TestApp(pub StargazeApp);
 
@@ -48,7 +48,8 @@ impl TestApp {
     where
         T: serde::Serialize,
     {
-        self.0.instantiate_contract(code_id, sender, msg, funds, label, admin)
+        self.0
+            .instantiate_contract(code_id, sender, msg, funds, label, admin)
     }
 
     pub fn execute_contract<T>(
@@ -75,4 +76,4 @@ impl Default for TestApp {
         app.set_genesis_time();
         app
     }
-} 
+}

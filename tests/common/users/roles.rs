@@ -56,4 +56,4 @@ impl UserConfig {
             initial_balance: 1_000_000_000_000,
         }
     }
-} 
+}

@@ -6,7 +6,6 @@ use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
 use sha2::{Digest, Sha256};
 
-
 #[cw_serde]
 pub struct PixelData {
     pub id: u32,

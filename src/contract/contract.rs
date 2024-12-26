@@ -1,17 +1,13 @@
-use cosmwasm_std::{
-    entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response,
-};
+use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
 use sg_std::StargazeMsgWrapper;
 
-use crate::{
-    contract::{
-        error::ContractError,
-        execute::execute_handler,
-        instantiate::instantiate_handler,
-        msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
-        query::query_handler,
-    },
+use crate::contract::{
+    error::ContractError,
+    execute::execute_handler,
+    instantiate::instantiate_handler,
+    msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
+    query::query_handler,
 };
 
 #[entry_point]

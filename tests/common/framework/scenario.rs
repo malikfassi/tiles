@@ -31,7 +31,13 @@ impl Scenario {
         self.minted_tokens.push(TokenMint { owner, token_id });
     }
 
-    pub fn record_pixel_update(&mut self, owner: Addr, token_id: u32, pixel_id: u32, color: String) {
+    pub fn record_pixel_update(
+        &mut self,
+        owner: Addr,
+        token_id: u32,
+        pixel_id: u32,
+        color: String,
+    ) {
         self.pixel_updates.push(PixelUpdate {
             token_id,
             pixel_id,
@@ -59,4 +65,4 @@ impl Default for Scenario {
     fn default() -> Self {
         Self::new()
     }
-} 
+}

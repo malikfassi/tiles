@@ -4,4 +4,4 @@ pub mod framework;
 pub mod users;
 
 pub use app::TestApp;
-pub use framework::{TestContext, Scenario};
+pub use framework::{Scenario, TestContext};

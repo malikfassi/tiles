@@ -1,7 +1,7 @@
+use super::scenario::Scenario;
 use crate::common::app::TestApp;
 use crate::common::contracts::{TilesContract, VendingContract};
 use crate::common::users::{TestUsers, UserRole};
-use super::scenario::Scenario;
 use cosmwasm_std::{Addr, Coin, Timestamp};
 use cw_multi_test::ContractWrapper;
 use sg2::msg::CollectionParams;
@@ -26,7 +26,7 @@ impl TestContext {
     pub fn new() -> Self {
         let mut app = TestApp::default();
         let users = TestUsers::default();
-        
+
         // Fund all users
         users.fund_all(&mut app);
 
@@ -159,7 +159,8 @@ impl TestContext {
 
     // Low-level helper methods
     fn mint_token(&mut self, owner: &Addr) -> u32 {
-        let token_id = self.tiles
+        let token_id = self
+            .tiles
             .mint_token(&mut self.app, owner, &self.minter)
             .unwrap();
 
@@ -172,13 +173,16 @@ impl TestContext {
             .update_pixel(&mut self.app, owner, token_id, color.to_string())
             .unwrap();
 
-        self.scenario.record_pixel_update(owner.clone(), token_id, 0, color.to_string());
+        self.scenario
+            .record_pixel_update(owner.clone(), token_id, 0, color.to_string());
     }
 
     // Assertions
     pub fn assert_token_owner(&self, token_id: u32, expected_role: UserRole) {
         let expected_owner = self.users.get(expected_role).address.clone();
-        let actual_owner = self.scenario.get_token_owner(token_id)
+        let actual_owner = self
+            .scenario
+            .get_token_owner(token_id)
             .expect("Token not found");
         assert_eq!(actual_owner, &expected_owner);
     }
@@ -186,4 +190,4 @@ impl TestContext {
     pub fn assert_balance(&self, role: UserRole, expected_balance: u128) {
         self.users.assert_balance(&self.app, role, expected_balance);
     }
-} 
+}

@@ -6,8 +6,11 @@ use cw_multi_test::AppResponse;
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 use sg_std::NATIVE_DENOM;
 use tiles::contract::msg::{ExecuteMsg, TileExecuteMsg};
-use tiles::core::tile::{Tile, metadata::{PixelUpdate, TileMetadata}};
 use tiles::core::pricing::PriceScaling;
+use tiles::core::tile::{
+    metadata::{PixelUpdate, TileMetadata},
+    Tile,
+};
 use tiles::defaults::constants::{MINT_PRICE, PIXEL_MIN_EXPIRATION};
 use vending_minter::msg::ExecuteMsg as MinterExecuteMsg;
 

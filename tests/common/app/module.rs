@@ -71,4 +71,4 @@ pub fn mock_tiles_deps() -> TilesDeps {
         querier: MockQuerier::default(),
         custom_query_type: PhantomData,
     }
-} 
+}

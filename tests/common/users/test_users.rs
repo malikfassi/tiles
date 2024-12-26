@@ -1,9 +1,9 @@
-use super::roles::{UserRole, UserConfig};
+use super::roles::{UserConfig, UserRole};
 use crate::common::app::TestApp;
 use cosmwasm_std::{Addr, Coin};
 use sg_std::NATIVE_DENOM;
-use tiles::defaults::constants::MINT_PRICE;
 use std::collections::HashMap;
+use tiles::defaults::constants::MINT_PRICE;
 
 #[derive(Debug)]
 pub struct User {
@@ -42,20 +42,26 @@ pub struct TestUsers {
 impl TestUsers {
     pub fn new() -> Self {
         let mut users = HashMap::new();
-        
+
         // Add admin users
         users.insert(UserRole::Admin, User::new("admin", UserConfig::admin()));
-        
+
         // Add collection owner
         users.insert(UserRole::Owner, User::new("owner", UserConfig::owner()));
-        
+
         // Add buyers
         users.insert(UserRole::Buyer, User::new("buyer", UserConfig::buyer()));
         users.insert(UserRole::Whale, User::new("whale", UserConfig::whale()));
-        users.insert(UserRole::Poor, User::new("poor", UserConfig::poor(MINT_PRICE)));
-        
+        users.insert(
+            UserRole::Poor,
+            User::new("poor", UserConfig::poor(MINT_PRICE)),
+        );
+
         // Add operator
-        users.insert(UserRole::Operator, User::new("operator", UserConfig::operator()));
+        users.insert(
+            UserRole::Operator,
+            User::new("operator", UserConfig::operator()),
+        );
 
         Self { users }
     }
@@ -85,4 +91,4 @@ impl Default for TestUsers {
     fn default() -> Self {
         Self::new()
     }
-} 
+}
