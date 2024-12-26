@@ -1,7 +1,5 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{StdError, Uint128};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 use crate::defaults::constants::{
     DEFAULT_PRICE_1_HOUR,
     DEFAULT_PRICE_12_HOURS,
@@ -12,7 +10,7 @@ use crate::defaults::constants::{
     TWENTY_FOUR_HOURS,
 };
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct PriceScaling {
     pub hour_1_price: Uint128,
     pub hour_12_price: Uint128,

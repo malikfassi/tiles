@@ -1,13 +1,11 @@
-use crate::common::{
-    constants::{MINT_PRICE, NATIVE_DENOM},
-    test_module::TilesApp as App,
-};
+use crate::common::test_module::TilesApp as App;
 use anyhow::Result;
 use cosmwasm_std::{to_json_binary, Addr, Coin, Uint128};
 use cw_multi_test::{AppResponse, Executor};
 use tiles::contract::msg::{ExecuteMsg, TileExecuteMsg};
 use tiles::core::tile::metadata::{PixelUpdate, TileMetadata};
-use tiles::defaults::constants::PIXEL_MIN_EXPIRATION;
+use tiles::defaults::constants::{PIXEL_MIN_EXPIRATION, MINT_PRICE};
+use sg_std::NATIVE_DENOM;
 use vending_minter::msg::ExecuteMsg as MinterExecuteMsg;
 
 use crate::common::helpers::setup::TestSetup;

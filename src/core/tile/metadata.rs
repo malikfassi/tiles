@@ -6,23 +6,36 @@ use cosmwasm_std::Addr;
 use sha2::{Digest, Sha256};
 
 #[cw_serde]
+pub struct PixelData {
+    pub id: u32,
+    pub color: String,
+    pub expiration: u64,
+    pub last_updated_by: Addr,
+    pub last_updated_at: u64,
+}
+
+impl Default for PixelData {
+    fn default() -> Self {
+        Self {
+            id: 0,
+            color: DEFAULT_COLOR.to_string(),
+            expiration: 0,
+            last_updated_by: Addr::unchecked(""),
+            last_updated_at: 0,
+        }
+    }
+}
+
+#[cw_serde]
 pub struct TileMetadata {
     pub pixels: Vec<PixelData>,
 }
 
 impl Default for TileMetadata {
     fn default() -> Self {
-        let pixels = (0..PIXELS_PER_TILE)
-            .map(|id| PixelData {
-                id,
-                color: DEFAULT_COLOR.to_string(),
-                expiration: 0, // Expired by default
-                last_updated_by: Addr::unchecked(""), // Empty by default
-                last_updated_at: 0,
-            })
-            .collect();
-
-        Self { pixels }
+        Self {
+            pixels: (0..PIXELS_PER_TILE).map(|_| PixelData::default()).collect(),
+        }
     }
 }
 
@@ -57,15 +70,6 @@ impl TileMetadata {
         }
         format!("{:x}", hasher.finalize())
     }
-}
-
-#[cw_serde]
-pub struct PixelData {
-    pub id: u32,               // 0-99
-    pub color: String,         // #RRGGBB
-    pub expiration: u64,       // Unix timestamp
-    pub last_updated_by: Addr, // Last modifier
-    pub last_updated_at: u64,  // Unix timestamp of last update
 }
 
 #[cw_serde]

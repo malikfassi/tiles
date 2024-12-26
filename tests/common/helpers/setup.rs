@@ -1,16 +1,14 @@
-use crate::common::{
-    constants::{MINT_PRICE, NATIVE_DENOM},
-    contracts::{tiles::TilesContract, vending::VendingContract},
-    test_module::TilesApp as App,
-};
+use crate::common::contracts::{tiles::TilesContract, vending::VendingContract};
+use crate::common::test_module::TilesApp as App;
 use cosmwasm_std::{Addr, Coin, Timestamp};
 use cw_multi_test::ContractWrapper;
 use sg2::msg::CollectionParams;
 use sg721::CollectionInfo;
-use sg_std::GENESIS_MINT_START_TIME;
+use sg_std::{GENESIS_MINT_START_TIME, NATIVE_DENOM};
 use tiles::contract::{
     execute::execute_handler, instantiate::instantiate_handler, query::query_handler,
 };
+use tiles::defaults::constants::MINT_PRICE;
 use vending_factory::msg::VendingMinterInitMsgExtension;
 
 pub struct TestSetup {

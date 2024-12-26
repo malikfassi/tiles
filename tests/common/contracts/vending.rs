@@ -1,8 +1,9 @@
-use crate::common::{constants::CREATION_FEE, test_module::TilesApp as App};
+use crate::common::test_module::TilesApp as App;
 use anyhow::Result;
 use cosmwasm_std::Addr;
 use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 use sg2::msg::{CollectionParams, CreateMinterMsg, Sg2ExecuteMsg};
+use tiles::defaults::constants::CREATION_FEE;
 use vending_factory::msg::{InstantiateMsg, VendingMinterInitMsgExtension};
 
 pub struct VendingContract {
