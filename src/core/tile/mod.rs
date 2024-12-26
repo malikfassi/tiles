@@ -6,13 +6,10 @@ use std::fmt::Debug;
 
 pub mod metadata;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[derive(Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, Default)]
 pub struct Tile {
     pub tile_hash: String,
 }
-
-
 
 impl Tile {
     pub fn generate_hash(tile_id: &str, pixels: &[metadata::PixelData]) -> String {

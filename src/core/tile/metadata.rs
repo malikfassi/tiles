@@ -26,8 +26,6 @@ pub struct PixelUpdate {
     pub expiration: u64,
 }
 
-
-
 impl TileMetadata {
     pub fn hash(&self) -> String {
         let mut hasher = Sha256::new();

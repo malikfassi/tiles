@@ -1,7 +1,7 @@
 use crate::common::contracts::tiles::TilesContract;
 use crate::common::contracts::vending::VendingFactory;
 use cosmwasm_std::{Addr, Coin, Timestamp};
-use cw_multi_test::{ContractWrapper};
+use cw_multi_test::ContractWrapper;
 use sg2::msg::{CollectionParams, CreateMinterMsg};
 use sg721::CollectionInfo;
 use sg721_base::entry::{

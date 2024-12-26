@@ -38,6 +38,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, ContractErro
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> Result<Response<StargazeMsgWrapper>, ContractError> {
+pub fn reply(
+    deps: DepsMut,
+    env: Env,
+    msg: Reply,
+) -> Result<Response<StargazeMsgWrapper>, ContractError> {
     crate::contract::reply::reply(deps, env, msg)
 }
