@@ -1,8 +1,10 @@
 pub mod mock_app;
 pub mod setup;
+pub mod users;
 
 pub use mock_app::*;
 pub use setup::TestSetup;
+pub use users::{TestUser, TestUsers};
 
 use cosmwasm_std::Addr;
 use tiles::core::tile::metadata::PixelUpdate;
