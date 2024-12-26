@@ -5,7 +5,7 @@ use crate::defaults::constants::{
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
 use sha2::{Digest, Sha256};
-use std::collections::HashSet;
+
 
 #[cw_serde]
 pub struct PixelData {

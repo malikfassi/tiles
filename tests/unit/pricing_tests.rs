@@ -30,7 +30,7 @@ fn test_calculate_price() {
 #[test]
 fn test_calculate_total_price() {
     let pricing = PriceScaling::default();
-    let durations = vec![ONE_HOUR, TWELVE_HOURS, TWENTY_FOUR_HOURS];
+    let durations = [ONE_HOUR, TWELVE_HOURS, TWENTY_FOUR_HOURS];
 
     let total = pricing.calculate_total_price(durations.iter());
     let expected = pricing.hour_1_price + pricing.hour_12_price + pricing.hour_24_price;

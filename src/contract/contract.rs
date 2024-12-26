@@ -1,7 +1,7 @@
 use cosmwasm_std::{
-    entry_point, to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response,
+    entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response,
 };
-use sg721_base::Sg721Contract;
+
 use sg_std::StargazeMsgWrapper;
 
 use crate::{
@@ -11,9 +11,7 @@ use crate::{
         instantiate::instantiate_handler,
         msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
         query::query_handler,
-        state::CONFIG,
     },
-    core::tile::Tile,
 };
 
 #[entry_point]
