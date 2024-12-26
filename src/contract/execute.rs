@@ -1,11 +1,11 @@
-use cosmwasm_std::{DepsMut, Empty, Env, MessageInfo, Response, to_json_binary};
+use cosmwasm_std::{to_json_binary, DepsMut, Empty, Env, MessageInfo, Response};
 use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
 use crate::{
     contract::{
         error::ContractError,
-        msg::{ExecuteMsg, TileExecuteMsg, Sg721ExecuteMsg},
+        msg::{ExecuteMsg, Sg721ExecuteMsg, TileExecuteMsg},
         tiles::{
             mint::mint_handler, set_pixel_color::set_pixel_color, update_config::update_config,
         },
@@ -19,7 +19,10 @@ pub fn execute_handler(
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
-    println!("DEBUG: Received execute message: {}", String::from_utf8_lossy(&to_json_binary(&msg).unwrap()));
+    println!(
+        "DEBUG: Received execute message: {}",
+        String::from_utf8_lossy(&to_json_binary(&msg).unwrap())
+    );
     let contract: Sg721Contract<Tile> = Sg721Contract::default();
 
     match msg {
@@ -47,9 +50,7 @@ pub fn execute_handler(
             owner,
             token_uri,
             extension: _,
-        } => {
-            mint_handler(deps, env, info, token_id, owner, token_uri)
-        },
+        } => mint_handler(deps, env, info, token_id, owner, token_uri),
         ExecuteMsg::UpdateOwnership(action) => {
             let base_msg = Sg721ExecuteMsg::UpdateOwnership(action);
             Ok(contract.execute(deps, env, info, base_msg)?)
@@ -63,7 +64,7 @@ pub fn execute_handler(
                 token_id,
             };
             Ok(contract.execute(deps, env, info, base_msg)?)
-        },
+        }
         ExecuteMsg::SendNft {
             contract: contract_addr,
             token_id,
@@ -75,7 +76,7 @@ pub fn execute_handler(
                 msg,
             };
             Ok(contract.execute(deps, env, info, base_msg)?)
-        },
+        }
         ExecuteMsg::Approve {
             spender,
             token_id,
@@ -87,31 +88,31 @@ pub fn execute_handler(
                 expires,
             };
             Ok(contract.execute(deps, env, info, base_msg)?)
-        },
+        }
         ExecuteMsg::Revoke { spender, token_id } => {
             let base_msg = Sg721ExecuteMsg::Revoke { spender, token_id };
             Ok(contract.execute(deps, env, info, base_msg)?)
-        },
+        }
         ExecuteMsg::ApproveAll { operator, expires } => {
             let base_msg = Sg721ExecuteMsg::ApproveAll { operator, expires };
             Ok(contract.execute(deps, env, info, base_msg)?)
-        },
+        }
         ExecuteMsg::RevokeAll { operator } => {
             let base_msg = Sg721ExecuteMsg::RevokeAll { operator };
             Ok(contract.execute(deps, env, info, base_msg)?)
-        },
+        }
         ExecuteMsg::Burn { token_id } => {
             let base_msg = Sg721ExecuteMsg::Burn { token_id };
             Ok(contract.execute(deps, env, info, base_msg)?)
-        },
+        }
         ExecuteMsg::UpdateCollectionInfo { collection_info } => {
             let base_msg = Sg721ExecuteMsg::UpdateCollectionInfo { collection_info };
             Ok(contract.execute(deps, env, info, base_msg)?)
-        },
+        }
         ExecuteMsg::UpdateStartTradingTime(time) => {
             let base_msg = Sg721ExecuteMsg::UpdateStartTradingTime(time);
             Ok(contract.execute(deps, env, info, base_msg)?)
-        },
+        }
         ExecuteMsg::FreezeCollectionInfo => {
             let base_msg = Sg721ExecuteMsg::FreezeCollectionInfo;
             Ok(contract.execute(deps, env, info, base_msg)?)

@@ -1,12 +1,9 @@
-use cosmwasm_std::{DepsMut, Empty, Env, MessageInfo, Response, to_json_binary};
+use cosmwasm_std::{to_json_binary, DepsMut, Empty, Env, MessageInfo, Response};
 use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
 use crate::{
-    contract::{
-        error::ContractError,
-        msg::Sg721ExecuteMsg,
-    },
+    contract::{error::ContractError, msg::Sg721ExecuteMsg},
     core::tile::{metadata::TileMetadata, Tile},
 };
 
@@ -32,13 +29,11 @@ pub fn mint_handler(
         token_uri: token_uri.clone(),
         extension: extension.clone(),
     };
-    println!("DEBUG: Sending mint message: {}", String::from_utf8_lossy(&to_json_binary(&mint_msg).unwrap()));
+    println!(
+        "DEBUG: Sending mint message: {}",
+        String::from_utf8_lossy(&to_json_binary(&mint_msg).unwrap())
+    );
 
     // Forward to base contract with our extension
-    Ok(contract.execute(
-        deps,
-        env,
-        info,
-        mint_msg,
-    )?)
+    Ok(contract.execute(deps, env, info, mint_msg)?)
 }

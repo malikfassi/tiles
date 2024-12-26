@@ -1,7 +1,6 @@
 use crate::common::helpers::setup::TestSetup;
 use cosmwasm_std::Addr;
 
-
 #[test]
 fn test_update_minter() {
     let mut setup = TestSetup::new();

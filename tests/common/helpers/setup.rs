@@ -1,9 +1,9 @@
 use crate::common::{
-    constants::{MINT_PRICE, NATIVE_DENOM, CREATION_FEE},
+    constants::{CREATION_FEE, MINT_PRICE, NATIVE_DENOM},
     contracts::{tiles::TilesContract, vending::VendingContract},
     test_module::TilesApp as App,
 };
-use cosmwasm_std::{Addr, Coin, Timestamp, BlockInfo};
+use cosmwasm_std::{Addr, BlockInfo, Coin, Timestamp};
 use cw_multi_test::ContractWrapper;
 use sg2::msg::CollectionParams;
 use sg721::CollectionInfo;
@@ -24,16 +24,21 @@ impl TestSetup {
     pub fn new() -> Self {
         println!("Creating new test setup...");
         let mut app = App::default();
-        
+
         // Initialize app with genesis time
         let mut block = app.block_info();
-        println!("Initial block info - Height: {}, Time: {}, Chain ID: {}", 
-            block.height, block.time, block.chain_id);
-        
+        println!(
+            "Initial block info - Height: {}, Time: {}, Chain ID: {}",
+            block.height, block.time, block.chain_id
+        );
+
         block.time = Timestamp::from_nanos(GENESIS_MINT_START_TIME);
-        println!("Setting genesis time to: {} ({} nanos)", 
-            GENESIS_MINT_START_TIME / 1_000_000_000u64, GENESIS_MINT_START_TIME);
-        
+        println!(
+            "Setting genesis time to: {} ({} nanos)",
+            GENESIS_MINT_START_TIME / 1_000_000_000u64,
+            GENESIS_MINT_START_TIME
+        );
+
         app.set_block(block);
         println!("Block time after genesis set: {}", app.block_info().time);
 
@@ -41,8 +46,10 @@ impl TestSetup {
         let mut block = app.block_info();
         let new_time = GENESIS_MINT_START_TIME + 2 * 86400_000_000_000u64;
         block.time = Timestamp::from_nanos(new_time);
-        println!("Setting block time to genesis + 2 days: {} ({} nanos)", 
-            block.time, new_time);
+        println!(
+            "Setting block time to genesis + 2 days: {} ({} nanos)",
+            block.time, new_time
+        );
         app.set_block(block);
         println!("Block time after update: {}", app.block_info().time);
 
@@ -57,7 +64,10 @@ impl TestSetup {
                 )
                 .unwrap();
         });
-        println!("Funded creator account with {} {}", 1_000_000_000, NATIVE_DENOM);
+        println!(
+            "Funded creator account with {} {}",
+            1_000_000_000, NATIVE_DENOM
+        );
 
         // Store collection contract code
         let collection_contract = Box::new(ContractWrapper::new(
@@ -66,7 +76,10 @@ impl TestSetup {
             query_handler,
         ));
         let collection_code_id = app.store_code(collection_contract);
-        println!("Stored collection contract with code ID: {}", collection_code_id);
+        println!(
+            "Stored collection contract with code ID: {}",
+            collection_code_id
+        );
 
         // Store vending minter contract code
         let minter_contract = Box::new(
@@ -78,12 +91,18 @@ impl TestSetup {
             .with_reply(vending_minter::contract::reply),
         );
         let minter_code_id = app.store_code(minter_contract);
-        println!("Stored vending minter contract with code ID: {}", minter_code_id);
+        println!(
+            "Stored vending minter contract with code ID: {}",
+            minter_code_id
+        );
 
         // Store vending factory contract code
         let mut vending = VendingContract::new(&mut app, "vending");
         let factory_code_id = vending.store_code(&mut app).unwrap();
-        println!("Stored vending factory contract with code ID: {}", factory_code_id);
+        println!(
+            "Stored vending factory contract with code ID: {}",
+            factory_code_id
+        );
 
         let _vending_addr = vending
             .instantiate(
@@ -109,7 +128,10 @@ impl TestSetup {
                 royalty_info: None,
             },
         };
-        println!("Created collection params with code ID: {}", collection_code_id);
+        println!(
+            "Created collection params with code ID: {}",
+            collection_code_id
+        );
 
         let init_msg = VendingMinterInitMsgExtension {
             base_token_uri: "ipfs://test/".to_string(),
@@ -120,9 +142,15 @@ impl TestSetup {
             per_address_limit: 3,
             whitelist: None,
         };
-        println!("Created init msg with start time: {} (block time + 1 day)", init_msg.start_time);
+        println!(
+            "Created init msg with start time: {} (block time + 1 day)",
+            init_msg.start_time
+        );
 
-        println!("Current block time before create_minter: {}", app.block_info().time);
+        println!(
+            "Current block time before create_minter: {}",
+            app.block_info().time
+        );
         let res = vending
             .create_minter(
                 &mut app,
@@ -162,7 +190,12 @@ impl TestSetup {
         let sg721_addr = res
             .events
             .iter()
-            .find(|e| e.ty == "wasm" && e.attributes.iter().any(|a| a.key == "action" && a.value == "instantiate_sg721_reply"))
+            .find(|e| {
+                e.ty == "wasm"
+                    && e.attributes
+                        .iter()
+                        .any(|a| a.key == "action" && a.value == "instantiate_sg721_reply")
+            })
             .and_then(|e| e.attributes.iter().find(|a| a.key == "sg721_address"))
             .map(|a| Addr::unchecked(a.value.clone()))
             .expect("SG721 address not found in events");
@@ -175,8 +208,11 @@ impl TestSetup {
         let mut block = app.block_info();
         let new_time = block.time.plus_seconds(2 * 86400); // Add 2 more days to ensure we're past the start time
         block.time = new_time;
-        println!("Setting block time to after mint start: {} ({} nanos)", 
-            block.time, new_time.nanos());
+        println!(
+            "Setting block time to after mint start: {} ({} nanos)",
+            block.time,
+            new_time.nanos()
+        );
         app.set_block(block);
         println!("Block time after final update: {}", app.block_info().time);
 

@@ -1,7 +1,6 @@
 use crate::common::helpers::setup::TestSetup;
 use cosmwasm_std::Addr;
 
-
 #[test]
 fn test_update_pixel() {
     let mut setup = TestSetup::new();
@@ -14,7 +13,7 @@ fn test_update_pixel() {
         .unwrap();
 
     // Get the token ID from the response
-    let token_id = 85u32;  // For now hardcode to 85, later we can extract from response
+    let token_id = 85u32; // For now hardcode to 85, later we can extract from response
 
     // Update the pixel using the minted token ID
     setup
