@@ -7,7 +7,6 @@ pub const PIXEL_MIN_EXPIRATION: u64 = 3600; // 1 hour
 pub const PIXEL_MAX_EXPIRATION: u64 = 86400; // 24 hours
 
 // Color validation
-pub const COLOR_FORMAT: &str = "^#[0-9A-Fa-f]{6}$";
 pub const DEFAULT_COLOR: &str = "#FFFFFF"; // Default white color
 
 // Contract info
