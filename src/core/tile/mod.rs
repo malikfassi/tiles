@@ -12,28 +12,19 @@ pub struct Tile {
 }
 
 impl Tile {
-    pub fn generate_hash(tile_id: &str, pixels: &[metadata::PixelData]) -> String {
+    pub fn generate_hash(&self, metadata: &metadata::TileMetadata) -> String {
         let mut hasher = Sha256::new();
-        hasher.update(tile_id.as_bytes());
-        for pixel in pixels {
+        for pixel in &metadata.pixels {
             hasher.update(pixel.id.to_be_bytes());
             hasher.update(pixel.color.as_bytes());
-            hasher.update(pixel.expiration.to_be_bytes());
+            hasher.update(pixel.expiration_timestamp.to_be_bytes());
             hasher.update(pixel.last_updated_by.as_bytes());
             hasher.update(pixel.last_updated_at.to_be_bytes());
         }
-        hex::encode(hasher.finalize())
+        format!("{:x}", hasher.finalize())
     }
 
-    pub fn verify_metadata(
-        &self,
-        tile_id: &str,
-        metadata: &metadata::TileMetadata,
-    ) -> Result<(), crate::contract::error::ContractError> {
-        let current_hash = Self::generate_hash(tile_id, &metadata.pixels);
-        if current_hash != self.tile_hash {
-            return Err(crate::contract::error::ContractError::HashMismatch {});
-        }
-        Ok(())
+    pub fn verify_metadata(&self, metadata: &metadata::TileMetadata) -> bool {
+        self.tile_hash == self.generate_hash(metadata)
     }
 }

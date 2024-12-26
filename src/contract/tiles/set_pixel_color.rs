@@ -43,7 +43,7 @@ pub fn set_pixel_color(
         }
 
         // Add to total price
-        total_price += config.price_scaling.calculate_price(update.duration_seconds);
+        total_price += config.price_scaling.calculate_price(update.expiration_duration);
     }
 
     // Verify sent funds match total price

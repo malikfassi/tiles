@@ -56,7 +56,7 @@ impl TilesContract {
         let update = PixelUpdate {
             id: 0, // Update first pixel
             color,
-            duration_seconds: PIXEL_MIN_EXPIRATION, // Set expiration to current time + minimum duration
+            expiration_duration: PIXEL_MIN_EXPIRATION,
         };
 
         app.execute_contract(

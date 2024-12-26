@@ -1,82 +1,69 @@
 use cosmwasm_std::Addr;
-use tiles::core::tile::metadata::{PixelData, TileMetadata};
-use tiles::core::tile::Tile;
+use tiles::core::tile::{metadata::{PixelData, TileMetadata}, Tile};
 
 #[test]
-fn test_hash_generation() {
-    let tile_id = "1";
-    let owner = Addr::unchecked("owner");
-    let now = 1000u64;
-
-    let pixels = vec![PixelData {
+fn test_generate_hash() {
+    let mut metadata = TileMetadata::default();
+    metadata.pixels[0] = PixelData {
         id: 0,
-        color: "#FFFFFF".to_string(),
-        expiration: 3600,
-        last_updated_by: owner.clone(),
-        last_updated_at: now,
-    }];
+        color: "#FF0000".to_string(),
+        expiration_timestamp: 3600,
+        last_updated_by: Addr::unchecked("owner"),
+        last_updated_at: 1000,
+    };
 
-    let metadata = TileMetadata { pixels };
-    let hash = Tile::generate_hash(tile_id, &metadata.pixels);
+    let tile = Tile {
+        tile_hash: "".to_string(),
+    };
 
+    let hash = tile.generate_hash(&metadata);
     assert!(!hash.is_empty());
 }
 
 #[test]
-fn test_hash_verification() {
-    let tile_id = "1";
-    let owner = Addr::unchecked("owner");
-    let now = 1000u64;
-
-    let pixels = vec![PixelData {
+fn test_verify_metadata_success() {
+    // Create initial metadata
+    let mut metadata = TileMetadata::default();
+    metadata.pixels[0] = PixelData {
         id: 0,
-        color: "#FFFFFF".to_string(),
-        expiration: 3600,
-        last_updated_by: owner.clone(),
-        last_updated_at: now,
-    }];
-
-    let metadata = TileMetadata { pixels };
-    let hash = Tile::generate_hash(tile_id, &metadata.pixels);
-
-    let extension = Tile {
-        tile_hash: hash.clone(),
+        color: "#FF0000".to_string(),
+        expiration_timestamp: 3600,
+        last_updated_by: Addr::unchecked("owner"),
+        last_updated_at: 1000,
     };
 
-    let result = extension.verify_metadata(tile_id, &metadata);
-    assert!(result.is_ok());
+    let tile = Tile {
+        tile_hash: Tile::default().generate_hash(&metadata),
+    };
+
+    assert!(tile.verify_metadata(&metadata));
 }
 
 #[test]
-fn test_hash_mismatch() {
-    let tile_id = "1";
-    let owner = Addr::unchecked("owner");
-    let now = 1000u64;
-
-    let pixels = vec![PixelData {
+fn test_verify_metadata_failure() {
+    // Create initial metadata
+    let mut metadata = TileMetadata::default();
+    metadata.pixels[0] = PixelData {
         id: 0,
-        color: "#FFFFFF".to_string(),
-        expiration: 3600,
-        last_updated_by: owner.clone(),
-        last_updated_at: now,
-    }];
-
-    let metadata = TileMetadata { pixels };
-    let hash = Tile::generate_hash(tile_id, &metadata.pixels);
-
-    let different_pixels = vec![PixelData {
-        id: 0,
-        color: "#000000".to_string(), // Different color
-        expiration: 3600,
-        last_updated_by: owner.clone(),
-        last_updated_at: now,
-    }];
-
-    let extension = Tile { tile_hash: hash };
-
-    let different_metadata = TileMetadata {
-        pixels: different_pixels,
+        color: "#FF0000".to_string(),
+        expiration_timestamp: 3600,
+        last_updated_by: Addr::unchecked("owner"),
+        last_updated_at: 1000,
     };
-    let result = extension.verify_metadata(tile_id, &different_metadata);
-    assert!(result.is_err());
+
+    // Create different metadata
+    let mut different_metadata = TileMetadata::default();
+    different_metadata.pixels[0] = PixelData {
+        id: 0,
+        color: "#00FF00".to_string(), // Different color
+        expiration_timestamp: 3600,
+        last_updated_by: Addr::unchecked("owner"),
+        last_updated_at: 1000,
+    };
+
+    let tile = Tile {
+        tile_hash: Tile::default().generate_hash(&metadata),
+    };
+
+    assert!(!tile.verify_metadata(&different_metadata));
 }

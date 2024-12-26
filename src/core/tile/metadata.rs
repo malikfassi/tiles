@@ -9,7 +9,7 @@ use sha2::{Digest, Sha256};
 pub struct PixelData {
     pub id: u32,
     pub color: String,
-    pub expiration: u64,
+    pub expiration_timestamp: u64,
     pub last_updated_by: Addr,
     pub last_updated_at: u64,
 }
@@ -19,7 +19,7 @@ impl Default for PixelData {
         Self {
             id: 0,
             color: DEFAULT_COLOR.to_string(),
-            expiration: 0,
+            expiration_timestamp: 0,
             last_updated_by: Addr::unchecked(""),
             last_updated_at: 0,
         }
@@ -50,7 +50,7 @@ impl TileMetadata {
         for update in updates {
             let pixel = &mut self.pixels[update.id as usize];
             pixel.color = update.color.clone();
-            pixel.expiration = update.get_expiration_time(current_time);
+            pixel.expiration_timestamp = update.get_expiration_timestamp(current_time);
             pixel.last_updated_by = sender.clone();
             pixel.last_updated_at = current_time;
         }
@@ -63,7 +63,7 @@ impl TileMetadata {
                 "{}:{}:{}:{}:{}",
                 pixel.id,
                 pixel.color,
-                pixel.expiration,
+                pixel.expiration_timestamp,
                 pixel.last_updated_by,
                 pixel.last_updated_at
             ));
@@ -76,7 +76,7 @@ impl TileMetadata {
 pub struct PixelUpdate {
     pub id: u32,
     pub color: String,
-    pub duration_seconds: u64,  // Duration in seconds instead of expiration timestamp
+    pub expiration_duration: u64,  // Duration in seconds
 }
 
 impl PixelUpdate {
@@ -105,7 +105,7 @@ impl PixelUpdate {
         }
 
         // Validate duration is within bounds
-        if !(PIXEL_MIN_EXPIRATION..=PIXEL_MAX_EXPIRATION).contains(&self.duration_seconds) {
+        if !(PIXEL_MIN_EXPIRATION..=PIXEL_MAX_EXPIRATION).contains(&self.expiration_duration) {
             return Err(ContractError::InvalidConfig(format!(
                 "Duration must be between {} and {} seconds",
                 PIXEL_MIN_EXPIRATION, PIXEL_MAX_EXPIRATION
@@ -113,7 +113,7 @@ impl PixelUpdate {
         }
 
         // Validate current pixel is expired
-        if current_pixel.expiration > current_time {
+        if current_pixel.expiration_timestamp > current_time {
             return Err(ContractError::InvalidConfig(
                 "Pixel is not expired yet".to_string(),
             ));
@@ -123,7 +123,7 @@ impl PixelUpdate {
     }
 
     // Helper to get expiration timestamp from duration
-    pub fn get_expiration_time(&self, current_time: u64) -> u64 {
-        current_time.saturating_add(self.duration_seconds)
+    pub fn get_expiration_timestamp(&self, current_time: u64) -> u64 {
+        current_time.saturating_add(self.expiration_duration)
     }
 }

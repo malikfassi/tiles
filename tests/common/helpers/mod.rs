@@ -11,6 +11,6 @@ pub fn get_test_pixel_update(id: u32) -> PixelUpdate {
     PixelUpdate {
         id,
         color: "#FF0000".to_string(),
-        duration_seconds: 3600, // 1 hour
+        expiration_duration: 3600, // 1 hour
     }
 }
