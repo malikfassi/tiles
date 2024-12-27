@@ -2,11 +2,11 @@ use tiles::defaults::constants::{CREATION_FEE, MINT_PRICE};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum UserRole {
-    Buyer,           // Person who buys a tile
-    Poor,           // User with insufficient funds (for negative testing)
-    PixelOperator,  // User who can operate on pixels but isn't creator/buyer
-    TileContractCreator,  // Creator of the tile contract, receives royalties
-    FactoryContractCreator // Creator of the factory contract
+    Buyer,                  // Person who buys a tile
+    Poor,                   // User with insufficient funds (for negative testing)
+    PixelOperator,          // User who can operate on pixels but isn't creator/buyer
+    TileContractCreator,    // Creator of the tile contract, receives royalties
+    FactoryContractCreator, // Creator of the factory contract
 }
 
 #[derive(Debug, Clone)]
