@@ -1,6 +1,7 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Binary, Empty};
 use cw721_base::Extension;
+use sg721::InstantiateMsg as Sg721InstantiateMsg;
 
 use crate::core::{
     pricing::PriceScaling,
@@ -10,8 +11,7 @@ use crate::core::{
     },
 };
 
-// Use sg721's InstantiateMsg directly
-pub type InstantiateMsg = sg721::InstantiateMsg;
+pub type InstantiateMsg = Sg721InstantiateMsg;
 
 #[cw_serde]
 pub enum TileExecuteMsg {

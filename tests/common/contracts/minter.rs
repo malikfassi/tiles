@@ -1,9 +1,13 @@
 use anyhow::Result;
 use cosmwasm_std::{Addr, Coin};
-use cw_multi_test::{ContractWrapper, Executor};
+use cw_multi_test::ContractWrapper;
 use sg_std::NATIVE_DENOM;
+use sg4::MinterConfig;
 use tiles::defaults::constants::MINT_PRICE;
-use vending_minter::msg::ExecuteMsg as MinterExecuteMsg;
+use vending_minter::{
+    msg::ExecuteMsg as MinterExecuteMsg,
+    state::ConfigExtension,
+};
 
 use crate::common::TestApp;
 
@@ -29,13 +33,39 @@ impl MinterContract {
     }
 
     pub fn mint(&self, app: &mut TestApp, user: &Addr) -> Result<u32> {
+        println!("\n=== Starting mint process ===");
+        println!("Minting token:");
+        println!("  User: {}", user);
+        println!("  Minter address: {}", self.contract_addr);
+        println!("  Mint price: {}", MINT_PRICE);
+
+        // Query minter config to verify setup
+        let config: MinterConfig<ConfigExtension> = app.inner().wrap().query_wasm_smart(
+            self.contract_addr.clone(),
+            &vending_minter::msg::QueryMsg::Config {},
+        )?;
+        println!("Minter config: {:#?}", config);
+
         // Mint through the minter contract
         let response = app.execute_contract(
             user.clone(),
             self.contract_addr.clone(),
             &MinterExecuteMsg::Mint {},
             &[Coin::new(MINT_PRICE, NATIVE_DENOM)],
-        )?;
+        );
+
+        match &response {
+            Ok(res) => {
+                println!("Mint successful!");
+                println!("Response events: {:#?}", res.events);
+            }
+            Err(e) => {
+                println!("Mint failed!");
+                println!("Error: {:#?}", e);
+            }
+        }
+
+        let response = response?;
 
         // Extract token_id from response
         let token_id = response
@@ -50,6 +80,8 @@ impl MinterContract {
             })
             .expect("Token ID not found in mint response");
 
+        println!("Successfully minted token_id: {}", token_id);
+        println!("=== Mint process complete ===\n");
         Ok(token_id)
     }
 }

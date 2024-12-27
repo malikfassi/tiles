@@ -89,13 +89,10 @@ impl TestUsers {
     }
 
     pub fn assert_balance(&self, app: &TestApp, role: UserRole, expected_balance: u128) {
-        let user = self.get(role);
         let balance = app
-            .inner()
-            .wrap()
-            .query_balance(&user.address, NATIVE_DENOM)
-            .unwrap();
-        assert_eq!(balance.amount.u128(), expected_balance);
+            .get_balance(&self.get(role).address, "ustars")
+            .unwrap_or(0);
+        assert_eq!(balance, expected_balance);
     }
 
     pub fn get_address(&self, addr: &str) -> Addr {

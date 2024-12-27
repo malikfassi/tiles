@@ -34,7 +34,7 @@ pub fn execute_handler(
                 updates,
             } => set_pixel_color(deps, env, info, token_id, current_metadata, updates),
             TileExecuteMsg::UpdatePriceScaling(new_scaling) => {
-                update_price_scaling(deps, info, new_scaling)
+                update_price_scaling(deps, env, info, new_scaling)
             }
         },
         ExecuteMsg::Mint {

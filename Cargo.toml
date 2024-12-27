@@ -18,13 +18,15 @@ cw721-base = { version = "0.18.0", features = ["library"] }
 cw-utils = "1.0.1"
 schemars = "0.8.15"
 serde = { version = "1.0.188", features = ["derive"] }
-sg721 = "3.14.0"
-sg721-base = { version = "3.14.0", features = ["library"] }
+sg721 = { version = "3.3.0", features = ["library"] }
+sg721-base = { version = "3.3.0", features = ["library"] }
 sg-std = "3.2.0"
 thiserror = "1.0.49"
 sha2 = "0.10.8"
 hex = "0.4.3"
 cw2 = "1.1.1"
+vending-factory = { version = "3.15.0", features = ["library"] }
+vending-minter = { version = "3.15.0", features = ["library"] }
 
 [dev-dependencies]
 anyhow = "1.0.75"
@@ -33,5 +35,3 @@ sg-multi-test = "3.1.0"
 sg1 = "3.14.0"
 sg2 = "3.14.0"
 sg4 = "3.14.0"
-vending-factory = "3.15.0"
-vending-minter = "3.15.0"

@@ -5,7 +5,7 @@ use tiles::core::pricing::PriceScaling;
 #[test]
 fn test_update_price_scaling() {
     let mut ctx = Launchpad::new();
-    let creator = ctx.users.tile_contract_creator();
+    let owner = ctx.users.tile_contract_creator();
 
     let new_scaling = PriceScaling {
         hour_1_price: Uint128::from(100u128),
@@ -16,14 +16,14 @@ fn test_update_price_scaling() {
 
     let result = ctx
         .tiles
-        .update_price_scaling(&mut ctx.app, &creator, new_scaling);
+        .update_price_scaling(&mut ctx.app, &owner, new_scaling);
     assert!(result.is_ok());
 }
 
 #[test]
 fn test_update_price_scaling_unauthorized() {
     let mut ctx = Launchpad::new();
-    let unauthorized = ctx.users.get_buyer();
+    let unauthorized = ctx.users.get_buyer().address.clone();
 
     let new_scaling = PriceScaling {
         hour_1_price: Uint128::from(100u128),
@@ -34,14 +34,14 @@ fn test_update_price_scaling_unauthorized() {
 
     let result = ctx
         .tiles
-        .update_price_scaling(&mut ctx.app, &unauthorized.address, new_scaling);
+        .update_price_scaling(&mut ctx.app, &unauthorized, new_scaling);
     assert!(result.is_err());
 }
 
 #[test]
 fn test_update_price_scaling_invalid() {
     let mut ctx = Launchpad::new();
-    let creator = ctx.users.tile_contract_creator();
+    let owner = ctx.users.tile_contract_creator();
 
     let invalid_scaling = PriceScaling {
         hour_1_price: Uint128::from(400u128), // Invalid: hour_1_price > hour_12_price
@@ -52,14 +52,14 @@ fn test_update_price_scaling_invalid() {
 
     let result = ctx
         .tiles
-        .update_price_scaling(&mut ctx.app, &creator, invalid_scaling);
+        .update_price_scaling(&mut ctx.app, &owner, invalid_scaling);
     assert!(result.is_err());
 }
 
 #[test]
 fn test_update_price_scaling_as_creator() {
     let mut ctx = Launchpad::new();
-    let creator = ctx.users.tile_contract_creator();
+    let owner = ctx.users.tile_contract_creator();
 
     let new_price_scaling = PriceScaling {
         hour_1_price: Uint128::new(100),
@@ -68,10 +68,10 @@ fn test_update_price_scaling_as_creator() {
         quadratic_base: Uint128::new(400),
     };
 
-    // Update price scaling as creator (who is also the payment address)
+    // Update price scaling as owner (who is the royalty payment address)
     let result = ctx
         .tiles
-        .update_price_scaling(&mut ctx.app, &creator, new_price_scaling.clone());
+        .update_price_scaling(&mut ctx.app, &owner, new_price_scaling.clone());
     assert!(result.is_ok());
 
     // Verify the update
@@ -82,7 +82,7 @@ fn test_update_price_scaling_as_creator() {
 #[test]
 fn test_update_price_scaling_as_unauthorized() {
     let mut ctx = Launchpad::new();
-    let unauthorized = ctx.users.user1();
+    let unauthorized = ctx.users.admin(); // Using admin as unauthorized user
 
     let new_price_scaling = PriceScaling {
         hour_1_price: Uint128::new(100),
