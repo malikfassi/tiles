@@ -1,11 +1,12 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use cw721_base::Extension;
 use sg721_base::Sg721Contract;
+use sg721::RoyaltyInfoResponse;
 use sg_std::StargazeMsgWrapper;
 
 use crate::contract::error::ContractError;
 use crate::contract::state::PRICE_SCALING;
 use crate::core::pricing::PriceScaling;
+use crate::core::tile::Tile;
 
 pub fn update_price_scaling(
     deps: DepsMut,
@@ -19,7 +20,7 @@ pub fn update_price_scaling(
 
     // Get collection info from contract
     println!("Loading collection info...");
-    let contract = Sg721Contract::<Extension>::default();
+    let contract = Sg721Contract::<Tile>::default();
     let collection_info = contract.collection_info.load(deps.storage)?;
     println!("Collection info: {:#?}", collection_info);
 
@@ -60,5 +61,7 @@ pub fn update_price_scaling(
 
     println!("=== Update Price Scaling Complete ===\n");
 
-    Ok(Response::new().add_attribute("action", "update_price_scaling"))
+    Ok(Response::new()
+        .add_attribute("action", "update_price_scaling")
+        .add_attribute("sender", info.sender))
 }

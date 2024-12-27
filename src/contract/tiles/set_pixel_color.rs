@@ -1,10 +1,12 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, Uint128};
-use sg721_base::Sg721Contract;
+use cosmwasm_std::{BankMsg, Coin, DepsMut, Env, MessageInfo, Response, Uint128};
+use cw721::OwnerOfResponse;
+use sg721_base::{msg::QueryMsg as Sg721QueryMsg, Sg721Contract};
+use sg721::{CollectionInfo, RoyaltyInfoResponse};
 use sg_std::StargazeMsgWrapper;
 use std::collections::HashSet;
 
 use crate::{
-    contract::{error::ContractError, state::PRICE_SCALING},
+    contract::{error::ContractError, msg::QueryMsg, state::PRICE_SCALING},
     core::tile::{
         metadata::{PixelUpdate, TileMetadata},
         Tile,
@@ -26,6 +28,24 @@ pub fn set_pixel_color(
     if token.extension.tile_hash != current_metadata.hash() {
         return Err(ContractError::HashMismatch {});
     }
+
+    // Get token owner
+    let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
+        env.contract.address.clone(),
+        &QueryMsg::Base(Sg721QueryMsg::OwnerOf {
+            token_id: token_id.clone(),
+            include_expired: None,
+        }),
+    )?;
+
+    // Get royalty info from collection info
+    let collection_info: CollectionInfo<RoyaltyInfoResponse> = deps.querier.query_wasm_smart(
+        env.contract.address.clone(),
+        &QueryMsg::Base(Sg721QueryMsg::CollectionInfo {}),
+    )?;
+    let royalty_info = collection_info.royalty_info.ok_or_else(|| {
+        ContractError::InvalidConfig("No royalty info configured".to_string())
+    })?;
 
     let price_scaling = PRICE_SCALING.load(deps.storage)?;
     let current_time = env.block.time.seconds();
@@ -64,6 +84,10 @@ pub fn set_pixel_color(
         }
     }
 
+    // Calculate payment distribution
+    let royalty_amount = total_price * royalty_info.share;
+    let owner_amount = total_price - royalty_amount;
+
     // Apply all updates at once
     current_metadata.apply_updates(updates, &info.sender, current_time);
 
@@ -71,8 +95,37 @@ pub fn set_pixel_color(
     token.extension.tile_hash = current_metadata.hash();
     contract.tokens.save(deps.storage, &token_id, &token)?;
 
+    // Create bank messages for payment distribution
+    let mut bank_msgs = vec![];
+
+    // Send royalties to creator
+    if !royalty_amount.is_zero() {
+        bank_msgs.push(BankMsg::Send {
+            to_address: royalty_info.payment_address.to_string(),
+            amount: vec![Coin {
+                denom: "ustars".to_string(),
+                amount: royalty_amount,
+            }],
+        });
+    }
+
+    // Send remaining amount to token owner
+    if !owner_amount.is_zero() {
+        bank_msgs.push(BankMsg::Send {
+            to_address: owner.owner,
+            amount: vec![Coin {
+                denom: "ustars".to_string(),
+                amount: owner_amount,
+            }],
+        });
+    }
+
     Ok(Response::new()
+        .add_messages(bank_msgs)
         .add_attribute("action", "set_pixel_color")
         .add_attribute("token_id", token_id)
-        .add_attribute("sender", info.sender))
+        .add_attribute("sender", info.sender)
+        .add_attribute("total_price", total_price)
+        .add_attribute("royalty_amount", royalty_amount)
+        .add_attribute("owner_amount", owner_amount))
 }

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Coin};
 use cw_multi_test::AppResponse;
 use std::collections::HashMap;
 use tiles::contract::error::ContractError;
@@ -142,5 +142,93 @@ impl TestOrchestrator {
         let hash = self.ctx.tiles.query_token_hash(&self.ctx.app, token_id)?;
         assert_eq!(hash, expected_hash, "Token hash mismatch");
         Ok(())
+    }
+
+    // Fund assertion helpers
+    pub fn assert_funds_received(&self, address: &Addr, amount: u128, denom: &str) {
+        let balance = self.ctx.app.inner().wrap().query_balance(address, denom).unwrap();
+        assert_eq!(
+            balance.amount.u128(),
+            amount,
+            "Balance mismatch for {}: expected {}, got {}",
+            address,
+            amount,
+            balance.amount.u128()
+        );
+    }
+
+    pub fn assert_pixel_update_payment(&self, response: &AppResponse, token_id: &str, total_price: u128) {
+        // Find the pixel update event
+        let event = response
+            .events
+            .iter()
+            .find(|e| {
+                e.ty == "wasm"
+                    && e.attributes
+                        .iter()
+                        .any(|a| a.key == "action" && a.value == "set_pixel_color")
+            })
+            .expect("Expected set_pixel_color event");
+
+        // Verify token_id
+        let token_id_attr = event
+            .attributes
+            .iter()
+            .find(|a| a.key == "token_id")
+            .expect("Expected token_id attribute");
+        assert_eq!(token_id_attr.value, token_id);
+
+        // Verify payment amounts
+        let royalty_amount = total_price * 5 / 100; // 5% royalty
+        let owner_amount = total_price - royalty_amount;
+
+        // Find transfer events
+        let transfer_events: Vec<_> = response
+            .events
+            .iter()
+            .filter(|e| e.ty == "transfer")
+            .collect();
+
+        // Verify royalty transfer to creator
+        let royalty_transfer = transfer_events
+            .iter()
+            .find(|e| {
+                e.attributes
+                    .iter()
+                    .any(|a| a.key == "recipient" && a.value == self.ctx.users.tile_contract_creator().to_string())
+            })
+            .expect("Expected royalty transfer event");
+
+        let royalty_amount_attr = royalty_transfer
+            .attributes
+            .iter()
+            .find(|a| a.key == "amount")
+            .expect("Expected amount attribute");
+        assert_eq!(
+            royalty_amount_attr.value,
+            format!("{}ustars", royalty_amount),
+            "Incorrect royalty amount"
+        );
+
+        // Verify owner transfer
+        let owner_transfer = transfer_events
+            .iter()
+            .find(|e| {
+                e.attributes
+                    .iter()
+                    .any(|a| a.key == "recipient" && a.value == self.ctx.users.get_buyer().address)
+            })
+            .expect("Expected owner transfer event");
+
+        let owner_amount_attr = owner_transfer
+            .attributes
+            .iter()
+            .find(|a| a.key == "amount")
+            .expect("Expected amount attribute");
+        assert_eq!(
+            owner_amount_attr.value,
+            format!("{}ustars", owner_amount),
+            "Incorrect owner amount"
+        );
     }
 }

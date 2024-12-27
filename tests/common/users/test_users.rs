@@ -124,6 +124,10 @@ impl TestUsers {
             user.fund_account(app);
         }
     }
+
+    pub fn get_creator(&self) -> &User {
+        self.get(UserRole::TileContractCreator)
+    }
 }
 
 impl Default for TestUsers {
