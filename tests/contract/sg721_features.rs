@@ -4,7 +4,7 @@ mod tests {
     use cosmwasm_std::{to_json_binary, Addr};
     use cw721_base::Action;
     use sg721::UpdateCollectionInfoMsg;
-    use tiles::core::tile::metadata::TileMetadata;
+
     use crate::common::TestOrchestrator;
 
     #[test]
@@ -44,7 +44,7 @@ mod tests {
 
         // Verify it failed because the recipient is not a contract
         assert!(result.is_err());
-        
+
         // Verify owner hasn't changed
         test.assert_token_owner(token_id, &owner);
         Ok(())
@@ -113,12 +113,9 @@ mod tests {
         let recipient = test.ctx.users.get_buyer().address.clone();
 
         // Test approve all
-        test.ctx.tiles.execute_approve_all(
-            &mut test.ctx.app,
-            &owner,
-            &operator,
-            None,
-        )?;
+        test.ctx
+            .tiles
+            .execute_approve_all(&mut test.ctx.app, &owner, &operator, None)?;
 
         // Verify operator can transfer all tokens
         for &token_id in &token_ids {
@@ -142,11 +139,9 @@ mod tests {
         }
 
         // Test revoke all
-        test.ctx.tiles.execute_revoke_all(
-            &mut test.ctx.app,
-            &owner,
-            &operator,
-        )?;
+        test.ctx
+            .tiles
+            .execute_revoke_all(&mut test.ctx.app, &owner, &operator)?;
 
         // Verify operator can no longer transfer tokens
         let result = test.ctx.tiles.execute_transfer_nft(
@@ -184,16 +179,19 @@ mod tests {
             .iter()
             .find(|e| e.ty == "wasm")
             .expect("Expected wasm event");
-        
-        assert!(transfer_event.attributes.iter().any(|attr| 
-            attr.key == "owner" && attr.value == minter_addr.to_string()
-        ));
-        assert!(transfer_event.attributes.iter().any(|attr| 
-            attr.key == "pending_owner" && attr.value == new_owner.to_string()
-        ));
-        assert!(transfer_event.attributes.iter().any(|attr| 
-            attr.key == "pending_expiry" && attr.value == "none"
-        ));
+
+        assert!(transfer_event
+            .attributes
+            .iter()
+            .any(|attr| attr.key == "owner" && attr.value == minter_addr));
+        assert!(transfer_event
+            .attributes
+            .iter()
+            .any(|attr| attr.key == "pending_owner" && attr.value == new_owner));
+        assert!(transfer_event
+            .attributes
+            .iter()
+            .any(|attr| attr.key == "pending_expiry" && attr.value == "none"));
 
         // Accept ownership
         let accept_response = test.ctx.tiles.execute_update_ownership(
@@ -208,10 +206,11 @@ mod tests {
             .iter()
             .find(|e| e.ty == "wasm")
             .expect("Expected wasm event");
-        
-        assert!(accept_event.attributes.iter().any(|attr| 
-            attr.key == "owner" && attr.value == new_owner.to_string()
-        ));
+
+        assert!(accept_event
+            .attributes
+            .iter()
+            .any(|attr| attr.key == "owner" && attr.value == new_owner));
 
         Ok(())
     }

@@ -1,8 +1,8 @@
+use crate::common::app::TestApp;
 use anyhow::Result;
 use cosmwasm_std::{coins, Addr, Binary, Coin};
 use cw721::{NftInfoResponse, OwnerOfResponse};
 use cw721_base::Action;
-use crate::common::app::TestApp;
 use cw_multi_test::ContractWrapper;
 use sg721::{CollectionInfo, RoyaltyInfoResponse, UpdateCollectionInfoMsg};
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
@@ -47,17 +47,14 @@ impl TilesContract {
         sender: &Addr,
         new_price_scaling: PriceScaling,
     ) -> Result<cw_multi_test::AppResponse> {
-
-        let response = app.execute_contract(
+        app.execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::Extension {
                 msg: TileExecuteMsg::UpdatePriceScaling(new_price_scaling),
             },
             &[],
-        );
-
-        response
+        )
     }
 
     pub fn update_pixel(
@@ -104,7 +101,7 @@ impl TilesContract {
             &ExecuteMsg::Extension {
                 msg: TileExecuteMsg::SetPixelColor {
                     token_id: token_id.to_string(),
-                    current_metadata: current_metadata,
+                    current_metadata,
                     updates,
                 },
             },
@@ -327,5 +324,5 @@ impl TilesContract {
             self.contract_addr.clone(),
             &QueryMsg::Base(Sg721QueryMsg::CollectionInfo {}),
         )?)
-    } 
+    }
 }

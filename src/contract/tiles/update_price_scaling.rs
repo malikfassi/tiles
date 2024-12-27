@@ -33,8 +33,8 @@ pub fn update_price_scaling(
     match new_scaling.validate() {
         Ok(_) => (),
         Err(e) => {
-            return Err(ContractError::InvalidPixelUpdate { 
-                reason: e.to_string() 
+            return Err(ContractError::InvalidPixelUpdate {
+                reason: e.to_string(),
             });
         }
     }
@@ -48,7 +48,8 @@ pub fn update_price_scaling(
         hour_12_price: new_scaling.hour_12_price.u128(),
         hour_24_price: new_scaling.hour_24_price.u128(),
         quadratic_base: new_scaling.quadratic_base.u128(),
-    }.into_event();
+    }
+    .into_event();
 
     Ok(Response::new().add_event(event))
 }

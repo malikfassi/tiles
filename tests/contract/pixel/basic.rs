@@ -21,7 +21,7 @@ fn can_set_pixel_color() -> Result<()> {
         &result,
         &token_id.to_string(),
         &owner,
-        100000000 / 10, // royalty amount (10%)
+        100000000 / 10,     // royalty amount (10%)
         100000000 * 9 / 10, // owner amount (90%)
     );
 
@@ -61,7 +61,7 @@ fn all_valid_updates_succeed() -> Result<()> {
         &result,
         &token_id.to_string(),
         &owner,
-        300000000 / 10, // royalty amount (10%)
+        300000000 / 10,     // royalty amount (10%)
         300000000 * 9 / 10, // owner amount (90%)
     );
 
@@ -101,7 +101,7 @@ fn can_update_multiple_pixels() -> Result<()> {
         &result,
         &token_id.to_string(),
         &owner,
-        300000000 / 10, // royalty amount (10%)
+        300000000 / 10,     // royalty amount (10%)
         300000000 * 9 / 10, // owner amount (90%)
     );
 

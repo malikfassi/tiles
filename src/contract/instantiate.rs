@@ -9,14 +9,12 @@ use crate::{
     defaults::constants::{CONTRACT_NAME, CONTRACT_VERSION},
 };
 
-
 pub fn instantiate_handler(
     mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
-
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
     // Initialize base contract

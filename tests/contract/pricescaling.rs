@@ -135,11 +135,10 @@ fn price_scaling_update_emits_correct_event() -> Result<()> {
     let creator = test.ctx.users.tile_contract_creator();
 
     let new_scaling = PriceScaling::default();
-    let response = test.ctx.tiles.update_price_scaling(
-        &mut test.ctx.app,
-        &creator,
-        new_scaling.clone(),
-    )?;
+    let response =
+        test.ctx
+            .tiles
+            .update_price_scaling(&mut test.ctx.app, &creator, new_scaling.clone())?;
 
     // Use orchestrator to assert the event
     test.assert_price_scaling_event(&response, new_scaling);

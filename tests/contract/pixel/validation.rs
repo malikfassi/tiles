@@ -55,10 +55,8 @@ fn cannot_set_pixel_with_invalid_expiration() -> Result<()> {
         &owner,
     );
 
-    orchestrator.assert_error_invalid_config(
-        result,
-        "Expiration duration 3599 is less than minimum 3600",
-    );
+    orchestrator
+        .assert_error_invalid_config(result, "Expiration duration 3599 is less than minimum 3600");
 
     Ok(())
 }
@@ -156,10 +154,8 @@ fn batch_fails_with_one_invalid_expiration_too_short() -> Result<()> {
         &owner,
     );
 
-    orchestrator.assert_error_invalid_config(
-        result,
-        "Expiration duration 3599 is less than minimum 3600",
-    );
+    orchestrator
+        .assert_error_invalid_config(result, "Expiration duration 3599 is less than minimum 3600");
 
     Ok(())
 }

@@ -15,7 +15,7 @@ impl EventData for PriceScalingUpdateEventData {
     fn event_type() -> EventType {
         EventType::PriceScalingUpdateEvent
     }
-    
+
     fn into_event(self) -> Event {
         Event::new(Self::event_type().as_str())
             .add_attribute("hour_1_price", self.hour_1_price.to_string())
@@ -23,19 +23,20 @@ impl EventData for PriceScalingUpdateEventData {
             .add_attribute("hour_24_price", self.hour_24_price.to_string())
             .add_attribute("quadratic_base", self.quadratic_base.to_string())
     }
-    
+
     fn try_from_event(event: &Event) -> Option<Self> {
         if event.ty != Self::event_type().as_wasm_str() {
             return None;
         }
-        
+
         let get_attr = |key: &str| {
-            event.attributes
+            event
+                .attributes
                 .iter()
                 .find(|a| a.key == key)
                 .map(|a| a.value.clone())
         };
-        
+
         Some(Self {
             hour_1_price: get_attr("hour_1_price")?.parse().ok()?,
             hour_12_price: get_attr("hour_12_price")?.parse().ok()?,
@@ -43,4 +44,4 @@ impl EventData for PriceScalingUpdateEventData {
             quadratic_base: get_attr("quadratic_base")?.parse().ok()?,
         })
     }
-} 
+}

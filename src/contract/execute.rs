@@ -1,4 +1,4 @@
-use cosmwasm_std::{to_json_binary, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 

@@ -36,5 +36,7 @@ impl EventType {
 pub trait EventData {
     fn event_type() -> EventType;
     fn into_event(self) -> Event;
-    fn try_from_event(event: &Event) -> Option<Self> where Self: Sized;
+    fn try_from_event(event: &Event) -> Option<Self>
+    where
+        Self: Sized;
 }

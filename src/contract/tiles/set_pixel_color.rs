@@ -1,4 +1,4 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, Uint128, CosmosMsg};
+use cosmwasm_std::{CosmosMsg, DepsMut, Env, MessageInfo, Response, Uint128};
 use cw721::OwnerOfResponse;
 use sg721_base::{msg::QueryMsg as Sg721QueryMsg, Sg721Contract};
 use sg_std::StargazeMsgWrapper;
@@ -10,7 +10,9 @@ use crate::{
         metadata::{PixelUpdate, TileMetadata},
         Tile,
     },
-    events::{EventData, PixelUpdateEventData, MetadataUpdateEventData, PaymentDistributionEventData},
+    events::{
+        EventData, MetadataUpdateEventData, PaymentDistributionEventData, PixelUpdateEventData,
+    },
 };
 
 pub fn set_pixel_color(
@@ -69,7 +71,7 @@ pub fn set_pixel_color(
     let collection_info = contract.collection_info.load(deps.storage)?;
     let royalty_info = collection_info
         .royalty_info
-        .ok_or_else(|| ContractError::MissingRoyaltyInfo {})?;
+        .ok_or(ContractError::MissingRoyaltyInfo {})?;
 
     // Calculate payment distribution
     let royalty_amount = total_price * royalty_info.share;
@@ -96,19 +98,23 @@ pub fn set_pixel_color(
     ];
 
     // Create events for each pixel update
-    let pixel_events = updates.iter().map(|update| {
-        let event = PixelUpdateEventData {
-            token_id: token_id.clone(),
-            pixel_id: update.id,
-            color: update.color.clone(),
-            expiration_duration: update.expiration_duration,
-            expiration_timestamp: current_time + update.expiration_duration,
-            last_updated_by: info.sender.clone(),
-            last_updated_at: current_time,
-        }.into_event();
-        println!("Pixel update event: {:?}", event);
-        event
-    }).collect::<Vec<_>>();
+    let pixel_events = updates
+        .iter()
+        .map(|update| {
+            let event = PixelUpdateEventData {
+                token_id: token_id.clone(),
+                pixel_id: update.id,
+                color: update.color.clone(),
+                expiration_duration: update.expiration_duration,
+                expiration_timestamp: current_time + update.expiration_duration,
+                last_updated_by: info.sender.clone(),
+                last_updated_at: current_time,
+            }
+            .into_event();
+            println!("Pixel update event: {:?}", event);
+            event
+        })
+        .collect::<Vec<_>>();
 
     // Apply all updates at once
     current_metadata.apply_updates(updates, &info.sender, current_time);
@@ -117,7 +123,8 @@ pub fn set_pixel_color(
     let metadata_event = MetadataUpdateEventData {
         token_id: token_id.clone(),
         resulting_hash: current_metadata.hash(),
-    }.into_event();
+    }
+    .into_event();
     println!("Metadata update event: {:?}", metadata_event);
 
     // Create payment distribution event
@@ -126,7 +133,8 @@ pub fn set_pixel_color(
         sender: info.sender.clone(),
         royalty_amount: royalty_amount.u128(),
         owner_amount: owner_amount.u128(),
-    }.into_event();
+    }
+    .into_event();
     println!("Payment distribution event: {:?}", payment_event);
 
     // Update token extension with new metadata hash

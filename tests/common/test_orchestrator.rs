@@ -1,13 +1,15 @@
 use anyhow::Result;
 use cosmwasm_std::Addr;
 use cw_multi_test::AppResponse;
-use serde_json;
+
+use cosmwasm_std::Event;
 use std::collections::HashMap;
 use tiles::contract::error::ContractError;
-use tiles::core::tile::metadata::{PixelUpdate, TileMetadata};
-use tiles::events::{EventData, PixelUpdateEventData, MetadataUpdateEventData, PaymentDistributionEventData, PriceScalingUpdateEventData};
-use cosmwasm_std::Event;
 use tiles::core::pricing::PriceScaling;
+use tiles::core::tile::metadata::{PixelUpdate, TileMetadata};
+use tiles::events::{
+    EventData, PaymentDistributionEventData, PixelUpdateEventData, PriceScalingUpdateEventData,
+};
 
 use super::launchpad::Launchpad;
 
@@ -40,7 +42,9 @@ impl TestOrchestrator {
             .or_default()
             .push(token_id);
         // Track default metadata after minting
-        self.state.token_metadata.insert(token_id, TileMetadata::default());
+        self.state
+            .token_metadata
+            .insert(token_id, TileMetadata::default());
         Ok(token_id)
     }
 
@@ -100,7 +104,10 @@ impl TestOrchestrator {
                 let contract_err: ContractError = err.downcast().unwrap();
                 match contract_err {
                     ContractError::MetadataHashMismatch {} => (),
-                    _ => panic!("Expected MetadataHashMismatch error, got: {:?}", contract_err),
+                    _ => panic!(
+                        "Expected MetadataHashMismatch error, got: {:?}",
+                        contract_err
+                    ),
                 }
             }
             Ok(_) => panic!("Expected error, got success"),
@@ -113,7 +120,9 @@ impl TestOrchestrator {
                 let contract_err: ContractError = err.downcast().unwrap();
                 match contract_err {
                     ContractError::Unauthorized { sender: _ } => (),
-                    ContractError::Base(sg721_base::ContractError::Base(cw721_base::ContractError::Ownership(cw721_base::OwnershipError::NotOwner))) => (),
+                    ContractError::Base(sg721_base::ContractError::Base(
+                        cw721_base::ContractError::Ownership(cw721_base::OwnershipError::NotOwner),
+                    )) => (),
                     _ => panic!("Expected Unauthorized error, got: {:?}", contract_err),
                 }
             }
@@ -122,9 +131,19 @@ impl TestOrchestrator {
     }
 
     // Pixel update event assertions
-    pub fn assert_pixel_update_event(&self, response: &AppResponse, token_id: &str, update: &PixelUpdate, sender: &Addr) {
-        let events = self.find_events(response, PixelUpdateEventData::event_type().as_wasm_str().as_str());
-        let parsed_event = events.iter()
+    pub fn assert_pixel_update_event(
+        &self,
+        response: &AppResponse,
+        token_id: &str,
+        update: &PixelUpdate,
+        sender: &Addr,
+    ) {
+        let events = self.find_events(
+            response,
+            PixelUpdateEventData::event_type().as_wasm_str().as_str(),
+        );
+        let parsed_event = events
+            .iter()
             .find_map(|event| {
                 let parsed = PixelUpdateEventData::try_from_event(event)?;
                 if parsed.pixel_id == update.id {
@@ -133,23 +152,36 @@ impl TestOrchestrator {
                     None
                 }
             })
-            .unwrap_or_else(|| panic!(
-                "Failed to find pixel update event for pixel ID {}. Events: {:?}",
-                update.id,
-                events
-            ));
-            
+            .unwrap_or_else(|| {
+                panic!(
+                    "Failed to find pixel update event for pixel ID {}. Events: {:?}",
+                    update.id, events
+                )
+            });
+
         // Assert predictable values
         assert_eq!(parsed_event.token_id, token_id, "Token ID mismatch");
         assert_eq!(parsed_event.pixel_id, update.id, "Pixel ID mismatch");
         assert_eq!(parsed_event.color, update.color, "Color mismatch");
-        assert_eq!(parsed_event.expiration_duration, update.expiration_duration, "Expiration duration mismatch");
-        assert_eq!(parsed_event.last_updated_by, sender.clone(), "Last updated by mismatch");
-        
+        assert_eq!(
+            parsed_event.expiration_duration, update.expiration_duration,
+            "Expiration duration mismatch"
+        );
+        assert_eq!(
+            parsed_event.last_updated_by,
+            sender.clone(),
+            "Last updated by mismatch"
+        );
+
         // Verify timestamps exist and are valid
-        assert!(parsed_event.last_updated_at > 0, "last_updated_at should be set");
-        assert!(parsed_event.expiration_timestamp > parsed_event.last_updated_at, 
-            "expiration_timestamp should be after last_updated_at");
+        assert!(
+            parsed_event.last_updated_at > 0,
+            "last_updated_at should be set"
+        );
+        assert!(
+            parsed_event.expiration_timestamp > parsed_event.last_updated_at,
+            "expiration_timestamp should be after last_updated_at"
+        );
         assert_eq!(
             parsed_event.expiration_timestamp - parsed_event.last_updated_at,
             update.expiration_duration,
@@ -166,32 +198,68 @@ impl TestOrchestrator {
         royalty_amount: u128,
         owner_amount: u128,
     ) {
-        let event = self.find_event(response, PaymentDistributionEventData::event_type().as_wasm_str().as_str());
-        let parsed_event = PaymentDistributionEventData::try_from_event(event)
-            .unwrap_or_else(|| panic!(
-                "Failed to parse payment distribution event. Event: {:?}",
-                event
-            ));
-            
+        let event = self.find_event(
+            response,
+            PaymentDistributionEventData::event_type()
+                .as_wasm_str()
+                .as_str(),
+        );
+        let parsed_event =
+            PaymentDistributionEventData::try_from_event(event).unwrap_or_else(|| {
+                panic!(
+                    "Failed to parse payment distribution event. Event: {:?}",
+                    event
+                )
+            });
+
         assert_eq!(parsed_event.token_id, token_id, "Token ID mismatch");
         assert_eq!(parsed_event.sender, sender.clone(), "Sender mismatch");
-        assert_eq!(parsed_event.royalty_amount, royalty_amount, "Royalty amount mismatch");
-        assert_eq!(parsed_event.owner_amount, owner_amount, "Owner amount mismatch");
+        assert_eq!(
+            parsed_event.royalty_amount, royalty_amount,
+            "Royalty amount mismatch"
+        );
+        assert_eq!(
+            parsed_event.owner_amount, owner_amount,
+            "Owner amount mismatch"
+        );
     }
 
     // Price scaling event assertions
     pub fn assert_price_scaling_event(&self, response: &AppResponse, expected: PriceScaling) {
-        let event = self.find_event(response, PriceScalingUpdateEventData::event_type().as_wasm_str().as_str());
-        let parsed_event = PriceScalingUpdateEventData::try_from_event(event)
-            .unwrap_or_else(|| panic!(
-                "Failed to parse price scaling update event. Event: {:?}",
-                event
-            ));
-            
-        assert_eq!(parsed_event.hour_1_price, expected.hour_1_price.u128(), "Hour 1 price mismatch");
-        assert_eq!(parsed_event.hour_12_price, expected.hour_12_price.u128(), "Hour 12 price mismatch");
-        assert_eq!(parsed_event.hour_24_price, expected.hour_24_price.u128(), "Hour 24 price mismatch");
-        assert_eq!(parsed_event.quadratic_base, expected.quadratic_base.u128(), "Quadratic base mismatch");
+        let event = self.find_event(
+            response,
+            PriceScalingUpdateEventData::event_type()
+                .as_wasm_str()
+                .as_str(),
+        );
+        let parsed_event =
+            PriceScalingUpdateEventData::try_from_event(event).unwrap_or_else(|| {
+                panic!(
+                    "Failed to parse price scaling update event. Event: {:?}",
+                    event
+                )
+            });
+
+        assert_eq!(
+            parsed_event.hour_1_price,
+            expected.hour_1_price.u128(),
+            "Hour 1 price mismatch"
+        );
+        assert_eq!(
+            parsed_event.hour_12_price,
+            expected.hour_12_price.u128(),
+            "Hour 12 price mismatch"
+        );
+        assert_eq!(
+            parsed_event.hour_24_price,
+            expected.hour_24_price.u128(),
+            "Hour 24 price mismatch"
+        );
+        assert_eq!(
+            parsed_event.quadratic_base,
+            expected.quadratic_base.u128(),
+            "Quadratic base mismatch"
+        );
     }
 
     pub fn assert_token_hash(&self, token_id: u32, expected_hash: &str) -> Result<()> {
@@ -219,15 +287,28 @@ impl TestOrchestrator {
         );
     }
 
-    pub fn track_pixel_update(&mut self, token_id: u32, update: PixelUpdate, response: &AppResponse) {
+    pub fn track_pixel_update(
+        &mut self,
+        token_id: u32,
+        update: PixelUpdate,
+        response: &AppResponse,
+    ) {
         // Track the update
-        self.state.pixel_updates.entry(token_id).or_default().push(update);
+        self.state
+            .pixel_updates
+            .entry(token_id)
+            .or_default()
+            .push(update);
 
         // Get or create metadata
-        let mut metadata = self.state.token_metadata.entry(token_id).or_insert_with(TileMetadata::default);
+        let metadata = self.state.token_metadata.entry(token_id).or_default();
 
         // Extract metadata from events
-        if let Some(event_data) = response.events.iter().find_map(PixelUpdateEventData::try_from_event) {
+        if let Some(event_data) = response
+            .events
+            .iter()
+            .find_map(PixelUpdateEventData::try_from_event)
+        {
             let pixel_id = event_data.pixel_id as usize;
             if pixel_id < metadata.pixels.len() {
                 metadata.pixels[pixel_id].id = event_data.pixel_id;
@@ -240,14 +321,29 @@ impl TestOrchestrator {
     }
 
     pub fn get_current_metadata(&self, token_id: u32) -> TileMetadata {
-        self.state.token_metadata.get(&token_id).cloned().unwrap_or_default()
+        self.state
+            .token_metadata
+            .get(&token_id)
+            .cloned()
+            .unwrap_or_default()
     }
 
-    // update pixels with just updates 
-    pub fn update_pixels(&mut self, token_id: u32, updates: Vec<PixelUpdate>, operator: &Addr) -> Result<AppResponse> {
+    // update pixels with just updates
+    pub fn update_pixels(
+        &mut self,
+        token_id: u32,
+        updates: Vec<PixelUpdate>,
+        operator: &Addr,
+    ) -> Result<AppResponse> {
         let current_metadata = self.get_current_metadata(token_id);
-        let response = self.ctx.tiles.update_pixel(&mut self.ctx.app, operator, token_id, updates.clone(), current_metadata)?;
-        
+        let response = self.ctx.tiles.update_pixel(
+            &mut self.ctx.app,
+            operator,
+            token_id,
+            updates.clone(),
+            current_metadata,
+        )?;
+
         // Track each update
         for update in updates {
             self.track_pixel_update(token_id, update, &response);
@@ -267,15 +363,15 @@ impl TestOrchestrator {
         self.find_events(response, event_type)
             .first()
             .unwrap_or_else(|| {
-                let available_events = response.events
+                let available_events = response
+                    .events
                     .iter()
                     .map(|e| format!("{} with attributes: {:?}", e.ty, e.attributes))
                     .collect::<Vec<_>>()
                     .join("\n");
                 panic!(
                     "Expected event of type '{}' but found:\n{}",
-                    event_type,
-                    available_events
+                    event_type, available_events
                 )
             })
     }

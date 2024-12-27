@@ -18,30 +18,34 @@ impl EventData for PixelUpdateEventData {
     fn event_type() -> EventType {
         EventType::PixelUpdateEvent
     }
-    
+
     fn into_event(self) -> Event {
         Event::new(Self::event_type().as_str())
             .add_attribute("token_id", self.token_id)
             .add_attribute("pixel_id", self.pixel_id.to_string())
             .add_attribute("color", self.color)
             .add_attribute("expiration_duration", self.expiration_duration.to_string())
-            .add_attribute("expiration_timestamp", self.expiration_timestamp.to_string())
+            .add_attribute(
+                "expiration_timestamp",
+                self.expiration_timestamp.to_string(),
+            )
             .add_attribute("last_updated_by", self.last_updated_by.to_string())
             .add_attribute("last_updated_at", self.last_updated_at.to_string())
     }
-    
+
     fn try_from_event(event: &Event) -> Option<Self> {
         if event.ty != Self::event_type().as_wasm_str() {
             return None;
         }
-        
+
         let get_attr = |key: &str| {
-            event.attributes
+            event
+                .attributes
                 .iter()
                 .find(|a| a.key == key)
                 .map(|a| a.value.clone())
         };
-        
+
         Some(Self {
             token_id: get_attr("token_id")?,
             pixel_id: get_attr("pixel_id")?.parse().ok()?,
@@ -52,4 +56,4 @@ impl EventData for PixelUpdateEventData {
             last_updated_at: get_attr("last_updated_at")?.parse().ok()?,
         })
     }
-} 
+}

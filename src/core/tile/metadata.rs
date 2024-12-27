@@ -87,35 +87,37 @@ impl PixelUpdate {
             || self.color.len() != 7
             || !self.color[1..].chars().all(|c| c.is_ascii_hexdigit())
         {
-            return Err(ContractError::InvalidPixelUpdate { 
-                reason: format!("Invalid color format: {}", self.color)
+            return Err(ContractError::InvalidPixelUpdate {
+                reason: format!("Invalid color format: {}", self.color),
             });
         }
 
         // Validate duration is within bounds
         if self.expiration_duration < PIXEL_MIN_EXPIRATION {
-            return Err(ContractError::InvalidPixelUpdate { 
+            return Err(ContractError::InvalidPixelUpdate {
                 reason: format!(
                     "Expiration duration {} is less than minimum {}",
-                    self.expiration_duration,
-                    PIXEL_MIN_EXPIRATION
-                )
+                    self.expiration_duration, PIXEL_MIN_EXPIRATION
+                ),
             });
         }
         if self.expiration_duration > PIXEL_MAX_EXPIRATION {
-            return Err(ContractError::InvalidPixelUpdate { 
+            return Err(ContractError::InvalidPixelUpdate {
                 reason: format!(
                     "Expiration duration {} is greater than maximum {}",
-                    self.expiration_duration,
-                    PIXEL_MAX_EXPIRATION
-                )
+                    self.expiration_duration, PIXEL_MAX_EXPIRATION
+                ),
             });
         }
 
         Ok(())
     }
 
-    pub fn validate_for_tile(&self, current_pixel: &PixelData, current_time: u64) -> Result<(), ContractError> {
+    pub fn validate_for_tile(
+        &self,
+        current_pixel: &PixelData,
+        current_time: u64,
+    ) -> Result<(), ContractError> {
         // If pixel is expired or never set, anyone can update it
         if current_pixel.expiration_timestamp <= current_time {
             return Ok(());
