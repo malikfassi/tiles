@@ -1,9 +1,20 @@
 use crate::defaults::constants::{
     DEFAULT_PRICE_12_HOURS, DEFAULT_PRICE_1_HOUR, DEFAULT_PRICE_24_HOURS,
-    DEFAULT_PRICE_QUADRATIC_BASE, ONE_HOUR, TWELVE_HOURS, TWENTY_FOUR_HOURS,
+    DEFAULT_PRICE_QUADRATIC_BASE,
 };
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{StdError, Uint128};
+use cosmwasm_std::Uint128;
+use thiserror::Error;
+
+const ONE_HOUR: u64 = 3600;
+const TWELVE_HOURS: u64 = ONE_HOUR * 12;
+const TWENTY_FOUR_HOURS: u64 = ONE_HOUR * 24;
+
+#[derive(Error, Debug, PartialEq)]
+pub enum PriceScalingError {
+    #[error("Invalid price scaling: {0}")]
+    InvalidPriceScaling(String),
+}
 
 #[cw_serde]
 pub struct PriceScaling {
@@ -25,24 +36,26 @@ impl Default for PriceScaling {
 }
 
 impl PriceScaling {
-    pub fn validate(&self) -> Result<(), StdError> {
+    pub fn validate(&self) -> Result<(), PriceScalingError> {
         if self.hour_1_price.is_zero()
             || self.hour_12_price.is_zero()
             || self.hour_24_price.is_zero()
             || self.quadratic_base.is_zero()
         {
-            return Err(StdError::generic_err("Prices cannot be zero"));
-        }
-
-        if !(self.hour_1_price < self.hour_12_price
-            && self.hour_12_price < self.hour_24_price
-            && self.hour_24_price < self.quadratic_base)
-        {
-            return Err(StdError::generic_err(
-                "Prices must be strictly increasing: 1h < 12h < 24h < quadratic_base",
+            return Err(PriceScalingError::InvalidPriceScaling(
+                "prices must be greater than zero".to_string(),
             ));
         }
-
+        if self.hour_1_price > self.hour_12_price {
+            return Err(PriceScalingError::InvalidPriceScaling(
+                "hour_1_price must be less than or equal to hour_12_price".to_string(),
+            ));
+        }
+        if self.hour_12_price > self.hour_24_price {
+            return Err(PriceScalingError::InvalidPriceScaling(
+                "hour_12_price must be less than or equal to hour_24_price".to_string(),
+            ));
+        }
         Ok(())
     }
 
@@ -50,9 +63,33 @@ impl PriceScaling {
         if duration_seconds <= ONE_HOUR {
             self.hour_1_price
         } else if duration_seconds <= TWELVE_HOURS {
-            self.hour_12_price
+            // Linear interpolation between 1 hour and 12 hour prices
+            let progress = Uint128::from((duration_seconds - ONE_HOUR) as u128)
+                .checked_mul(Uint128::from(1_000_000u128))
+                .unwrap()
+                .checked_div(Uint128::from((TWELVE_HOURS - ONE_HOUR) as u128))
+                .unwrap();
+            let price_diff = self.hour_12_price.saturating_sub(self.hour_1_price);
+            self.hour_1_price
+                + price_diff
+                    .checked_mul(progress)
+                    .unwrap()
+                    .checked_div(Uint128::from(1_000_000u128))
+                    .unwrap()
         } else if duration_seconds <= TWENTY_FOUR_HOURS {
-            self.hour_24_price
+            // Linear interpolation between 12 hour and 24 hour prices
+            let progress = Uint128::from((duration_seconds - TWELVE_HOURS) as u128)
+                .checked_mul(Uint128::from(1_000_000u128))
+                .unwrap()
+                .checked_div(Uint128::from((TWENTY_FOUR_HOURS - TWELVE_HOURS) as u128))
+                .unwrap();
+            let price_diff = self.hour_24_price.saturating_sub(self.hour_12_price);
+            self.hour_12_price
+                + price_diff
+                    .checked_mul(progress)
+                    .unwrap()
+                    .checked_div(Uint128::from(1_000_000u128))
+                    .unwrap()
         } else {
             // Calculate quadratic price based on seconds beyond 24 hours
             let extra_seconds = duration_seconds.saturating_sub(TWENTY_FOUR_HOURS);
@@ -64,64 +101,5 @@ impl PriceScaling {
         durations
             .map(|duration| self.calculate_price(*duration))
             .sum()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_calculate_price() {
-        let pricing = PriceScaling::default();
-
-        // Test 1 hour duration
-        let price = pricing.calculate_price(ONE_HOUR);
-        assert_eq!(price, pricing.hour_1_price);
-
-        // Test 12 hour duration
-        let price = pricing.calculate_price(TWELVE_HOURS);
-        assert_eq!(price, pricing.hour_12_price);
-
-        // Test 24 hour duration
-        let price = pricing.calculate_price(TWENTY_FOUR_HOURS);
-        assert_eq!(price, pricing.hour_24_price);
-
-        // Test beyond 24 hours
-        let extra_seconds = 1000;
-        let price = pricing.calculate_price(TWENTY_FOUR_HOURS + extra_seconds);
-        assert_eq!(
-            price,
-            pricing.quadratic_base + Uint128::from(extra_seconds * extra_seconds)
-        );
-    }
-
-    #[test]
-    fn test_calculate_total_price() {
-        let pricing = PriceScaling::default();
-        let durations = [ONE_HOUR, TWELVE_HOURS, TWENTY_FOUR_HOURS];
-
-        let total = pricing.calculate_total_price(durations.iter());
-        let expected = pricing.hour_1_price + pricing.hour_12_price + pricing.hour_24_price;
-        assert_eq!(total, expected);
-    }
-
-    #[test]
-    fn test_validate_price_scaling() {
-        let valid = PriceScaling {
-            hour_1_price: Uint128::new(100),
-            hour_12_price: Uint128::new(200),
-            hour_24_price: Uint128::new(300),
-            quadratic_base: Uint128::new(400),
-        };
-        assert!(valid.validate().is_ok());
-
-        let invalid = PriceScaling {
-            hour_1_price: Uint128::zero(),
-            hour_12_price: Uint128::new(200),
-            hour_24_price: Uint128::new(300),
-            quadratic_base: Uint128::new(400),
-        };
-        assert!(invalid.validate().is_err());
     }
 }

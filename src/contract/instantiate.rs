@@ -1,27 +1,29 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use sg721_base::Sg721Contract;
+use cw2::set_contract_version;
 use sg_std::StargazeMsgWrapper;
 
 use crate::{
-    contract::{error::ContractError, msg::InstantiateMsg, state::CONFIG},
-    core::tile::Tile,
+    contract::{error::ContractError, msg::InstantiateMsg, state::PRICE_SCALING},
+    core::pricing::PriceScaling,
 };
+
+const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub fn instantiate_handler(
     deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: InstantiateMsg,
+    _env: Env,
+    _info: MessageInfo,
+    _msg: InstantiateMsg,
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
-    let contract: Sg721Contract<Tile> = Sg721Contract::default();
+    set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-    // Save default config first
-    CONFIG.save(deps.storage, &Default::default())?;
-
-    // Then initialize base contract
-    contract.instantiate(deps, env, info.clone(), msg)?;
+    // Save default price scaling
+    let price_scaling = PriceScaling::default();
+    PRICE_SCALING.save(deps.storage, &price_scaling)?;
 
     Ok(Response::new()
-        .add_attribute("action", "instantiate")
-        .add_attribute("contract", "tiles"))
+        .add_attribute("method", "instantiate")
+        .add_attribute("contract_name", CONTRACT_NAME)
+        .add_attribute("contract_version", CONTRACT_VERSION))
 }

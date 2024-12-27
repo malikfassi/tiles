@@ -1,5 +1,5 @@
 use super::roles::{UserConfig, UserRole};
-use crate::common::app::TestApp;
+use crate::common::TestApp;
 use cosmwasm_std::{Addr, Coin};
 use sg_std::NATIVE_DENOM;
 use std::collections::HashMap;
@@ -44,23 +44,35 @@ impl TestUsers {
         let mut users = HashMap::new();
 
         // Add admin users
-        users.insert(UserRole::Admin, User::new("admin", UserConfig::admin()));
+        users.insert(UserRole::Admin, User::new("admin111", UserConfig::admin()));
 
         // Add collection owner
-        users.insert(UserRole::Owner, User::new("owner", UserConfig::owner()));
+        users.insert(UserRole::Owner, User::new("owner111", UserConfig::owner()));
 
         // Add buyers
-        users.insert(UserRole::Buyer, User::new("buyer", UserConfig::buyer()));
-        users.insert(UserRole::Whale, User::new("whale", UserConfig::whale()));
+        users.insert(UserRole::Buyer, User::new("buyer111", UserConfig::buyer()));
+        users.insert(UserRole::Whale, User::new("whale111", UserConfig::whale()));
         users.insert(
             UserRole::Poor,
-            User::new("poor", UserConfig::poor(MINT_PRICE)),
+            User::new("poor111", UserConfig::poor(MINT_PRICE.try_into().unwrap())),
         );
 
         // Add operator
         users.insert(
             UserRole::Operator,
-            User::new("operator", UserConfig::operator()),
+            User::new("operator111", UserConfig::operator()),
+        );
+
+        // Add tile contract creator
+        users.insert(
+            UserRole::TileContractCreator,
+            User::new("creator111", UserConfig::tile_contract_creator()),
+        );
+
+        // Add factory contract creator
+        users.insert(
+            UserRole::FactoryContractCreator,
+            User::new("factory111", UserConfig::factory_contract_creator()),
         );
 
         Self { users }
@@ -84,6 +96,40 @@ impl TestUsers {
             .query_balance(&user.address, NATIVE_DENOM)
             .unwrap();
         assert_eq!(balance.amount.u128(), expected_balance);
+    }
+
+    pub fn get_address(&self, addr: &str) -> Addr {
+        Addr::unchecked(addr)
+    }
+
+    pub fn get_buyer(&self) -> &User {
+        self.get(UserRole::Buyer)
+    }
+
+    pub fn user1(&self) -> Addr {
+        self.get(UserRole::Buyer).address.clone()
+    }
+
+    pub fn poor_user(&self) -> &User {
+        self.get(UserRole::Poor)
+    }
+
+    pub fn admin(&self) -> Addr {
+        self.get(UserRole::Admin).address.clone()
+    }
+
+    pub fn tile_contract_creator(&self) -> Addr {
+        self.get(UserRole::TileContractCreator).address.clone()
+    }
+
+    pub fn factory_contract_creator(&self) -> Addr {
+        self.get(UserRole::FactoryContractCreator).address.clone()
+    }
+
+    pub fn fund_all_accounts(&self, app: &mut TestApp) {
+        for user in self.users.values() {
+            user.fund_account(app);
+        }
     }
 }
 

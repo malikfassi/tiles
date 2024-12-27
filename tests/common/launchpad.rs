@@ -1,48 +1,51 @@
-use super::scenario::Scenario;
-use crate::common::app::TestApp;
-use crate::common::contracts::{TilesContract, VendingContract};
-use crate::common::users::{TestUsers, UserRole};
-use cosmwasm_std::{Addr, Coin};
+use cosmwasm_std::{Addr, Coin, Decimal};
 use cw_multi_test::ContractWrapper;
 use sg2::msg::CollectionParams;
-use sg721::CollectionInfo;
+use sg721::{CollectionInfo, RoyaltyInfoResponse};
+use sg_std::GENESIS_MINT_START_TIME;
 use sg_std::NATIVE_DENOM;
 use tiles::contract::{
     execute::execute_handler, instantiate::instantiate_handler, query::query_handler,
 };
-use tiles::defaults::constants::MINT_PRICE;
+use tiles::defaults::constants::{MAX_PER_ADDRESS_LIMIT, MINT_PRICE};
 use vending_factory::msg::VendingMinterInitMsgExtension;
 
-pub struct TestContext {
+use crate::common::{
+    app::TestApp,
+    contracts::{factory::FactoryContract, minter::MinterContract, tiles::TilesContract},
+    users::test_users::TestUsers,
+    users::UserRole,
+};
+
+pub struct Launchpad {
     pub app: TestApp,
-    pub tiles: TilesContract,
-    pub vending: VendingContract,
-    pub minter: Addr,
     pub users: TestUsers,
-    pub scenario: Scenario,
+    pub tiles: TilesContract,
+    pub factory: FactoryContract,
+    pub minter: MinterContract,
 }
 
-impl TestContext {
+impl Launchpad {
     pub fn new() -> Self {
-        let mut app = TestApp::default();
+        let mut app = TestApp::new();
+        app.set_genesis_time();
         let users = TestUsers::default();
 
         // Fund all users
-        users.fund_all(&mut app);
+        users.fund_all_accounts(&mut app);
 
-        // Store and instantiate contracts
+        // Setup contracts
         let (minter_addr, tiles_addr) = Self::setup_contracts(&mut app, &users);
 
-        // Create vending contract
-        let vending = VendingContract::new(&mut app, "vending");
+        // Create factory contract
+        let factory = FactoryContract::new(&mut app, "factory");
 
         Self {
             app,
-            tiles: TilesContract::new(tiles_addr),
-            vending,
-            minter: minter_addr,
             users,
-            scenario: Scenario::default(),
+            tiles: TilesContract::new(tiles_addr),
+            factory,
+            minter: MinterContract::new(minter_addr),
         }
     }
 
@@ -55,22 +58,20 @@ impl TestContext {
         ));
         let collection_code_id = app.store_code(collection_contract);
 
-        // Store vending minter contract code
-        let minter_contract = Box::new(
-            ContractWrapper::new(
-                vending_minter::contract::execute,
-                vending_minter::contract::instantiate,
-                vending_minter::contract::query,
-            )
-            .with_reply(vending_minter::contract::reply),
-        );
-        let minter_code_id = app.store_code(minter_contract);
+        // Store minter code
+        let minter_code_id = MinterContract::store_code(app).unwrap();
 
-        // Store and instantiate vending factory
-        let mut vending = VendingContract::new(app, "vending");
-        let factory_code_id = vending.store_code(app).unwrap();
-        let _vending_addr = vending
-            .instantiate(app, factory_code_id, minter_code_id, collection_code_id)
+        // Store and instantiate factory
+        let mut factory = FactoryContract::new(app, "factory");
+        let factory_code_id = factory.store_code(app).unwrap();
+        let _factory_addr = factory
+            .instantiate(
+                app,
+                factory_code_id,
+                minter_code_id,
+                collection_code_id,
+                &users.factory_contract_creator(),
+            )
             .unwrap();
 
         // Setup collection params
@@ -85,7 +86,10 @@ impl TestContext {
                 external_link: None,
                 explicit_content: None,
                 start_trading_time: None,
-                royalty_info: None,
+                royalty_info: Some(RoyaltyInfoResponse {
+                    payment_address: users.get(UserRole::Owner).address.to_string(),
+                    share: Decimal::percent(5),
+                }),
             },
         };
 
@@ -93,16 +97,16 @@ impl TestContext {
         let block_time = app.inner().block_info().time;
         let init_msg = VendingMinterInitMsgExtension {
             base_token_uri: "ipfs://test/".to_string(),
-            payment_address: None,
+            payment_address: Some(users.get(UserRole::Owner).address.to_string()),
             start_time: block_time.plus_seconds(86400), // Start in 1 day
             num_tokens: 100,
             mint_price: Coin::new(MINT_PRICE, NATIVE_DENOM),
-            per_address_limit: 3,
+            per_address_limit: MAX_PER_ADDRESS_LIMIT,
             whitelist: None,
         };
 
-        // Create minter
-        let res = vending
+        // Create minter through factory
+        let res = factory
             .create_minter(
                 app,
                 &users.get(UserRole::Owner).address,
@@ -152,39 +156,16 @@ impl TestContext {
         self.mint_token(&address)
     }
 
-    pub fn update_pixel_as(&mut self, role: UserRole, token_id: u32, color: &str) {
-        let address = self.users.get(role).address.clone();
-        self.update_pixel(&address, token_id, color)
-    }
-
     // Low-level helper methods
     fn mint_token(&mut self, owner: &Addr) -> u32 {
-        let token_id = self
-            .tiles
-            .mint_token(&mut self.app, owner, &self.minter)
-            .unwrap();
-
-        self.scenario.record_mint(owner.clone(), token_id);
-        token_id
-    }
-
-    fn update_pixel(&mut self, owner: &Addr, token_id: u32, color: &str) {
-        self.tiles
-            .update_pixel(&mut self.app, owner, token_id, color.to_string())
-            .unwrap();
-
-        self.scenario
-            .record_pixel_update(owner.clone(), token_id, 0, color.to_string());
+        self.minter.mint(&mut self.app, owner).unwrap()
     }
 
     // Assertions
     pub fn assert_token_owner(&self, token_id: u32, expected_role: UserRole) {
         let expected_owner = self.users.get(expected_role).address.clone();
-        let actual_owner = self
-            .scenario
-            .get_token_owner(token_id)
-            .expect("Token not found");
-        assert_eq!(actual_owner, &expected_owner);
+        let actual_owner = self.tiles.query_token_owner(&self.app, token_id).unwrap();
+        assert_eq!(actual_owner, expected_owner);
     }
 
     pub fn assert_balance(&self, role: UserRole, expected_balance: u128) {

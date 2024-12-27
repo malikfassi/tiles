@@ -1,5 +1,7 @@
+pub mod factory;
+pub mod minter;
 pub mod tiles;
-pub mod vending;
 
+pub use factory::FactoryContract;
+pub use minter::MinterContract;
 pub use tiles::TilesContract;
-pub use vending::VendingContract;

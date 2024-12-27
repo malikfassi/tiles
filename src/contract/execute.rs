@@ -7,7 +7,8 @@ use crate::{
         error::ContractError,
         msg::{ExecuteMsg, Sg721ExecuteMsg, TileExecuteMsg},
         tiles::{
-            mint::mint_handler, set_pixel_color::set_pixel_color, update_config::update_config,
+            mint::mint_handler, set_pixel_color::set_pixel_color,
+            update_price_scaling::update_price_scaling,
         },
     },
     core::tile::Tile,
@@ -32,18 +33,9 @@ pub fn execute_handler(
                 current_metadata,
                 updates,
             } => set_pixel_color(deps, env, info, token_id, current_metadata, updates),
-            TileExecuteMsg::UpdateConfig {
-                tile_royalty_payment_address,
-                tile_royalty_fee_percent,
-                price_scaling,
-            } => update_config(
-                deps,
-                env,
-                info,
-                tile_royalty_payment_address,
-                tile_royalty_fee_percent,
-                price_scaling,
-            ),
+            TileExecuteMsg::UpdatePriceScaling(new_scaling) => {
+                update_price_scaling(deps, info, new_scaling)
+            }
         },
         ExecuteMsg::Mint {
             token_id,

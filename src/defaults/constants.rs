@@ -10,11 +10,6 @@ pub const ONE_HOUR: u64 = 3600;
 pub const TWELVE_HOURS: u64 = 43200;
 pub const TWENTY_FOUR_HOURS: u64 = 86400;
 
-// Default config values
-pub const DEFAULT_ADMIN_ADDRESS: &str = "DEFAULT_ADMIN_ADDRESS";
-pub const DEFAULT_ROYALTY_ADDRESS: &str = "DEFAULT_ROYALTY_ADDRESS";
-pub const DEFAULT_ROYALTY_PERCENT: u64 = 5;
-
 // Default price values (in ustars)
 pub const DEFAULT_PRICE_1_HOUR: u128 = 100_000_000;
 pub const DEFAULT_PRICE_12_HOURS: u128 = 200_000_000;

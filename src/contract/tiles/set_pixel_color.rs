@@ -4,7 +4,7 @@ use sg_std::StargazeMsgWrapper;
 use std::collections::HashSet;
 
 use crate::{
-    contract::{error::ContractError, state::CONFIG},
+    contract::{error::ContractError, state::PRICE_SCALING},
     core::tile::{
         metadata::{PixelUpdate, TileMetadata},
         Tile,
@@ -27,7 +27,7 @@ pub fn set_pixel_color(
         return Err(ContractError::HashMismatch {});
     }
 
-    let config = CONFIG.load(deps.storage)?;
+    let price_scaling = PRICE_SCALING.load(deps.storage)?;
     let current_time = env.block.time.seconds();
     let mut seen_ids = HashSet::new();
     let mut total_price = Uint128::zero();
@@ -43,9 +43,7 @@ pub fn set_pixel_color(
         }
 
         // Add to total price
-        total_price += config
-            .price_scaling
-            .calculate_price(update.expiration_duration);
+        total_price += price_scaling.calculate_price(update.expiration_duration);
     }
 
     // Verify sent funds match total price

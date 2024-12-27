@@ -1,5 +1,5 @@
 use cosmwasm_std::{Addr, Timestamp};
-use cw_multi_test::{Contract, Executor};
+use cw_multi_test::{Contract, ContractWrapper, Executor};
 use sg_multi_test::StargazeApp;
 use sg_std::StargazeMsgWrapper;
 use sg_std::GENESIS_MINT_START_TIME;
@@ -31,9 +31,46 @@ impl TestApp {
         self.0.set_block(block);
     }
 
-    // Delegate executor methods
+    pub fn get_balance(&self, address: &Addr, denom: &str) -> Option<u128> {
+        self.0
+            .wrap()
+            .query_balance(address, denom)
+            .ok()
+            .map(|c| c.amount.u128())
+    }
+
     pub fn store_code(&mut self, contract: Box<dyn Contract<StargazeMsgWrapper>>) -> u64 {
         self.0.store_code(contract)
+    }
+
+    pub fn store_tiles_code(&mut self) -> anyhow::Result<u64> {
+        let contract = Box::new(ContractWrapper::new(
+            tiles::contract::execute,
+            tiles::contract::instantiate,
+            tiles::contract::query,
+        ));
+        Ok(self.store_code(contract))
+    }
+
+    pub fn store_vending_factory_code(&mut self) -> anyhow::Result<u64> {
+        let contract = Box::new(ContractWrapper::new(
+            vending_factory::contract::execute,
+            vending_factory::contract::instantiate,
+            vending_factory::contract::query,
+        ));
+        Ok(self.store_code(contract))
+    }
+
+    pub fn store_vending_minter_code(&mut self) -> anyhow::Result<u64> {
+        let contract = Box::new(
+            ContractWrapper::new(
+                vending_minter::contract::execute,
+                vending_minter::contract::instantiate,
+                vending_minter::contract::query,
+            )
+            .with_reply(vending_minter::contract::reply),
+        );
+        Ok(self.store_code(contract))
     }
 
     pub fn instantiate_contract<T>(
