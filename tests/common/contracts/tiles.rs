@@ -1,8 +1,8 @@
 use anyhow::Result;
 use cosmwasm_std::{coins, Addr, Coin};
 use cw721::{NftInfoResponse, OwnerOfResponse};
-use cw_multi_test::ContractWrapper;
 use cw721_base::Action;
+use cw_multi_test::ContractWrapper;
 use sg721::{CollectionInfo, RoyaltyInfoResponse, UpdateCollectionInfoMsg};
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 use sg_std::NATIVE_DENOM;
@@ -291,7 +291,10 @@ impl TilesContract {
         )?)
     }
 
-    pub fn query_collection_info(&self, app: &TestApp) -> Result<CollectionInfo<RoyaltyInfoResponse>> {
+    pub fn query_collection_info(
+        &self,
+        app: &TestApp,
+    ) -> Result<CollectionInfo<RoyaltyInfoResponse>> {
         Ok(app.inner().wrap().query_wasm_smart(
             self.contract_addr.clone(),
             &QueryMsg::Base(Sg721QueryMsg::CollectionInfo {}),

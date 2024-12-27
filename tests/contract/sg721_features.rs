@@ -102,10 +102,15 @@ mod tests {
         let (owner, token_id) = test.setup_single_token()?;
 
         // Burn NFT
-        test.ctx.tiles.execute_burn(&mut test.ctx.app, &owner, token_id.to_string())?;
+        test.ctx
+            .tiles
+            .execute_burn(&mut test.ctx.app, &owner, token_id.to_string())?;
 
         // Verify token no longer exists
-        let result = test.ctx.tiles.query_owner_of(&mut test.ctx.app, token_id.to_string());
+        let result = test
+            .ctx
+            .tiles
+            .query_owner_of(&mut test.ctx.app, token_id.to_string());
         assert!(result.is_err());
         Ok(())
     }
@@ -135,7 +140,10 @@ mod tests {
         let info = test.ctx.tiles.query_collection_info(&mut test.ctx.app)?;
         assert_eq!(info.description, new_collection_info.description.unwrap());
         assert_eq!(info.image, new_collection_info.image.unwrap());
-        assert_eq!(info.external_link, new_collection_info.external_link.unwrap());
+        assert_eq!(
+            info.external_link,
+            new_collection_info.external_link.unwrap()
+        );
 
         Ok(())
     }
@@ -146,7 +154,9 @@ mod tests {
         let creator = test.ctx.users.get_creator().address.clone();
 
         // Freeze collection info
-        test.ctx.tiles.execute_freeze_collection_info(&mut test.ctx.app, &creator)?;
+        test.ctx
+            .tiles
+            .execute_freeze_collection_info(&mut test.ctx.app, &creator)?;
 
         // Attempt to update collection info should fail
         let new_collection_info = UpdateCollectionInfoMsg {
@@ -167,4 +177,4 @@ mod tests {
 
         Ok(())
     }
-} 
+}
