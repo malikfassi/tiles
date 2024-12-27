@@ -61,7 +61,7 @@ fn payment_is_distributed_correctly_for_multiple_updates() -> Result<()> {
 #[test]
 fn update_fails_with_insufficient_funds() -> Result<()> {
     let mut test = TestOrchestrator::new();
-    let (owner, token_id) = test.setup_single_token()?;
+    let (_owner, token_id) = test.setup_single_token()?;
 
     let poor_user = test.ctx.users.poor_user();
     let poor_user_addr = &poor_user.address;
@@ -72,10 +72,13 @@ fn update_fails_with_insufficient_funds() -> Result<()> {
         expiration_duration: 3600,
     };
 
-    let result = test
-        .ctx
-        .tiles
-        .update_pixel_with_funds(&mut test.ctx.app, poor_user_addr, token_id, vec![update], 50000000);
+    let result = test.ctx.tiles.update_pixel_with_funds(
+        &mut test.ctx.app,
+        poor_user_addr,
+        token_id,
+        vec![update],
+        50000000,
+    );
 
     test.assert_error_insufficient_funds(result);
 
@@ -93,10 +96,13 @@ fn update_fails_with_excess_funds() -> Result<()> {
         expiration_duration: 3600,
     };
 
-    let result = test
-        .ctx
-        .tiles
-        .update_pixel_with_funds(&mut test.ctx.app, &owner, token_id, vec![update], 200000000);
+    let result = test.ctx.tiles.update_pixel_with_funds(
+        &mut test.ctx.app,
+        &owner,
+        token_id,
+        vec![update],
+        200000000,
+    );
 
     test.assert_error_invalid_funds(result);
 
@@ -132,4 +138,4 @@ fn payment_is_refunded_when_update_fails() -> Result<()> {
     test.assert_funds_received(&owner, initial_balance, "ustars");
 
     Ok(())
-} 
+}

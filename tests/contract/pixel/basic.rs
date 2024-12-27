@@ -78,4 +78,4 @@ fn can_update_multiple_pixels() -> Result<()> {
         .update_pixel(&mut test.ctx.app, &owner, token_id, updates)?;
 
     Ok(())
-} 
+}

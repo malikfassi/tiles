@@ -122,4 +122,4 @@ fn hash_remains_unchanged_when_batch_update_fails() -> Result<()> {
     assert_eq!(initial_hash, unchanged_hash);
 
     Ok(())
-} 
+}

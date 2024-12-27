@@ -238,7 +238,10 @@ impl TestOrchestrator {
         );
     }
 
-    pub fn assert_error_insufficient_funds(&self, result: anyhow::Result<cw_multi_test::AppResponse>) {
+    pub fn assert_error_insufficient_funds(
+        &self,
+        result: anyhow::Result<cw_multi_test::AppResponse>,
+    ) {
         match result {
             Ok(_) => panic!("Expected insufficient funds error"),
             Err(e) => {

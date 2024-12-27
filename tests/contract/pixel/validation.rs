@@ -246,4 +246,4 @@ fn update_fails_with_duplicate_pixel_ids() -> Result<()> {
     test.assert_funds_received(&owner, initial_balance, "ustars");
 
     Ok(())
-} 
+}

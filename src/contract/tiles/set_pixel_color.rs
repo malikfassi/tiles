@@ -1,6 +1,6 @@
-use cosmwasm_std::{BankMsg, Coin, DepsMut, Env, Fraction, MessageInfo, Response, Uint128};
+use cosmwasm_std::{BankMsg, Coin, DepsMut, Env, MessageInfo, Response, Uint128};
 use cw721::OwnerOfResponse;
-use sg721::{CollectionInfo, RoyaltyInfoResponse};
+
 use sg721_base::{msg::QueryMsg as Sg721QueryMsg, Sg721Contract};
 use sg_std::StargazeMsgWrapper;
 use std::collections::HashSet;
