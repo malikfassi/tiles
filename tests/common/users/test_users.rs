@@ -43,24 +43,17 @@ impl TestUsers {
     pub fn new() -> Self {
         let mut users = HashMap::new();
 
-        // Add admin users
-        users.insert(UserRole::Admin, User::new("admin111", UserConfig::admin()));
-
-        // Add collection owner
-        users.insert(UserRole::Owner, User::new("owner111", UserConfig::owner()));
-
         // Add buyers
         users.insert(UserRole::Buyer, User::new("buyer111", UserConfig::buyer()));
-        users.insert(UserRole::Whale, User::new("whale111", UserConfig::whale()));
         users.insert(
             UserRole::Poor,
             User::new("poor111", UserConfig::poor(MINT_PRICE.try_into().unwrap())),
         );
 
-        // Add operator
+        // Add pixel operator
         users.insert(
-            UserRole::Operator,
-            User::new("operator111", UserConfig::operator()),
+            UserRole::PixelOperator,
+            User::new("operator111", UserConfig::pixel_operator()),
         );
 
         // Add tile contract creator
@@ -99,12 +92,12 @@ impl TestUsers {
         self.get(UserRole::Buyer)
     }
 
-    pub fn user1(&self) -> Addr {
-        self.get(UserRole::Buyer).address.clone()
-    }
-
     pub fn poor_user(&self) -> &User {
         self.get(UserRole::Poor)
+    }
+
+    pub fn pixel_operator(&self) -> &User {
+        self.get(UserRole::PixelOperator)
     }
 
     pub fn tile_contract_creator(&self) -> Addr {
@@ -113,16 +106,6 @@ impl TestUsers {
 
     pub fn factory_contract_creator(&self) -> Addr {
         self.get(UserRole::FactoryContractCreator).address.clone()
-    }
-
-    pub fn admin(&self) -> Addr {
-        self.get(UserRole::Admin).address.clone()
-    }
-
-    pub fn fund_all_accounts(&self, app: &mut TestApp) {
-        for user in self.users.values() {
-            user.fund_account(app);
-        }
     }
 
     pub fn get_creator(&self) -> &User {

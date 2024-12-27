@@ -22,6 +22,21 @@ fn creator_can_update_price_scaling() -> Result<()> {
 }
 
 #[test]
+fn pixel_operator_cannot_update_price_scaling() -> Result<()> {
+    let mut test = TestOrchestrator::new();
+    let operator = test.ctx.users.pixel_operator();
+
+    let result = test.ctx.tiles.update_price_scaling(
+        &mut test.ctx.app,
+        &operator.address,
+        PriceScaling::default(),
+    );
+    assert!(result.is_err());
+
+    Ok(())
+}
+
+#[test]
 fn buyer_cannot_update_price_scaling() -> Result<()> {
     let mut test = TestOrchestrator::new();
     let buyer = test.ctx.users.get_buyer();
@@ -31,20 +46,6 @@ fn buyer_cannot_update_price_scaling() -> Result<()> {
         &buyer.address,
         PriceScaling::default(),
     );
-    assert!(result.is_err());
-
-    Ok(())
-}
-
-#[test]
-fn admin_cannot_update_price_scaling() -> Result<()> {
-    let mut test = TestOrchestrator::new();
-    let admin = test.ctx.users.admin();
-
-    let result =
-        test.ctx
-            .tiles
-            .update_price_scaling(&mut test.ctx.app, &admin, PriceScaling::default());
     assert!(result.is_err());
 
     Ok(())

@@ -2,14 +2,11 @@ use tiles::defaults::constants::{CREATION_FEE, MINT_PRICE};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum UserRole {
-    Admin,
-    Owner,
-    Buyer,
-    Whale,
-    Poor,
-    Operator,
-    TileContractCreator,
-    FactoryContractCreator,
+    Buyer,           // Person who buys a tile
+    Poor,           // User with insufficient funds (for negative testing)
+    PixelOperator,  // User who can operate on pixels but isn't creator/buyer
+    TileContractCreator,  // Creator of the tile contract, receives royalties
+    FactoryContractCreator // Creator of the factory contract
 }
 
 #[derive(Debug, Clone)]
@@ -19,31 +16,10 @@ pub struct UserConfig {
 }
 
 impl UserConfig {
-    pub fn admin() -> Self {
-        Self {
-            role: UserRole::Admin,
-            initial_balance: 1_000_000_000,
-        }
-    }
-
-    pub fn owner() -> Self {
-        Self {
-            role: UserRole::Owner,
-            initial_balance: 1_000_000_000,
-        }
-    }
-
     pub fn buyer() -> Self {
         Self {
             role: UserRole::Buyer,
             initial_balance: MINT_PRICE * 10,
-        }
-    }
-
-    pub fn whale() -> Self {
-        Self {
-            role: UserRole::Whale,
-            initial_balance: MINT_PRICE * 100,
         }
     }
 
@@ -54,10 +30,10 @@ impl UserConfig {
         }
     }
 
-    pub fn operator() -> Self {
+    pub fn pixel_operator() -> Self {
         Self {
-            role: UserRole::Operator,
-            initial_balance: 1_000_000_000,
+            role: UserRole::PixelOperator,
+            initial_balance: MINT_PRICE * 5, // Enough for some operations but less than buyer
         }
     }
 
