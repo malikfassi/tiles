@@ -1,8 +1,7 @@
 use anyhow::Result;
 use cosmwasm_std::Addr;
 use cw_multi_test::ContractWrapper;
-
-use cw721::NftInfoResponse;
+use cw721::{NftInfoResponse, OwnerOfResponse};
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 use tiles::contract::msg::{ExecuteMsg, QueryMsg, TileExecuteMsg};
 use tiles::core::pricing::PriceScaling;
@@ -73,14 +72,14 @@ impl TilesContract {
     }
 
     pub fn query_token_owner(&self, app: &TestApp, token_id: u32) -> Result<Addr> {
-        let owner: String = app.inner().wrap().query_wasm_smart(
+        let response: OwnerOfResponse = app.inner().wrap().query_wasm_smart(
             self.contract_addr.clone(),
             &QueryMsg::Base(Sg721QueryMsg::OwnerOf {
                 token_id: token_id.to_string(),
                 include_expired: None,
             }),
         )?;
-        Ok(Addr::unchecked(owner))
+        Ok(Addr::unchecked(response.owner))
     }
 
     pub fn query_tile_hash(&self, app: &TestApp, token_id: u32) -> Result<String> {
