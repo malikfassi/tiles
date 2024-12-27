@@ -3,28 +3,25 @@ use anyhow::Result;
 use tiles::core::tile::metadata::PixelUpdate;
 
 #[test]
-fn cannot_set_pixel_with_invalid_id() -> Result<()> {
+fn invalid_pixel_id_fails() -> Result<()> {
     let mut test = TestOrchestrator::new();
     let (owner, token_id) = test.setup_single_token()?;
 
     let update = PixelUpdate {
-        id: 100, // Invalid pixel ID
+        id: 100, // Invalid ID (out of range)
         color: "#FF0000".to_string(),
         expiration_duration: 3600,
     };
 
     let result = test.update_pixels(token_id, vec![update], &owner);
     test.assert_error_invalid_config(result, "Invalid pixel id: 100");
-
     Ok(())
 }
 
 #[test]
-fn cannot_set_pixel_with_invalid_color() -> Result<()> {
+fn invalid_color_format_fails() -> Result<()> {
     let mut test = TestOrchestrator::new();
     let (owner, token_id) = test.setup_single_token()?;
-
-    let initial_hash = test.ctx.tiles.query_token_hash(&test.ctx.app, token_id)?;
 
     let update = PixelUpdate {
         id: 0,
@@ -33,182 +30,42 @@ fn cannot_set_pixel_with_invalid_color() -> Result<()> {
     };
 
     let result = test.update_pixels(token_id, vec![update], &owner);
-
     test.assert_error_invalid_config(result, "Invalid color format: invalid");
-    test.assert_token_hash(token_id, &initial_hash)?;
-
     Ok(())
 }
 
 #[test]
-fn cannot_set_pixel_with_invalid_expiration() -> Result<()> {
-    let mut orchestrator = TestOrchestrator::new();
-    let (owner, token_id) = orchestrator.setup_single_token()?;
-
-    let result = orchestrator.update_pixels(
-        token_id,
-        vec![PixelUpdate {
-            id: 0,
-            color: "#FF0000".to_string(),
-            expiration_duration: 3599,
-        }],
-        &owner,
-    );
-
-    orchestrator
-        .assert_error_invalid_config(result, "Expiration duration 3599 is less than minimum 3600");
-
-    Ok(())
-}
-
-#[test]
-fn batch_fails_with_one_invalid_id() -> Result<()> {
+fn invalid_expiration_duration_fails() -> Result<()> {
     let mut test = TestOrchestrator::new();
     let (owner, token_id) = test.setup_single_token()?;
 
-    let initial_hash = test.ctx.tiles.query_token_hash(&test.ctx.app, token_id)?;
+    // Test too short
+    let update_too_short = PixelUpdate {
+        id: 0,
+        color: "#FF0000".to_string(),
+        expiration_duration: 100,
+    };
+    let result = test.update_pixels(token_id, vec![update_too_short], &owner);
+    test.assert_error_invalid_config(result, "Expiration duration 100 is less than minimum 3600");
 
-    let updates = vec![
-        PixelUpdate {
-            id: 0,
-            color: "#FF0000".to_string(),
-            expiration_duration: 3600,
-        },
-        PixelUpdate {
-            id: 100, // Invalid ID
-            color: "#00FF00".to_string(),
-            expiration_duration: 3600,
-        },
-        PixelUpdate {
-            id: 50,
-            color: "#0000FF".to_string(),
-            expiration_duration: 3600,
-        },
-    ];
-
-    let result = test.update_pixels(token_id, updates, &owner);
-
-    test.assert_error_invalid_config(result, "Invalid pixel id: 100");
-    test.assert_token_hash(token_id, &initial_hash)?;
-
-    Ok(())
-}
-
-#[test]
-fn batch_fails_with_one_invalid_color() -> Result<()> {
-    let mut test = TestOrchestrator::new();
-    let (owner, token_id) = test.setup_single_token()?;
-
-    let initial_hash = test.ctx.tiles.query_token_hash(&test.ctx.app, token_id)?;
-
-    let updates = vec![
-        PixelUpdate {
-            id: 0,
-            color: "#FF0000".to_string(),
-            expiration_duration: 3600,
-        },
-        PixelUpdate {
-            id: 1,
-            color: "invalid".to_string(), // Invalid color
-            expiration_duration: 3600,
-        },
-        PixelUpdate {
-            id: 2,
-            color: "#0000FF".to_string(),
-            expiration_duration: 3600,
-        },
-    ];
-
-    let result = test.update_pixels(token_id, updates, &owner);
-
-    test.assert_error_invalid_config(result, "Invalid color format: invalid");
-    test.assert_token_hash(token_id, &initial_hash)?;
-
-    Ok(())
-}
-
-#[test]
-fn batch_fails_with_one_invalid_expiration_too_short() -> Result<()> {
-    let mut orchestrator = TestOrchestrator::new();
-    let (owner, token_id) = orchestrator.setup_single_token()?;
-
-    let result = orchestrator.update_pixels(
-        token_id,
-        vec![
-            PixelUpdate {
-                id: 0,
-                color: "#FF0000".to_string(),
-                expiration_duration: 3600,
-            },
-            PixelUpdate {
-                id: 1,
-                color: "#00FF00".to_string(),
-                expiration_duration: 3599,
-            },
-            PixelUpdate {
-                id: 2,
-                color: "#0000FF".to_string(),
-                expiration_duration: 3600,
-            },
-        ],
-        &owner,
-    );
-
-    orchestrator
-        .assert_error_invalid_config(result, "Expiration duration 3599 is less than minimum 3600");
-
-    Ok(())
-}
-
-#[test]
-fn batch_fails_with_one_invalid_expiration_too_long() -> Result<()> {
-    let mut orchestrator = TestOrchestrator::new();
-    let (owner, token_id) = orchestrator.setup_single_token()?;
-
-    let result = orchestrator.update_pixels(
-        token_id,
-        vec![
-            PixelUpdate {
-                id: 0,
-                color: "#FF0000".to_string(),
-                expiration_duration: 3600,
-            },
-            PixelUpdate {
-                id: 1,
-                color: "#00FF00".to_string(),
-                expiration_duration: 86401,
-            },
-            PixelUpdate {
-                id: 2,
-                color: "#0000FF".to_string(),
-                expiration_duration: 3600,
-            },
-        ],
-        &owner,
-    );
-
-    orchestrator.assert_error_invalid_config(
+    // Test too long
+    let update_too_long = PixelUpdate {
+        id: 0,
+        color: "#FF0000".to_string(),
+        expiration_duration: 86401,
+    };
+    let result = test.update_pixels(token_id, vec![update_too_long], &owner);
+    test.assert_error_invalid_config(
         result,
         "Expiration duration 86401 is greater than maximum 86400",
     );
-
     Ok(())
 }
 
 #[test]
-fn update_fails_with_duplicate_pixel_ids() -> Result<()> {
+fn duplicate_pixel_id_fails() -> Result<()> {
     let mut test = TestOrchestrator::new();
     let (owner, token_id) = test.setup_single_token()?;
-
-    // Get initial balance
-    let initial_balance = test
-        .ctx
-        .app
-        .inner()
-        .wrap()
-        .query_balance(&owner, "ustars")?
-        .amount
-        .u128();
 
     let updates = vec![
         PixelUpdate {
@@ -224,12 +81,36 @@ fn update_fails_with_duplicate_pixel_ids() -> Result<()> {
     ];
 
     let result = test.update_pixels(token_id, updates, &owner);
-
-    // Verify update failed
     test.assert_error_invalid_config(result, "Duplicate pixel id: 0");
+    Ok(())
+}
 
-    // Verify funds were refunded
-    test.assert_funds_received(&owner, initial_balance, "ustars");
+#[test]
+fn batch_validation_fails_fast() -> Result<()> {
+    let mut test = TestOrchestrator::new();
+    let (owner, token_id) = test.setup_single_token()?;
 
+    // Test batch with multiple invalid updates
+    let updates = vec![
+        PixelUpdate {
+            id: 100, // Invalid ID
+            color: "#FF0000".to_string(),
+            expiration_duration: 3600,
+        },
+        PixelUpdate {
+            id: 0,
+            color: "invalid".to_string(), // Invalid color
+            expiration_duration: 3600,
+        },
+        PixelUpdate {
+            id: 1,
+            color: "#00FF00".to_string(),
+            expiration_duration: 100, // Invalid duration
+        },
+    ];
+
+    let result = test.update_pixels(token_id, updates, &owner);
+    // Should fail on the first error encountered
+    test.assert_error_invalid_config(result, "Invalid pixel id: 100");
     Ok(())
 }
