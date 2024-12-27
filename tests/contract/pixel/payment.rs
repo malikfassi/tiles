@@ -64,10 +64,33 @@ fn payment_is_refunded_when_update_fails() -> Result<()> {
     };
 
     let result = test.update_pixels(token_id, vec![update], &owner);
-
-    // Assert error and refund
     test.assert_error_invalid_config(result, "Invalid pixel id: 100");
     test.assert_funds_received(&owner, initial_balance, "ustars");
+
+    Ok(())
+}
+
+
+#[test]
+fn duplicate_pixel_id_fails() -> Result<()> {
+    let mut test = TestOrchestrator::new();
+    let (owner, token_id) = test.setup_single_token()?;
+
+    let updates = vec![
+        PixelUpdate {
+            id: 0,
+            color: "#FF0000".to_string(),
+            expiration_duration: 3600,
+        },
+        PixelUpdate {
+            id: 0, // Duplicate ID
+            color: "#00FF00".to_string(),
+            expiration_duration: 3600,
+        },
+    ];
+
+    let result = test.update_pixels(token_id, updates, &owner);
+    test.assert_error_invalid_config(result, "Duplicate pixel id: 0");
 
     Ok(())
 }
