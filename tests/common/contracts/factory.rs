@@ -5,7 +5,7 @@ use sg2::msg::{CollectionParams, CreateMinterMsg};
 use sg721::{CollectionInfo, RoyaltyInfoResponse};
 use sg_std::NATIVE_DENOM;
 use tiles::defaults::constants::{
-    AIRDROP_MINT_FEE_BPS, AIRDROP_MINT_PRICE, CREATION_FEE, MAX_PER_ADDRESS_LIMIT, MAX_TOKEN_LIMIT,
+    AIRDROP_MINT_FEE_BPS, AIRDROP_MINT_PRICE, CREATION_FEE, DEFAULT_ROYALTY_SHARE, MAX_PER_ADDRESS_LIMIT, MAX_TOKEN_LIMIT,
     MAX_TRADING_OFFSET_SECS, MINT_FEE_BPS, MINT_PRICE, MIN_MINT_PRICE, SHUFFLE_FEE,
 };
 
@@ -87,12 +87,6 @@ impl FactoryContract {
         collection_params: CollectionParams,
         init_msg: VendingMinterInitMsgExtension,
     ) -> Result<cw_multi_test::AppResponse> {
-        println!("Creating minter with:");
-        println!("  Sender: {}", sender);
-        println!("  Factory address: {}", self.contract_addr);
-        println!("  Collection params: {:#?}", collection_params);
-        println!("  Init msg: {:#?}", init_msg);
-
         app.execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
@@ -119,7 +113,7 @@ impl FactoryContract {
             start_trading_time: None,
             royalty_info: Some(RoyaltyInfoResponse {
                 payment_address: creator.to_string(),
-                share: Decimal::percent(5),
+                share: Decimal::percent(DEFAULT_ROYALTY_SHARE),
             }),
         };
 

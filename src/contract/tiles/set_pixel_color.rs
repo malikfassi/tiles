@@ -1,6 +1,5 @@
-use cosmwasm_std::{BankMsg, Coin, DepsMut, Env, MessageInfo, Response, Uint128};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, Uint128, CosmosMsg};
 use cw721::OwnerOfResponse;
-
 use sg721_base::{msg::QueryMsg as Sg721QueryMsg, Sg721Contract};
 use sg_std::StargazeMsgWrapper;
 use std::collections::HashSet;
@@ -11,6 +10,7 @@ use crate::{
         metadata::{PixelUpdate, TileMetadata},
         Tile,
     },
+    events::{EventData, PixelUpdateEventData, MetadataUpdateEventData, PaymentDistributionEventData},
 };
 
 pub fn set_pixel_color(
@@ -26,7 +26,7 @@ pub fn set_pixel_color(
     // Verify current metadata hash matches stored hash
     let mut token = contract.tokens.load(deps.storage, &token_id)?;
     if token.extension.tile_hash != current_metadata.hash() {
-        return Err(ContractError::HashMismatch {});
+        return Err(ContractError::MetadataHashMismatch {});
     }
 
     // Get token owner
@@ -38,12 +38,6 @@ pub fn set_pixel_color(
         }),
     )?;
 
-    // Get royalty info from collection info
-    let collection_info = contract.collection_info.load(deps.storage)?;
-    let royalty_info = collection_info
-        .royalty_info
-        .ok_or_else(|| ContractError::InvalidConfig("No royalty info configured".to_string()))?;
-
     let price_scaling = PRICE_SCALING.load(deps.storage)?;
     let current_time = env.block.time.seconds();
     let mut seen_ids = HashSet::new();
@@ -53,10 +47,7 @@ pub fn set_pixel_color(
     for update in &updates {
         // Check for duplicates
         if !seen_ids.insert(update.id) {
-            return Err(ContractError::InvalidConfig(format!(
-                "Duplicate pixel id: {}",
-                update.id
-            )));
+            return Err(ContractError::DuplicatePixelId { id: update.id });
         }
 
         // First validate the update integrity
@@ -70,66 +61,83 @@ pub fn set_pixel_color(
     }
 
     // Verify sent funds match total price
-    let sent_funds = info.funds.iter().find(|c| c.denom == "ustars");
-    match sent_funds {
-        Some(coin) if coin.amount == total_price => (),
-        Some(coin) if coin.amount > total_price => return Err(ContractError::InvalidFunds {}),
-        Some(_) | None => return Err(ContractError::InsufficientFunds {}),
+    if info.funds.is_empty() || info.funds[0].amount != total_price {
+        return Err(ContractError::InsufficientFunds {});
     }
 
+    // Get royalty info from collection info
+    let collection_info = contract.collection_info.load(deps.storage)?;
+    let royalty_info = collection_info
+        .royalty_info
+        .ok_or_else(|| ContractError::MissingRoyaltyInfo {})?;
+
     // Calculate payment distribution
-    let royalty_amount = Uint128::from((total_price * royalty_info.share).u128());
+    let royalty_amount = total_price * royalty_info.share;
     let owner_amount = total_price - royalty_amount;
 
-    println!("Royalty info: {:?}", royalty_info);
-    println!("Total price: {}", total_price);
-    println!("Royalty amount: {}", royalty_amount);
-    println!("Owner amount: {}", owner_amount);
+    // Create bank messages for payment distribution
+    let bank_msgs: Vec<CosmosMsg<StargazeMsgWrapper>> = vec![
+        cosmwasm_std::BankMsg::Send {
+            to_address: royalty_info.payment_address.to_string(),
+            amount: vec![cosmwasm_std::Coin {
+                denom: info.funds[0].denom.clone(),
+                amount: royalty_amount,
+            }],
+        }
+        .into(),
+        cosmwasm_std::BankMsg::Send {
+            to_address: owner.owner,
+            amount: vec![cosmwasm_std::Coin {
+                denom: info.funds[0].denom.clone(),
+                amount: owner_amount,
+            }],
+        }
+        .into(),
+    ];
+
+    // Create events for each pixel update
+    let pixel_events = updates.iter().map(|update| {
+        let event = PixelUpdateEventData {
+            token_id: token_id.clone(),
+            pixel_id: update.id,
+            color: update.color.clone(),
+            expiration_duration: update.expiration_duration,
+            expiration_timestamp: current_time + update.expiration_duration,
+            last_updated_by: info.sender.clone(),
+            last_updated_at: current_time,
+        }.into_event();
+        println!("Pixel update event: {:?}", event);
+        event
+    }).collect::<Vec<_>>();
 
     // Apply all updates at once
     current_metadata.apply_updates(updates, &info.sender, current_time);
+
+    // Create metadata updated event
+    let metadata_event = MetadataUpdateEventData {
+        token_id: token_id.clone(),
+        resulting_hash: current_metadata.hash(),
+    }.into_event();
+    println!("Metadata update event: {:?}", metadata_event);
+
+    // Create payment distribution event
+    let payment_event = PaymentDistributionEventData {
+        token_id: token_id.clone(),
+        sender: info.sender.clone(),
+        royalty_amount: royalty_amount.u128(),
+        owner_amount: owner_amount.u128(),
+    }.into_event();
+    println!("Payment distribution event: {:?}", payment_event);
 
     // Update token extension with new metadata hash
     token.extension.tile_hash = current_metadata.hash();
     contract.tokens.save(deps.storage, &token_id, &token)?;
 
-    // Create bank messages for payment distribution
-    let mut bank_msgs = vec![];
-
-    // Send royalties to creator
-    if !royalty_amount.is_zero() {
-        let royalty_msg = BankMsg::Send {
-            to_address: royalty_info.payment_address.to_string(),
-            amount: vec![Coin {
-                denom: "ustars".to_string(),
-                amount: royalty_amount,
-            }],
-        };
-        println!("Royalty message: {:?}", royalty_msg);
-        bank_msgs.push(royalty_msg);
-    }
-
-    // Send remaining amount to token owner
-    if !owner_amount.is_zero() {
-        let owner_msg = BankMsg::Send {
-            to_address: owner.owner,
-            amount: vec![Coin {
-                denom: "ustars".to_string(),
-                amount: owner_amount,
-            }],
-        };
-        println!("Owner message: {:?}", owner_msg);
-        bank_msgs.push(owner_msg);
-    }
-
     let response = Response::new()
         .add_messages(bank_msgs)
-        .add_attribute("action", "set_pixel_color")
-        .add_attribute("token_id", token_id)
-        .add_attribute("sender", info.sender)
-        .add_attribute("royalty_amount", format!("{}ustars", royalty_amount))
-        .add_attribute("owner_amount", format!("{}ustars", owner_amount));
+        .add_events(pixel_events)
+        .add_event(metadata_event)
+        .add_event(payment_event);
 
-    println!("Response: {:?}", response);
     Ok(response)
 }

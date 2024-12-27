@@ -4,6 +4,7 @@ pub const TILE_SIZE: u32 = 10; // 10x10 grid
 pub const DEFAULT_COLOR: &str = "#FFFFFF"; // Default white color
 pub const PIXEL_MIN_EXPIRATION: u64 = 3600; // 1 hour
 pub const PIXEL_MAX_EXPIRATION: u64 = 86400; // 24 hours
+pub const DEFAULT_ROYALTY_SHARE: u64 = 10; // 10% royalty share
 
 // Time thresholds for pricing (in seconds)
 pub const ONE_HOUR: u64 = 3600;

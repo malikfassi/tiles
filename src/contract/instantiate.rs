@@ -6,10 +6,9 @@ use sg_std::StargazeMsgWrapper;
 use crate::{
     contract::{error::ContractError, msg::InstantiateMsg, state::PRICE_SCALING},
     core::{pricing::PriceScaling, tile::Tile},
+    defaults::constants::{CONTRACT_NAME, CONTRACT_VERSION},
 };
 
-const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub fn instantiate_handler(
     mut deps: DepsMut,
@@ -17,14 +16,8 @@ pub fn instantiate_handler(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
-    println!("\n=== Contract Instantiation ===");
-    println!("Sender: {}", info.sender);
 
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-    println!(
-        "Contract version set: {} {}",
-        CONTRACT_NAME, CONTRACT_VERSION
-    );
 
     // Initialize base contract
     let contract = Sg721Contract::<Tile>::default();
@@ -32,11 +25,7 @@ pub fn instantiate_handler(
 
     // Save default price scaling
     let price_scaling = PriceScaling::default();
-    println!("Default price scaling: {:#?}", price_scaling);
     PRICE_SCALING.save(deps.storage, &price_scaling)?;
-    println!("✅ Default price scaling saved to storage");
-
-    println!("=== Contract Instantiation Complete ===\n");
 
     Ok(Response::new()
         .add_attribute("method", "instantiate")

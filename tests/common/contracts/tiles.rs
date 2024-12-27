@@ -1,7 +1,8 @@
 use anyhow::Result;
-use cosmwasm_std::{coins, Addr, Coin};
+use cosmwasm_std::{coins, Addr, Binary, Coin};
 use cw721::{NftInfoResponse, OwnerOfResponse};
 use cw721_base::Action;
+use crate::common::app::TestApp;
 use cw_multi_test::ContractWrapper;
 use sg721::{CollectionInfo, RoyaltyInfoResponse, UpdateCollectionInfoMsg};
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
@@ -12,8 +13,6 @@ use tiles::core::tile::{
     metadata::{PixelUpdate, TileMetadata},
     Tile,
 };
-
-use crate::common::app::TestApp;
 
 pub struct TilesContract {
     pub contract_addr: Addr,
@@ -48,10 +47,6 @@ impl TilesContract {
         sender: &Addr,
         new_price_scaling: PriceScaling,
     ) -> Result<cw_multi_test::AppResponse> {
-        println!("\n=== Executing Update Price Scaling ===");
-        println!("Sender: {}", sender);
-        println!("Contract: {}", self.contract_addr);
-        println!("New price scaling: {:#?}", new_price_scaling);
 
         let response = app.execute_contract(
             sender.clone(),
@@ -62,32 +57,10 @@ impl TilesContract {
             &[],
         );
 
-        match &response {
-            Ok(res) => {
-                println!("Update successful!");
-                println!("Response events: {:#?}", res.events);
-            }
-            Err(e) => {
-                println!("Update failed!");
-                println!("Error: {:#?}", e);
-            }
-        }
-
-        println!("=== Update Price Scaling Complete ===\n");
         response
     }
 
     pub fn update_pixel(
-        &self,
-        app: &mut TestApp,
-        sender: &Addr,
-        token_id: u32,
-        updates: Vec<PixelUpdate>,
-    ) -> Result<cw_multi_test::AppResponse> {
-        self.update_pixel_with_metadata(app, sender, token_id, updates, TileMetadata::default())
-    }
-
-    pub fn update_pixel_with_metadata(
         &self,
         app: &mut TestApp,
         sender: &Addr,
@@ -123,6 +96,7 @@ impl TilesContract {
         token_id: u32,
         updates: Vec<PixelUpdate>,
         funds_amount: u128,
+        current_metadata: TileMetadata,
     ) -> Result<cw_multi_test::AppResponse> {
         app.execute_contract(
             sender.clone(),
@@ -130,7 +104,7 @@ impl TilesContract {
             &ExecuteMsg::Extension {
                 msg: TileExecuteMsg::SetPixelColor {
                     token_id: token_id.to_string(),
-                    current_metadata: TileMetadata::default(),
+                    current_metadata: current_metadata,
                     updates,
                 },
             },
@@ -188,6 +162,26 @@ impl TilesContract {
         )
     }
 
+    pub fn execute_send_nft(
+        &self,
+        app: &mut TestApp,
+        sender: &Addr,
+        contract: &Addr,
+        token_id: String,
+        msg: Binary,
+    ) -> Result<cw_multi_test::AppResponse> {
+        app.execute_contract(
+            sender.clone(),
+            self.contract_addr.clone(),
+            &ExecuteMsg::SendNft {
+                contract: contract.to_string(),
+                token_id,
+                msg,
+            },
+            &[],
+        )
+    }
+
     pub fn execute_approve(
         &self,
         app: &mut TestApp,
@@ -221,6 +215,40 @@ impl TilesContract {
             &ExecuteMsg::Revoke {
                 spender: spender.to_string(),
                 token_id,
+            },
+            &[],
+        )
+    }
+
+    pub fn execute_approve_all(
+        &self,
+        app: &mut TestApp,
+        sender: &Addr,
+        operator: &Addr,
+        expires: Option<cw721::Expiration>,
+    ) -> Result<cw_multi_test::AppResponse> {
+        app.execute_contract(
+            sender.clone(),
+            self.contract_addr.clone(),
+            &ExecuteMsg::ApproveAll {
+                operator: operator.to_string(),
+                expires,
+            },
+            &[],
+        )
+    }
+
+    pub fn execute_revoke_all(
+        &self,
+        app: &mut TestApp,
+        sender: &Addr,
+        operator: &Addr,
+    ) -> Result<cw_multi_test::AppResponse> {
+        app.execute_contract(
+            sender.clone(),
+            self.contract_addr.clone(),
+            &ExecuteMsg::RevokeAll {
+                operator: operator.to_string(),
             },
             &[],
         )
@@ -299,5 +327,5 @@ impl TilesContract {
             self.contract_addr.clone(),
             &QueryMsg::Base(Sg721QueryMsg::CollectionInfo {}),
         )?)
-    }
+    } 
 }

@@ -1,9 +1,13 @@
 use anyhow::Result;
 use cosmwasm_std::Addr;
 use cw_multi_test::AppResponse;
+use serde_json;
 use std::collections::HashMap;
 use tiles::contract::error::ContractError;
-use tiles::core::tile::metadata::PixelUpdate;
+use tiles::core::tile::metadata::{PixelUpdate, TileMetadata};
+use tiles::events::{EventData, PixelUpdateEventData, MetadataUpdateEventData, PaymentDistributionEventData, PriceScalingUpdateEventData};
+use cosmwasm_std::Event;
+use tiles::core::pricing::PriceScaling;
 
 use super::launchpad::Launchpad;
 
@@ -16,6 +20,7 @@ pub struct TestOrchestrator {
 pub struct TestState {
     pub minted_tokens: HashMap<Addr, Vec<u32>>, // owner -> token_ids
     pub pixel_updates: HashMap<u32, Vec<PixelUpdate>>, // token_id -> updates
+    pub token_metadata: HashMap<u32, TileMetadata>, // token_id -> current metadata
 }
 
 impl TestOrchestrator {
@@ -34,6 +39,8 @@ impl TestOrchestrator {
             .entry(owner.clone())
             .or_default()
             .push(token_id);
+        // Track default metadata after minting
+        self.state.token_metadata.insert(token_id, TileMetadata::default());
         Ok(token_id)
     }
 
@@ -71,8 +78,16 @@ impl TestOrchestrator {
             Err(err) => {
                 let contract_err: ContractError = err.downcast().unwrap();
                 match contract_err {
-                    ContractError::InvalidConfig(msg) => assert_eq!(msg, expected_msg),
-                    _ => panic!("Expected InvalidConfig error, got: {:?}", contract_err),
+                    ContractError::InvalidPixelId { id } => {
+                        assert_eq!(expected_msg, format!("Invalid pixel id: {}", id))
+                    },
+                    ContractError::DuplicatePixelId { id } => {
+                        assert_eq!(expected_msg, format!("Duplicate pixel id: {}", id))
+                    },
+                    ContractError::InvalidPixelUpdate { reason } => {
+                        assert_eq!(expected_msg, reason)
+                    },
+                    _ => panic!("Expected InvalidPixelId, DuplicatePixelId, or InvalidPixelUpdate error, got: {:?}", contract_err),
                 }
             }
             Ok(_) => panic!("Expected error, got success"),
@@ -84,8 +99,8 @@ impl TestOrchestrator {
             Err(err) => {
                 let contract_err: ContractError = err.downcast().unwrap();
                 match contract_err {
-                    ContractError::HashMismatch {} => (),
-                    _ => panic!("Expected HashMismatch error, got: {:?}", contract_err),
+                    ContractError::MetadataHashMismatch {} => (),
+                    _ => panic!("Expected MetadataHashMismatch error, got: {:?}", contract_err),
                 }
             }
             Ok(_) => panic!("Expected error, got success"),
@@ -97,7 +112,8 @@ impl TestOrchestrator {
             Err(err) => {
                 let contract_err: ContractError = err.downcast().unwrap();
                 match contract_err {
-                    ContractError::Unauthorized {} => (),
+                    ContractError::Unauthorized { sender: _ } => (),
+                    ContractError::Base(sg721_base::ContractError::Base(cw721_base::ContractError::Ownership(cw721_base::OwnershipError::NotOwner))) => (),
                     _ => panic!("Expected Unauthorized error, got: {:?}", contract_err),
                 }
             }
@@ -105,32 +121,77 @@ impl TestOrchestrator {
         }
     }
 
-    // Event assertion helpers
-    pub fn assert_pixel_update_event(&self, response: &AppResponse, token_id: &str, sender: &Addr) {
-        let event = response
-            .events
-            .iter()
-            .find(|e| {
-                e.ty == "wasm"
-                    && e.attributes
-                        .iter()
-                        .any(|a| a.key == "action" && a.value == "set_pixel_color")
+    // Pixel update event assertions
+    pub fn assert_pixel_update_event(&self, response: &AppResponse, token_id: &str, update: &PixelUpdate, sender: &Addr) {
+        let events = self.find_events(response, PixelUpdateEventData::event_type().as_wasm_str().as_str());
+        let parsed_event = events.iter()
+            .find_map(|event| {
+                let parsed = PixelUpdateEventData::try_from_event(event)?;
+                if parsed.pixel_id == update.id {
+                    Some(parsed)
+                } else {
+                    None
+                }
             })
-            .expect("Expected set_pixel_color event");
+            .unwrap_or_else(|| panic!(
+                "Failed to find pixel update event for pixel ID {}. Events: {:?}",
+                update.id,
+                events
+            ));
+            
+        // Assert predictable values
+        assert_eq!(parsed_event.token_id, token_id, "Token ID mismatch");
+        assert_eq!(parsed_event.pixel_id, update.id, "Pixel ID mismatch");
+        assert_eq!(parsed_event.color, update.color, "Color mismatch");
+        assert_eq!(parsed_event.expiration_duration, update.expiration_duration, "Expiration duration mismatch");
+        assert_eq!(parsed_event.last_updated_by, sender.clone(), "Last updated by mismatch");
+        
+        // Verify timestamps exist and are valid
+        assert!(parsed_event.last_updated_at > 0, "last_updated_at should be set");
+        assert!(parsed_event.expiration_timestamp > parsed_event.last_updated_at, 
+            "expiration_timestamp should be after last_updated_at");
+        assert_eq!(
+            parsed_event.expiration_timestamp - parsed_event.last_updated_at,
+            update.expiration_duration,
+            "expiration_timestamp should be last_updated_at + expiration_duration"
+        );
+    }
 
-        let token_id_attr = event
-            .attributes
-            .iter()
-            .find(|a| a.key == "token_id")
-            .expect("Expected token_id attribute");
-        assert_eq!(token_id_attr.value, token_id);
+    // Payment event assertions
+    pub fn assert_payment_distribution_event(
+        &self,
+        response: &AppResponse,
+        token_id: &str,
+        sender: &Addr,
+        royalty_amount: u128,
+        owner_amount: u128,
+    ) {
+        let event = self.find_event(response, PaymentDistributionEventData::event_type().as_wasm_str().as_str());
+        let parsed_event = PaymentDistributionEventData::try_from_event(event)
+            .unwrap_or_else(|| panic!(
+                "Failed to parse payment distribution event. Event: {:?}",
+                event
+            ));
+            
+        assert_eq!(parsed_event.token_id, token_id, "Token ID mismatch");
+        assert_eq!(parsed_event.sender, sender.clone(), "Sender mismatch");
+        assert_eq!(parsed_event.royalty_amount, royalty_amount, "Royalty amount mismatch");
+        assert_eq!(parsed_event.owner_amount, owner_amount, "Owner amount mismatch");
+    }
 
-        let sender_attr = event
-            .attributes
-            .iter()
-            .find(|a| a.key == "sender")
-            .expect("Expected sender attribute");
-        assert_eq!(sender_attr.value, sender.to_string());
+    // Price scaling event assertions
+    pub fn assert_price_scaling_event(&self, response: &AppResponse, expected: PriceScaling) {
+        let event = self.find_event(response, PriceScalingUpdateEventData::event_type().as_wasm_str().as_str());
+        let parsed_event = PriceScalingUpdateEventData::try_from_event(event)
+            .unwrap_or_else(|| panic!(
+                "Failed to parse price scaling update event. Event: {:?}",
+                event
+            ));
+            
+        assert_eq!(parsed_event.hour_1_price, expected.hour_1_price.u128(), "Hour 1 price mismatch");
+        assert_eq!(parsed_event.hour_12_price, expected.hour_12_price.u128(), "Hour 12 price mismatch");
+        assert_eq!(parsed_event.hour_24_price, expected.hour_24_price.u128(), "Hour 24 price mismatch");
+        assert_eq!(parsed_event.quadratic_base, expected.quadratic_base.u128(), "Quadratic base mismatch");
     }
 
     pub fn assert_token_hash(&self, token_id: u32, expected_hash: &str) -> Result<()> {
@@ -158,112 +219,64 @@ impl TestOrchestrator {
         );
     }
 
-    pub fn assert_pixel_update_payment(
-        &self,
-        response: &AppResponse,
-        token_id: &str,
-        total_price: u128,
-    ) {
-        // Find the pixel update event
-        let event = response
+    pub fn track_pixel_update(&mut self, token_id: u32, update: PixelUpdate, response: &AppResponse) {
+        // Track the update
+        self.state.pixel_updates.entry(token_id).or_default().push(update);
+
+        // Get or create metadata
+        let mut metadata = self.state.token_metadata.entry(token_id).or_insert_with(TileMetadata::default);
+
+        // Extract metadata from events
+        if let Some(event_data) = response.events.iter().find_map(PixelUpdateEventData::try_from_event) {
+            let pixel_id = event_data.pixel_id as usize;
+            if pixel_id < metadata.pixels.len() {
+                metadata.pixels[pixel_id].id = event_data.pixel_id;
+                metadata.pixels[pixel_id].color = event_data.color;
+                metadata.pixels[pixel_id].expiration_timestamp = event_data.expiration_timestamp;
+                metadata.pixels[pixel_id].last_updated_by = event_data.last_updated_by;
+                metadata.pixels[pixel_id].last_updated_at = event_data.last_updated_at;
+            }
+        }
+    }
+
+    pub fn get_current_metadata(&self, token_id: u32) -> TileMetadata {
+        self.state.token_metadata.get(&token_id).cloned().unwrap_or_default()
+    }
+
+    // update pixels with just updates 
+    pub fn update_pixels(&mut self, token_id: u32, updates: Vec<PixelUpdate>, operator: &Addr) -> Result<AppResponse> {
+        let current_metadata = self.get_current_metadata(token_id);
+        let response = self.ctx.tiles.update_pixel(&mut self.ctx.app, operator, token_id, updates.clone(), current_metadata)?;
+        
+        // Track each update
+        for update in updates {
+            self.track_pixel_update(token_id, update, &response);
+        }
+        Ok(response)
+    }
+
+    fn find_events<'a>(&self, response: &'a AppResponse, event_type: &str) -> Vec<&'a Event> {
+        response
             .events
             .iter()
-            .find(|e| {
-                e.ty == "wasm"
-                    && e.attributes
-                        .iter()
-                        .any(|a| a.key == "action" && a.value == "set_pixel_color")
-            })
-            .expect("Expected set_pixel_color event");
+            .filter(|event| event.ty.replace("wasm-wasm-", "wasm-") == event_type)
+            .collect()
+    }
 
-        // Verify token_id
-        let token_id_attr = event
-            .attributes
-            .iter()
-            .find(|a| a.key == "token_id")
-            .expect("Expected token_id attribute");
-        assert_eq!(token_id_attr.value, token_id);
-
-        // Verify payment amounts
-        let royalty_amount = total_price * 5 / 100; // 5% royalty
-        let owner_amount = total_price - royalty_amount;
-
-        // Find bank messages
-        let bank_events: Vec<_> = response
-            .events
-            .iter()
-            .filter(|e| e.ty == "transfer")
-            .collect();
-
-        // Verify royalty transfer to creator
-        let royalty_transfer = bank_events
-            .iter()
-            .find(|e| {
-                e.attributes.iter().any(|a| {
-                    a.key == "recipient" && a.value == self.ctx.users.tile_contract_creator()
-                })
-            })
-            .expect("Expected royalty transfer event");
-
-        let royalty_amount_attr = royalty_transfer
-            .attributes
-            .iter()
-            .find(|a| a.key == "amount")
-            .expect("Expected amount attribute");
-        assert_eq!(
-            royalty_amount_attr.value,
-            format!("{}ustars", royalty_amount),
-            "Incorrect royalty amount"
-        );
-
-        // Verify owner transfer
-        let owner_transfer = bank_events
-            .iter()
-            .find(|e| {
-                e.attributes
+    fn find_event<'a>(&self, response: &'a AppResponse, event_type: &str) -> &'a Event {
+        self.find_events(response, event_type)
+            .first()
+            .unwrap_or_else(|| {
+                let available_events = response.events
                     .iter()
-                    .any(|a| a.key == "recipient" && a.value == self.ctx.users.get_buyer().address)
+                    .map(|e| format!("{} with attributes: {:?}", e.ty, e.attributes))
+                    .collect::<Vec<_>>()
+                    .join("\n");
+                panic!(
+                    "Expected event of type '{}' but found:\n{}",
+                    event_type,
+                    available_events
+                )
             })
-            .expect("Expected owner transfer event");
-
-        let owner_amount_attr = owner_transfer
-            .attributes
-            .iter()
-            .find(|a| a.key == "amount")
-            .expect("Expected amount attribute");
-        assert_eq!(
-            owner_amount_attr.value,
-            format!("{}ustars", owner_amount),
-            "Incorrect owner amount"
-        );
-    }
-
-    pub fn assert_error_insufficient_funds(
-        &self,
-        result: anyhow::Result<cw_multi_test::AppResponse>,
-    ) {
-        match result {
-            Ok(_) => panic!("Expected insufficient funds error"),
-            Err(e) => {
-                let contract_err: ContractError = e.downcast().unwrap();
-                match contract_err {
-                    ContractError::InsufficientFunds {} => (),
-                    _ => panic!("Expected InsufficientFunds error, got: {:?}", contract_err),
-                }
-            }
-        }
-    }
-
-    pub fn assert_error_invalid_funds(&self, result: anyhow::Result<cw_multi_test::AppResponse>) {
-        match result {
-            Ok(_) => panic!("Expected invalid funds error"),
-            Err(e) => {
-                let contract_err: ContractError = e.downcast().unwrap();
-                match contract_err {
-                    ContractError::InvalidFunds {} => (),
-                    _ => panic!("Expected InvalidFunds error, got: {:?}", contract_err),
-                }
-            }
-        }
     }
 }

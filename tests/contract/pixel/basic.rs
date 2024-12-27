@@ -13,12 +13,17 @@ fn can_set_pixel_color() -> Result<()> {
         expiration_duration: 3600,
     };
 
-    let result = test
-        .ctx
-        .tiles
-        .update_pixel(&mut test.ctx.app, &owner, token_id, vec![update])?;
+    let result = test.update_pixels(token_id, vec![update.clone()], &owner)?;
 
-    test.assert_pixel_update_event(&result, &token_id.to_string(), &owner);
+    // Assert all events
+    test.assert_pixel_update_event(&result, &token_id.to_string(), &update, &owner);
+    test.assert_payment_distribution_event(
+        &result,
+        &token_id.to_string(),
+        &owner,
+        100000000 / 10, // royalty amount (10%)
+        100000000 * 9 / 10, // owner amount (90%)
+    );
 
     Ok(())
 }
@@ -46,12 +51,19 @@ fn all_valid_updates_succeed() -> Result<()> {
         },
     ];
 
-    let result = test
-        .ctx
-        .tiles
-        .update_pixel(&mut test.ctx.app, &owner, token_id, updates)?;
+    let result = test.update_pixels(token_id, updates.clone(), &owner)?;
 
-    test.assert_pixel_update_event(&result, &token_id.to_string(), &owner);
+    // Assert all events for each update
+    for update in updates {
+        test.assert_pixel_update_event(&result, &token_id.to_string(), &update, &owner);
+    }
+    test.assert_payment_distribution_event(
+        &result,
+        &token_id.to_string(),
+        &owner,
+        300000000 / 10, // royalty amount (10%)
+        300000000 * 9 / 10, // owner amount (90%)
+    );
 
     Ok(())
 }
@@ -79,12 +91,19 @@ fn can_update_multiple_pixels() -> Result<()> {
         },
     ];
 
-    let result = test
-        .ctx
-        .tiles
-        .update_pixel(&mut test.ctx.app, &owner, token_id, updates)?;
+    let result = test.update_pixels(token_id, updates.clone(), &owner)?;
 
-    test.assert_pixel_update_event(&result, &token_id.to_string(), &owner);
+    // Assert all events for each update
+    for update in updates {
+        test.assert_pixel_update_event(&result, &token_id.to_string(), &update, &owner);
+    }
+    test.assert_payment_distribution_event(
+        &result,
+        &token_id.to_string(),
+        &owner,
+        300000000 / 10, // royalty amount (10%)
+        300000000 * 9 / 10, // owner amount (90%)
+    );
 
     Ok(())
 }

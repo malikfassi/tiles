@@ -77,12 +77,9 @@ pub struct PixelUpdate {
 
 impl PixelUpdate {
     pub fn validate_integrity(&self) -> Result<(), ContractError> {
-        // Validate pixel id
+        // Validate pixel id is within bounds
         if self.id >= PIXELS_PER_TILE {
-            return Err(ContractError::InvalidConfig(format!(
-                "Invalid pixel id: {}",
-                self.id
-            )));
+            return Err(ContractError::InvalidPixelId { id: self.id });
         }
 
         // Validate color format (#RRGGBB)
@@ -90,35 +87,39 @@ impl PixelUpdate {
             || self.color.len() != 7
             || !self.color[1..].chars().all(|c| c.is_ascii_hexdigit())
         {
-            return Err(ContractError::InvalidConfig(format!(
-                "Invalid color format: {}",
-                self.color
-            )));
+            return Err(ContractError::InvalidPixelUpdate { 
+                reason: format!("Invalid color format: {}", self.color)
+            });
         }
 
         // Validate duration is within bounds
-        if !(PIXEL_MIN_EXPIRATION..=PIXEL_MAX_EXPIRATION).contains(&self.expiration_duration) {
-            return Err(ContractError::InvalidConfig(format!(
-                "Duration must be between {} and {} seconds",
-                PIXEL_MIN_EXPIRATION, PIXEL_MAX_EXPIRATION
-            )));
+        if self.expiration_duration < PIXEL_MIN_EXPIRATION {
+            return Err(ContractError::InvalidPixelUpdate { 
+                reason: format!(
+                    "Expiration duration {} is less than minimum {}",
+                    self.expiration_duration,
+                    PIXEL_MIN_EXPIRATION
+                )
+            });
+        }
+        if self.expiration_duration > PIXEL_MAX_EXPIRATION {
+            return Err(ContractError::InvalidPixelUpdate { 
+                reason: format!(
+                    "Expiration duration {} is greater than maximum {}",
+                    self.expiration_duration,
+                    PIXEL_MAX_EXPIRATION
+                )
+            });
         }
 
         Ok(())
     }
 
-    pub fn validate_for_tile(
-        &self,
-        current_pixel: &PixelData,
-        current_time: u64,
-    ) -> Result<(), ContractError> {
-        // Validate current pixel is expired
-        if current_pixel.expiration_timestamp > current_time {
-            return Err(ContractError::InvalidConfig(
-                "Pixel is not expired yet".to_string(),
-            ));
+    pub fn validate_for_tile(&self, current_pixel: &PixelData, current_time: u64) -> Result<(), ContractError> {
+        // If pixel is expired or never set, anyone can update it
+        if current_pixel.expiration_timestamp <= current_time {
+            return Ok(());
         }
-
         Ok(())
     }
 

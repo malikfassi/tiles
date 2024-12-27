@@ -134,23 +134,15 @@ fn price_scaling_update_emits_correct_event() -> Result<()> {
     let mut test = TestOrchestrator::new();
     let creator = test.ctx.users.tile_contract_creator();
 
+    let new_scaling = PriceScaling::default();
     let response = test.ctx.tiles.update_price_scaling(
         &mut test.ctx.app,
         &creator,
-        PriceScaling::default(),
+        new_scaling.clone(),
     )?;
 
-    // Verify events
-    let wasm = response
-        .events
-        .iter()
-        .find(|e| e.ty == "wasm")
-        .expect("No wasm event found");
-
-    assert!(wasm
-        .attributes
-        .iter()
-        .any(|attr| attr.key == "action" && attr.value == "update_price_scaling"));
+    // Use orchestrator to assert the event
+    test.assert_price_scaling_event(&response, new_scaling);
 
     Ok(())
 }

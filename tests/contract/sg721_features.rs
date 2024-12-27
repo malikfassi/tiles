@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
     use anyhow::Result;
-    use cosmwasm_std::Addr;
+    use cosmwasm_std::{to_json_binary, Addr};
     use cw721_base::Action;
     use sg721::UpdateCollectionInfoMsg;
-
-    use crate::common::test_orchestrator::TestOrchestrator;
+    use tiles::core::tile::metadata::TileMetadata;
+    use crate::common::TestOrchestrator;
 
     #[test]
     fn test_transfer_nft() -> Result<()> {
@@ -27,10 +27,35 @@ mod tests {
     }
 
     #[test]
+    fn test_send_nft() -> Result<()> {
+        let mut test = TestOrchestrator::new();
+        let (owner, token_id) = test.setup_single_token()?;
+        let recipient_contract = test.ctx.users.pixel_operator().address.clone();
+        let msg = to_json_binary("test_msg").unwrap();
+
+        // Attempt to send NFT to a non-contract address should fail
+        let result = test.ctx.tiles.execute_send_nft(
+            &mut test.ctx.app,
+            &owner,
+            &recipient_contract,
+            token_id.to_string(),
+            msg,
+        );
+
+        // Verify it failed because the recipient is not a contract
+        assert!(result.is_err());
+        
+        // Verify owner hasn't changed
+        test.assert_token_owner(token_id, &owner);
+        Ok(())
+    }
+
+    #[test]
     fn test_approval_operations() -> Result<()> {
         let mut test = TestOrchestrator::new();
         let (owner, token_id) = test.setup_single_token()?;
         let operator = test.ctx.users.pixel_operator().address.clone();
+        let recipient = test.ctx.users.get_buyer().address.clone();
 
         // Test approval
         test.ctx.tiles.execute_approve(
@@ -41,18 +66,23 @@ mod tests {
             None,
         )?;
 
-        // Verify operator can update pixel
-        let update = tiles::core::tile::metadata::PixelUpdate {
-            id: 0,
-            color: "#FF0000".to_string(),
-            expiration_duration: 3600,
-        };
-        test.ctx.tiles.update_pixel_with_funds(
+        // Verify operator can transfer token
+        test.ctx.tiles.execute_transfer_nft(
             &mut test.ctx.app,
             &operator,
-            token_id,
-            vec![update],
-            100000000,
+            &recipient,
+            token_id.to_string(),
+        )?;
+
+        // Verify new owner
+        test.assert_token_owner(token_id, &recipient);
+
+        // Transfer back to original owner
+        test.ctx.tiles.execute_transfer_nft(
+            &mut test.ctx.app,
+            &recipient,
+            &owner,
+            token_id.to_string(),
         )?;
 
         // Test revoke
@@ -62,6 +92,71 @@ mod tests {
             &operator,
             token_id.to_string(),
         )?;
+
+        // Verify operator can no longer transfer token
+        let result = test.ctx.tiles.execute_transfer_nft(
+            &mut test.ctx.app,
+            &operator,
+            &recipient,
+            token_id.to_string(),
+        );
+        test.assert_error_unauthorized(result);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_approve_all_operations() -> Result<()> {
+        let mut test = TestOrchestrator::new();
+        let (owner, token_ids) = test.setup_multiple_tokens(3)?;
+        let operator = test.ctx.users.pixel_operator().address.clone();
+        let recipient = test.ctx.users.get_buyer().address.clone();
+
+        // Test approve all
+        test.ctx.tiles.execute_approve_all(
+            &mut test.ctx.app,
+            &owner,
+            &operator,
+            None,
+        )?;
+
+        // Verify operator can transfer all tokens
+        for &token_id in &token_ids {
+            test.ctx.tiles.execute_transfer_nft(
+                &mut test.ctx.app,
+                &operator,
+                &recipient,
+                token_id.to_string(),
+            )?;
+
+            // Verify new owner
+            test.assert_token_owner(token_id, &recipient);
+
+            // Transfer back to original owner
+            test.ctx.tiles.execute_transfer_nft(
+                &mut test.ctx.app,
+                &recipient,
+                &owner,
+                token_id.to_string(),
+            )?;
+        }
+
+        // Test revoke all
+        test.ctx.tiles.execute_revoke_all(
+            &mut test.ctx.app,
+            &owner,
+            &operator,
+        )?;
+
+        // Verify operator can no longer transfer tokens
+        let result = test.ctx.tiles.execute_transfer_nft(
+            &mut test.ctx.app,
+            &operator,
+            &recipient,
+            token_ids[0].to_string(),
+        );
+        test.assert_error_unauthorized(result);
+
         Ok(())
     }
 
@@ -74,10 +169,8 @@ mod tests {
         // First mint a token to ensure contract is properly initialized
         test.setup_single_token()?;
 
-        // Note: We don't test the full minter integration here because it requires
-        // complex governance actions through the factory contract.
-        // Instead, we verify that the minter contract is indeed the owner of the NFT contract.
-        test.ctx.tiles.execute_update_ownership(
+        // Transfer ownership
+        let transfer_response = test.ctx.tiles.execute_update_ownership(
             &mut test.ctx.app,
             &minter_addr,
             Action::TransferOwnership {
@@ -86,12 +179,39 @@ mod tests {
             },
         )?;
 
-        // Accept ownership with new owner
-        test.ctx.tiles.execute_update_ownership(
+        let transfer_event = transfer_response
+            .events
+            .iter()
+            .find(|e| e.ty == "wasm")
+            .expect("Expected wasm event");
+        
+        assert!(transfer_event.attributes.iter().any(|attr| 
+            attr.key == "owner" && attr.value == minter_addr.to_string()
+        ));
+        assert!(transfer_event.attributes.iter().any(|attr| 
+            attr.key == "pending_owner" && attr.value == new_owner.to_string()
+        ));
+        assert!(transfer_event.attributes.iter().any(|attr| 
+            attr.key == "pending_expiry" && attr.value == "none"
+        ));
+
+        // Accept ownership
+        let accept_response = test.ctx.tiles.execute_update_ownership(
             &mut test.ctx.app,
             &new_owner,
             Action::AcceptOwnership {},
         )?;
+
+        // Verify accept ownership event
+        let accept_event = accept_response
+            .events
+            .iter()
+            .find(|e| e.ty == "wasm")
+            .expect("Expected wasm event");
+        
+        assert!(accept_event.attributes.iter().any(|attr| 
+            attr.key == "owner" && attr.value == new_owner.to_string()
+        ));
 
         Ok(())
     }

@@ -1,67 +1,54 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use sg721_base::Sg721Contract;
-
 use sg_std::StargazeMsgWrapper;
 
-use crate::contract::error::ContractError;
-use crate::contract::state::PRICE_SCALING;
-use crate::core::pricing::PriceScaling;
-use crate::core::tile::Tile;
+use crate::{
+    contract::{error::ContractError, state::PRICE_SCALING},
+    core::{pricing::PriceScaling, tile::Tile},
+    events::{EventData, PriceScalingUpdateEventData},
+};
 
 pub fn update_price_scaling(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    new_price_scaling: PriceScaling,
+    new_scaling: PriceScaling,
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
-    println!("\n=== Update Price Scaling Execution ===");
-    println!("Sender: {}", info.sender);
-    println!("New price scaling: {:#?}", new_price_scaling);
-
     // Get collection info from contract
-    println!("Loading collection info...");
     let contract = Sg721Contract::<Tile>::default();
     let collection_info = contract.collection_info.load(deps.storage)?;
-    println!("Collection info: {:#?}", collection_info);
 
     // Only royalty payment address can update prices
     if let Some(royalty_info) = collection_info.royalty_info {
-        println!("Royalty payment address: {}", royalty_info.payment_address);
-        println!("Comparing with sender: {}", info.sender);
-
         if info.sender != royalty_info.payment_address {
-            println!("❌ Unauthorized: sender is not royalty payment address");
-            return Err(ContractError::Unauthorized {});
+            return Err(ContractError::Unauthorized {
+                sender: info.sender.to_string(),
+            });
         }
-        println!("✅ Sender is authorized");
     } else {
-        println!("❌ No royalty info found in collection info");
-        return Err(ContractError::Unauthorized {});
+        return Err(ContractError::MissingRoyaltyInfo {});
     }
 
     // Validate new price scaling
-    println!("Validating new price scaling...");
-    match new_price_scaling.validate() {
-        Ok(_) => println!("✅ Price scaling validation passed"),
+    match new_scaling.validate() {
+        Ok(_) => (),
         Err(e) => {
-            println!("❌ Price scaling validation failed: {}", e);
-            return Err(ContractError::InvalidConfig(e.to_string()));
+            return Err(ContractError::InvalidPixelUpdate { 
+                reason: e.to_string() 
+            });
         }
     }
 
-    // Save updated price scaling
-    println!("Saving new price scaling to storage...");
-    match PRICE_SCALING.save(deps.storage, &new_price_scaling) {
-        Ok(_) => println!("✅ Price scaling saved successfully"),
-        Err(e) => {
-            println!("❌ Failed to save price scaling: {}", e);
-            return Err(ContractError::InvalidConfig(e.to_string()));
-        }
-    }
+    // Save new price scaling
+    PRICE_SCALING.save(deps.storage, &new_scaling)?;
 
-    println!("=== Update Price Scaling Complete ===\n");
+    // Create event
+    let event = PriceScalingUpdateEventData {
+        hour_1_price: new_scaling.hour_1_price.u128(),
+        hour_12_price: new_scaling.hour_12_price.u128(),
+        hour_24_price: new_scaling.hour_24_price.u128(),
+        quadratic_base: new_scaling.quadratic_base.u128(),
+    }.into_event();
 
-    Ok(Response::new()
-        .add_attribute("action", "update_price_scaling")
-        .add_attribute("sender", info.sender))
+    Ok(Response::new().add_event(event))
 }

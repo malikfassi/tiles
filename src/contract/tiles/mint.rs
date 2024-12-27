@@ -29,10 +29,6 @@ pub fn mint_handler(
         token_uri: token_uri.clone(),
         extension: extension.clone(),
     };
-    println!(
-        "DEBUG: Sending mint message: {}",
-        String::from_utf8_lossy(&to_json_binary(&mint_msg).unwrap())
-    );
 
     // Forward to base contract with our extension
     Ok(contract.execute(deps, env, info, mint_msg)?)

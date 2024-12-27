@@ -20,10 +20,6 @@ pub fn execute_handler(
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
-    println!(
-        "DEBUG: Received execute message: {}",
-        String::from_utf8_lossy(&to_json_binary(&msg).unwrap())
-    );
     let contract: Sg721Contract<Tile> = Sg721Contract::default();
 
     match msg {
