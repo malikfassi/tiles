@@ -1,13 +1,10 @@
 use anyhow::Result;
 use cosmwasm_std::{Addr, Coin};
 use cw_multi_test::ContractWrapper;
-use sg_std::NATIVE_DENOM;
 use sg4::MinterConfig;
+use sg_std::NATIVE_DENOM;
 use tiles::defaults::constants::MINT_PRICE;
-use vending_minter::{
-    msg::ExecuteMsg as MinterExecuteMsg,
-    state::ConfigExtension,
-};
+use vending_minter::{msg::ExecuteMsg as MinterExecuteMsg, state::ConfigExtension};
 
 use crate::common::TestApp;
 

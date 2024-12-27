@@ -1,7 +1,7 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
-use sg_std::StargazeMsgWrapper;
 use sg721_base::Sg721Contract;
+use sg_std::StargazeMsgWrapper;
 
 use crate::{
     contract::{error::ContractError, msg::InstantiateMsg, state::PRICE_SCALING},
@@ -19,9 +19,12 @@ pub fn instantiate_handler(
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
     println!("\n=== Contract Instantiation ===");
     println!("Sender: {}", info.sender);
-    
+
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-    println!("Contract version set: {} {}", CONTRACT_NAME, CONTRACT_VERSION);
+    println!(
+        "Contract version set: {} {}",
+        CONTRACT_NAME, CONTRACT_VERSION
+    );
 
     // Initialize base contract
     let contract = Sg721Contract::<Tile>::default();

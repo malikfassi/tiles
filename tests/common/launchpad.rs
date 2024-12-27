@@ -1,9 +1,9 @@
-use cosmwasm_std::Addr;
 use crate::common::{
     app::TestApp,
     contracts::{factory::FactoryContract, minter::MinterContract, tiles::TilesContract},
     users::test_users::{TestUsers, User},
 };
+use cosmwasm_std::Addr;
 
 pub struct Launchpad {
     pub app: TestApp,
@@ -39,30 +39,30 @@ impl Launchpad {
 
     fn setup_contracts(app: &mut TestApp, users: &TestUsers) -> (Addr, Addr) {
         println!("\n=== Setting up contracts ===");
-        
+
         // Store contract codes
         let collection_code_id = TilesContract::store_code(app).unwrap();
         let minter_code_id = MinterContract::store_code(app).unwrap();
         let factory_code_id = FactoryContract::store_code(app).unwrap();
-        
+
         // Setup factory
         let mut factory = FactoryContract::new(app, "factory");
         let factory_creator = users.factory_contract_creator();
-        factory.instantiate(
-            app,
-            factory_code_id,
-            minter_code_id,
-            collection_code_id,
-            &factory_creator,
-        ).unwrap();
+        factory
+            .instantiate(
+                app,
+                factory_code_id,
+                minter_code_id,
+                collection_code_id,
+                &factory_creator,
+            )
+            .unwrap();
 
         // Setup collection and create minter
         let creator = users.tile_contract_creator();
-        let (minter_addr, sg721_addr) = factory.create_test_minter(
-            app,
-            &creator,
-            collection_code_id,
-        ).unwrap();
+        let (minter_addr, sg721_addr) = factory
+            .create_test_minter(app, &creator, collection_code_id)
+            .unwrap();
 
         // Set block time to after minting start time
         app.advance_time(2 * 86400); // Advance 2 days

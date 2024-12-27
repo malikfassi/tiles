@@ -40,7 +40,8 @@ impl TestApp {
     }
 
     pub fn get_balance(&self, address: &Addr, denom: &str) -> Option<u128> {
-        self.app.wrap()
+        self.app
+            .wrap()
             .query_balance(address.to_string(), denom)
             .ok()
             .map(|c| c.amount.u128())
@@ -58,7 +59,8 @@ impl TestApp {
     where
         T: serde::Serialize + std::fmt::Debug,
     {
-        self.app.instantiate_contract(code_id, sender, msg, funds, label, admin)
+        self.app
+            .instantiate_contract(code_id, sender, msg, funds, label, admin)
     }
 
     pub fn execute_contract<T>(

@@ -1,12 +1,12 @@
 use anyhow::Result;
 use cosmwasm_std::Addr;
 use cw_multi_test::ContractWrapper;
-use sg721::ExecuteMsg as Sg721ExecuteMsg;
+
+use cw721::NftInfoResponse;
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 use tiles::contract::msg::{ExecuteMsg, QueryMsg, TileExecuteMsg};
 use tiles::core::pricing::PriceScaling;
 use tiles::core::tile::Tile;
-use cw721::NftInfoResponse;
 
 use crate::common::TestApp;
 
@@ -99,9 +99,9 @@ impl TilesContract {
     }
 
     pub fn query_price_scaling(&self, app: &TestApp) -> Result<PriceScaling> {
-        Ok(app.inner().wrap().query_wasm_smart(
-            self.contract_addr.clone(),
-            &QueryMsg::PriceScaling {},
-        )?)
+        Ok(app
+            .inner()
+            .wrap()
+            .query_wasm_smart(self.contract_addr.clone(), &QueryMsg::PriceScaling {})?)
     }
 }

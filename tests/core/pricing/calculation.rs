@@ -1,4 +1,3 @@
-
 use tiles::core::pricing::PriceScaling;
 use tiles::defaults::constants::{
     DEFAULT_PRICE_12_HOURS, DEFAULT_PRICE_1_HOUR, DEFAULT_PRICE_24_HOURS,

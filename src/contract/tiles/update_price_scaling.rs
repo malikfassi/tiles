@@ -1,7 +1,7 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use sg_std::StargazeMsgWrapper;
-use sg721_base::Sg721Contract;
 use cw721_base::Extension;
+use sg721_base::Sg721Contract;
+use sg_std::StargazeMsgWrapper;
 
 use crate::contract::error::ContractError;
 use crate::contract::state::PRICE_SCALING;
@@ -27,7 +27,7 @@ pub fn update_price_scaling(
     if let Some(royalty_info) = collection_info.royalty_info {
         println!("Royalty payment address: {}", royalty_info.payment_address);
         println!("Comparing with sender: {}", info.sender);
-        
+
         if info.sender != royalty_info.payment_address {
             println!("❌ Unauthorized: sender is not royalty payment address");
             return Err(ContractError::Unauthorized {});
