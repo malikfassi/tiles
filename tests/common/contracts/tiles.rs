@@ -1,7 +1,7 @@
 use anyhow::Result;
 use cosmwasm_std::Addr;
-use cw_multi_test::ContractWrapper;
 use cw721::{NftInfoResponse, OwnerOfResponse};
+use cw_multi_test::ContractWrapper;
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 use tiles::contract::msg::{ExecuteMsg, QueryMsg, TileExecuteMsg};
 use tiles::core::pricing::PriceScaling;
