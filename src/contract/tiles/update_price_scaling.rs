@@ -1,6 +1,6 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use sg721_base::Sg721Contract;
-use sg721::RoyaltyInfoResponse;
+
 use sg_std::StargazeMsgWrapper;
 
 use crate::contract::error::ContractError;

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use cosmwasm_std::{Addr, Coin};
+use cosmwasm_std::Addr;
 use cw_multi_test::AppResponse;
 use std::collections::HashMap;
 use tiles::contract::error::ContractError;
@@ -146,7 +146,13 @@ impl TestOrchestrator {
 
     // Fund assertion helpers
     pub fn assert_funds_received(&self, address: &Addr, amount: u128, denom: &str) {
-        let balance = self.ctx.app.inner().wrap().query_balance(address, denom).unwrap();
+        let balance = self
+            .ctx
+            .app
+            .inner()
+            .wrap()
+            .query_balance(address, denom)
+            .unwrap();
         assert_eq!(
             balance.amount.u128(),
             amount,
@@ -157,7 +163,12 @@ impl TestOrchestrator {
         );
     }
 
-    pub fn assert_pixel_update_payment(&self, response: &AppResponse, token_id: &str, total_price: u128) {
+    pub fn assert_pixel_update_payment(
+        &self,
+        response: &AppResponse,
+        token_id: &str,
+        total_price: u128,
+    ) {
         // Find the pixel update event
         let event = response
             .events
@@ -193,9 +204,9 @@ impl TestOrchestrator {
         let royalty_transfer = transfer_events
             .iter()
             .find(|e| {
-                e.attributes
-                    .iter()
-                    .any(|a| a.key == "recipient" && a.value == self.ctx.users.tile_contract_creator().to_string())
+                e.attributes.iter().any(|a| {
+                    a.key == "recipient" && a.value == self.ctx.users.tile_contract_creator()
+                })
             })
             .expect("Expected royalty transfer event");
 

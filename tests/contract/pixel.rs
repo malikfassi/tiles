@@ -530,23 +530,31 @@ fn payment_is_distributed_correctly_for_single_update() -> Result<()> {
     };
 
     // Get initial balances
-    let initial_owner_balance = test.ctx.app.inner().wrap()
+    let initial_owner_balance = test
+        .ctx
+        .app
+        .inner()
+        .wrap()
         .query_balance(&owner, "ustars")?
-        .amount.u128();
-    let initial_creator_balance = test.ctx.app.inner().wrap()
+        .amount
+        .u128();
+    let initial_creator_balance = test
+        .ctx
+        .app
+        .inner()
+        .wrap()
         .query_balance(&test.ctx.users.get_creator().address, "ustars")?
-        .amount.u128();
+        .amount
+        .u128();
 
     // Calculate expected price (1 hour at base rate)
     let price_scaling = test.ctx.tiles.query_price_scaling(&test.ctx.app)?;
     let total_price = price_scaling.calculate_price(3600).u128();
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        vec![update],
-    )?;
+    let result = test
+        .ctx
+        .tiles
+        .update_pixel(&mut test.ctx.app, &owner, token_id, vec![update])?;
 
     // Verify payment distribution
     test.assert_pixel_update_payment(&result, &token_id.to_string(), total_price);
@@ -556,7 +564,11 @@ fn payment_is_distributed_correctly_for_single_update() -> Result<()> {
     let owner_amount = total_price - royalty_amount;
 
     // Owner pays total_price and receives owner_amount back
-    test.assert_funds_received(&owner, initial_owner_balance - total_price + owner_amount, "ustars");
+    test.assert_funds_received(
+        &owner,
+        initial_owner_balance - total_price + owner_amount,
+        "ustars",
+    );
     test.assert_funds_received(
         &test.ctx.users.get_creator().address,
         initial_creator_balance + royalty_amount,
@@ -590,25 +602,38 @@ fn payment_is_distributed_correctly_for_multiple_updates() -> Result<()> {
     ];
 
     // Get initial balances
-    let initial_owner_balance = test.ctx.app.inner().wrap()
+    let initial_owner_balance = test
+        .ctx
+        .app
+        .inner()
+        .wrap()
         .query_balance(&owner, "ustars")?
-        .amount.u128();
-    let initial_creator_balance = test.ctx.app.inner().wrap()
+        .amount
+        .u128();
+    let initial_creator_balance = test
+        .ctx
+        .app
+        .inner()
+        .wrap()
         .query_balance(&test.ctx.users.get_creator().address, "ustars")?
-        .amount.u128();
+        .amount
+        .u128();
 
     // Calculate total price
     let price_scaling = test.ctx.tiles.query_price_scaling(&test.ctx.app)?;
-    let total_price: u128 = updates.iter()
-        .map(|update| price_scaling.calculate_price(update.expiration_duration).u128())
+    let total_price: u128 = updates
+        .iter()
+        .map(|update| {
+            price_scaling
+                .calculate_price(update.expiration_duration)
+                .u128()
+        })
         .sum();
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        updates,
-    )?;
+    let result = test
+        .ctx
+        .tiles
+        .update_pixel(&mut test.ctx.app, &owner, token_id, updates)?;
 
     // Verify payment distribution
     test.assert_pixel_update_payment(&result, &token_id.to_string(), total_price);
@@ -618,7 +643,11 @@ fn payment_is_distributed_correctly_for_multiple_updates() -> Result<()> {
     let owner_amount = total_price - royalty_amount;
 
     // Owner pays total_price and receives owner_amount back
-    test.assert_funds_received(&owner, initial_owner_balance - total_price + owner_amount, "ustars");
+    test.assert_funds_received(
+        &owner,
+        initial_owner_balance - total_price + owner_amount,
+        "ustars",
+    );
     test.assert_funds_received(
         &test.ctx.users.get_creator().address,
         initial_creator_balance + royalty_amount,
@@ -647,22 +676,30 @@ fn payment_is_refunded_when_update_fails() -> Result<()> {
     ];
 
     // Get initial balance
-    let initial_balance = test.ctx.app.inner().wrap()
+    let initial_balance = test
+        .ctx
+        .app
+        .inner()
+        .wrap()
         .query_balance(&owner, "ustars")?
-        .amount.u128();
+        .amount
+        .u128();
 
     // Calculate total price
     let price_scaling = test.ctx.tiles.query_price_scaling(&test.ctx.app)?;
-    let total_price: u128 = updates.iter()
-        .map(|update| price_scaling.calculate_price(update.expiration_duration).u128())
+    let _total_price: u128 = updates
+        .iter()
+        .map(|update| {
+            price_scaling
+                .calculate_price(update.expiration_duration)
+                .u128()
+        })
         .sum();
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        updates,
-    );
+    let result = test
+        .ctx
+        .tiles
+        .update_pixel(&mut test.ctx.app, &owner, token_id, updates);
 
     // Verify update failed
     test.assert_error_invalid_config(result, "Invalid pixel id: 100");
