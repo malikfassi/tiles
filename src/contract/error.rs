@@ -9,21 +9,18 @@ pub enum ContractError {
     #[error("Base contract error: {0}")]
     Base(#[from] sg721_base::ContractError),
 
-    #[error("Invalid configuration: {0}")]
-    InvalidConfig(String),
-
-    #[error("Fee error: {0}")]
-    Fee(String),
-
     #[error("Unauthorized")]
     Unauthorized {},
 
-    #[error("Hash mismatch")]
+    #[error("InvalidConfig: {0}")]
+    InvalidConfig(String),
+
+    #[error("HashMismatch")]
     HashMismatch {},
 
-    #[error("Invalid funds: {0}")]
-    InvalidFunds(String),
+    #[error("InsufficientFunds")]
+    InsufficientFunds {},
 
-    #[error("Invalid extension - must be null")]
-    InvalidExtension {},
+    #[error("InvalidFunds: sent amount is greater than required")]
+    InvalidFunds {},
 }

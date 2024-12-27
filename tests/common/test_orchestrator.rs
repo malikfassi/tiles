@@ -188,15 +188,15 @@ impl TestOrchestrator {
         let royalty_amount = total_price * 5 / 100; // 5% royalty
         let owner_amount = total_price - royalty_amount;
 
-        // Find transfer events
-        let transfer_events: Vec<_> = response
+        // Find bank messages
+        let bank_events: Vec<_> = response
             .events
             .iter()
             .filter(|e| e.ty == "transfer")
             .collect();
 
         // Verify royalty transfer to creator
-        let royalty_transfer = transfer_events
+        let royalty_transfer = bank_events
             .iter()
             .find(|e| {
                 e.attributes.iter().any(|a| {
@@ -217,7 +217,7 @@ impl TestOrchestrator {
         );
 
         // Verify owner transfer
-        let owner_transfer = transfer_events
+        let owner_transfer = bank_events
             .iter()
             .find(|e| {
                 e.attributes
@@ -236,5 +236,31 @@ impl TestOrchestrator {
             format!("{}ustars", owner_amount),
             "Incorrect owner amount"
         );
+    }
+
+    pub fn assert_error_insufficient_funds(&self, result: anyhow::Result<cw_multi_test::AppResponse>) {
+        match result {
+            Ok(_) => panic!("Expected insufficient funds error"),
+            Err(e) => {
+                let contract_err: ContractError = e.downcast().unwrap();
+                match contract_err {
+                    ContractError::InsufficientFunds {} => (),
+                    _ => panic!("Expected InsufficientFunds error, got: {:?}", contract_err),
+                }
+            }
+        }
+    }
+
+    pub fn assert_error_invalid_funds(&self, result: anyhow::Result<cw_multi_test::AppResponse>) {
+        match result {
+            Ok(_) => panic!("Expected invalid funds error"),
+            Err(e) => {
+                let contract_err: ContractError = e.downcast().unwrap();
+                match contract_err {
+                    ContractError::InvalidFunds {} => (),
+                    _ => panic!("Expected InvalidFunds error, got: {:?}", contract_err),
+                }
+            }
+        }
     }
 }

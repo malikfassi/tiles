@@ -1,4 +1,4 @@
-use cosmwasm_std::{BankMsg, Coin, DepsMut, Env, MessageInfo, Response, Uint128};
+use cosmwasm_std::{BankMsg, Coin, DepsMut, Env, Fraction, MessageInfo, Response, Uint128};
 use cw721::OwnerOfResponse;
 use sg721::{CollectionInfo, RoyaltyInfoResponse};
 use sg721_base::{msg::QueryMsg as Sg721QueryMsg, Sg721Contract};
@@ -39,10 +39,7 @@ pub fn set_pixel_color(
     )?;
 
     // Get royalty info from collection info
-    let collection_info: CollectionInfo<RoyaltyInfoResponse> = deps.querier.query_wasm_smart(
-        env.contract.address.clone(),
-        &QueryMsg::Base(Sg721QueryMsg::CollectionInfo {}),
-    )?;
+    let collection_info = contract.collection_info.load(deps.storage)?;
     let royalty_info = collection_info
         .royalty_info
         .ok_or_else(|| ContractError::InvalidConfig("No royalty info configured".to_string()))?;
@@ -76,17 +73,18 @@ pub fn set_pixel_color(
     let sent_funds = info.funds.iter().find(|c| c.denom == "ustars");
     match sent_funds {
         Some(coin) if coin.amount == total_price => (),
-        _ => {
-            return Err(ContractError::InvalidFunds(format!(
-                "Expected {} ustars, got {:?}",
-                total_price, info.funds
-            )));
-        }
+        Some(coin) if coin.amount > total_price => return Err(ContractError::InvalidFunds {}),
+        Some(_) | None => return Err(ContractError::InsufficientFunds {}),
     }
 
     // Calculate payment distribution
-    let royalty_amount = total_price * royalty_info.share;
+    let royalty_amount = Uint128::from((total_price * royalty_info.share).u128());
     let owner_amount = total_price - royalty_amount;
+
+    println!("Royalty info: {:?}", royalty_info);
+    println!("Total price: {}", total_price);
+    println!("Royalty amount: {}", royalty_amount);
+    println!("Owner amount: {}", owner_amount);
 
     // Apply all updates at once
     current_metadata.apply_updates(updates, &info.sender, current_time);
@@ -100,32 +98,38 @@ pub fn set_pixel_color(
 
     // Send royalties to creator
     if !royalty_amount.is_zero() {
-        bank_msgs.push(BankMsg::Send {
+        let royalty_msg = BankMsg::Send {
             to_address: royalty_info.payment_address.to_string(),
             amount: vec![Coin {
                 denom: "ustars".to_string(),
                 amount: royalty_amount,
             }],
-        });
+        };
+        println!("Royalty message: {:?}", royalty_msg);
+        bank_msgs.push(royalty_msg);
     }
 
     // Send remaining amount to token owner
     if !owner_amount.is_zero() {
-        bank_msgs.push(BankMsg::Send {
+        let owner_msg = BankMsg::Send {
             to_address: owner.owner,
             amount: vec![Coin {
                 denom: "ustars".to_string(),
                 amount: owner_amount,
             }],
-        });
+        };
+        println!("Owner message: {:?}", owner_msg);
+        bank_msgs.push(owner_msg);
     }
 
-    Ok(Response::new()
+    let response = Response::new()
         .add_messages(bank_msgs)
         .add_attribute("action", "set_pixel_color")
         .add_attribute("token_id", token_id)
         .add_attribute("sender", info.sender)
-        .add_attribute("total_price", total_price)
-        .add_attribute("royalty_amount", royalty_amount)
-        .add_attribute("owner_amount", owner_amount))
+        .add_attribute("royalty_amount", format!("{}ustars", royalty_amount))
+        .add_attribute("owner_amount", format!("{}ustars", owner_amount));
+
+    println!("Response: {:?}", response);
+    Ok(response)
 }

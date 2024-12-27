@@ -1,3 +1,3 @@
+mod pixel;
 mod pricescaling;
 mod mint;
-mod pixel;
