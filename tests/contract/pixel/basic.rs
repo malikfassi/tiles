@@ -13,9 +13,12 @@ fn can_set_pixel_color() -> Result<()> {
         expiration_duration: 3600,
     };
 
-    test.ctx
+    let result = test
+        .ctx
         .tiles
         .update_pixel(&mut test.ctx.app, &owner, token_id, vec![update])?;
+
+    test.assert_pixel_update_event(&result, &token_id.to_string(), &owner);
 
     Ok(())
 }
@@ -43,9 +46,12 @@ fn all_valid_updates_succeed() -> Result<()> {
         },
     ];
 
-    test.ctx
+    let result = test
+        .ctx
         .tiles
         .update_pixel(&mut test.ctx.app, &owner, token_id, updates)?;
+
+    test.assert_pixel_update_event(&result, &token_id.to_string(), &owner);
 
     Ok(())
 }
@@ -73,9 +79,12 @@ fn can_update_multiple_pixels() -> Result<()> {
         },
     ];
 
-    test.ctx
+    let result = test
+        .ctx
         .tiles
         .update_pixel(&mut test.ctx.app, &owner, token_id, updates)?;
+
+    test.assert_pixel_update_event(&result, &token_id.to_string(), &owner);
 
     Ok(())
 }

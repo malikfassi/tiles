@@ -2,6 +2,8 @@ use anyhow::Result;
 use cosmwasm_std::{coins, Addr, Coin};
 use cw721::{NftInfoResponse, OwnerOfResponse};
 use cw_multi_test::ContractWrapper;
+use cw721_base::Action;
+use sg721::{CollectionInfo, RoyaltyInfoResponse, UpdateCollectionInfoMsg};
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 use sg_std::NATIVE_DENOM;
 use tiles::contract::msg::{ExecuteMsg, QueryMsg, TileExecuteMsg};
@@ -166,5 +168,133 @@ impl TilesContract {
             )
             .unwrap();
         assert_eq!(response.owner, expected_owner.to_string());
+    }
+
+    pub fn execute_transfer_nft(
+        &self,
+        app: &mut TestApp,
+        sender: &Addr,
+        recipient: &Addr,
+        token_id: String,
+    ) -> Result<cw_multi_test::AppResponse> {
+        app.execute_contract(
+            sender.clone(),
+            self.contract_addr.clone(),
+            &ExecuteMsg::TransferNft {
+                recipient: recipient.to_string(),
+                token_id,
+            },
+            &[],
+        )
+    }
+
+    pub fn execute_approve(
+        &self,
+        app: &mut TestApp,
+        sender: &Addr,
+        spender: &Addr,
+        token_id: String,
+        expires: Option<cw721::Expiration>,
+    ) -> Result<cw_multi_test::AppResponse> {
+        app.execute_contract(
+            sender.clone(),
+            self.contract_addr.clone(),
+            &ExecuteMsg::Approve {
+                spender: spender.to_string(),
+                token_id,
+                expires,
+            },
+            &[],
+        )
+    }
+
+    pub fn execute_revoke(
+        &self,
+        app: &mut TestApp,
+        sender: &Addr,
+        spender: &Addr,
+        token_id: String,
+    ) -> Result<cw_multi_test::AppResponse> {
+        app.execute_contract(
+            sender.clone(),
+            self.contract_addr.clone(),
+            &ExecuteMsg::Revoke {
+                spender: spender.to_string(),
+                token_id,
+            },
+            &[],
+        )
+    }
+
+    pub fn execute_burn(
+        &self,
+        app: &mut TestApp,
+        sender: &Addr,
+        token_id: String,
+    ) -> Result<cw_multi_test::AppResponse> {
+        app.execute_contract(
+            sender.clone(),
+            self.contract_addr.clone(),
+            &ExecuteMsg::Burn { token_id },
+            &[],
+        )
+    }
+
+    pub fn execute_update_ownership(
+        &self,
+        app: &mut TestApp,
+        sender: &Addr,
+        action: Action,
+    ) -> Result<cw_multi_test::AppResponse> {
+        app.execute_contract(
+            sender.clone(),
+            self.contract_addr.clone(),
+            &ExecuteMsg::UpdateOwnership(action),
+            &[],
+        )
+    }
+
+    pub fn execute_update_collection_info(
+        &self,
+        app: &mut TestApp,
+        sender: &Addr,
+        collection_info: UpdateCollectionInfoMsg<RoyaltyInfoResponse>,
+    ) -> Result<cw_multi_test::AppResponse> {
+        app.execute_contract(
+            sender.clone(),
+            self.contract_addr.clone(),
+            &ExecuteMsg::UpdateCollectionInfo { collection_info },
+            &[],
+        )
+    }
+
+    pub fn execute_freeze_collection_info(
+        &self,
+        app: &mut TestApp,
+        sender: &Addr,
+    ) -> Result<cw_multi_test::AppResponse> {
+        app.execute_contract(
+            sender.clone(),
+            self.contract_addr.clone(),
+            &ExecuteMsg::FreezeCollectionInfo,
+            &[],
+        )
+    }
+
+    pub fn query_owner_of(&self, app: &TestApp, token_id: String) -> Result<OwnerOfResponse> {
+        Ok(app.inner().wrap().query_wasm_smart(
+            self.contract_addr.clone(),
+            &QueryMsg::Base(Sg721QueryMsg::OwnerOf {
+                token_id,
+                include_expired: None,
+            }),
+        )?)
+    }
+
+    pub fn query_collection_info(&self, app: &TestApp) -> Result<CollectionInfo<RoyaltyInfoResponse>> {
+        Ok(app.inner().wrap().query_wasm_smart(
+            self.contract_addr.clone(),
+            &QueryMsg::Base(Sg721QueryMsg::CollectionInfo {}),
+        )?)
     }
 }

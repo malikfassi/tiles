@@ -7,9 +7,3 @@ pub mod metadata;
 pub struct Tile {
     pub tile_hash: String,
 }
-
-impl Tile {
-    pub fn verify_metadata(&self, metadata: &metadata::TileMetadata) -> bool {
-        self.tile_hash == metadata.hash()
-    }
-}

@@ -27,6 +27,8 @@ fn cannot_set_pixel_with_invalid_color() -> Result<()> {
     let mut test = TestOrchestrator::new();
     let (owner, token_id) = test.setup_single_token()?;
 
+    let initial_hash = test.ctx.tiles.query_token_hash(&test.ctx.app, token_id)?;
+
     let update = PixelUpdate {
         id: 0,
         color: "invalid".to_string(),
@@ -37,7 +39,9 @@ fn cannot_set_pixel_with_invalid_color() -> Result<()> {
         .ctx
         .tiles
         .update_pixel(&mut test.ctx.app, &owner, token_id, vec![update]);
+
     test.assert_error_invalid_config(result, "Invalid color format: invalid");
+    test.assert_token_hash(token_id, &initial_hash)?;
 
     Ok(())
 }
