@@ -1,5 +1,5 @@
 use anyhow::Result;
-use cosmwasm_std::{coins, Addr};
+use cosmwasm_std::{coins, Addr, Coin};
 use cw721::{NftInfoResponse, OwnerOfResponse};
 use cw_multi_test::ContractWrapper;
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
@@ -9,6 +9,7 @@ use tiles::core::tile::{
     metadata::{PixelUpdate, TileMetadata},
     Tile,
 };
+use sg_std::NATIVE_DENOM;
 
 use crate::common::app::TestApp;
 
@@ -110,6 +111,28 @@ impl TilesContract {
                 },
             },
             &coins(total_price, "ustars"),
+        )
+    }
+
+    pub fn update_pixel_with_funds(
+        &self,
+        app: &mut TestApp,
+        sender: &Addr,
+        token_id: u32,
+        updates: Vec<PixelUpdate>,
+        funds_amount: u128,
+    ) -> Result<cw_multi_test::AppResponse> {
+        app.execute_contract(
+            sender.clone(),
+            self.contract_addr.clone(),
+            &ExecuteMsg::Extension {
+                msg: TileExecuteMsg::SetPixelColor {
+                    token_id: token_id.to_string(),
+                    current_metadata: TileMetadata::default(),
+                    updates,
+                },
+            },
+            &[Coin::new(funds_amount, NATIVE_DENOM)],
         )
     }
 

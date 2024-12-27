@@ -65,11 +65,6 @@ impl TestOrchestrator {
             .assert_token_owner(&self.ctx.app, token_id, expected_owner);
     }
 
-    pub fn assert_pixel_color(&self, _token_id: u32, _pixel_id: u32, _expected_color: &str) {
-        // TODO: Implement once we have a way to query pixel colors
-        unimplemented!("Pixel color assertion not yet implemented");
-    }
-
     // Error assertion helpers
     pub fn assert_error_invalid_config(&self, result: Result<AppResponse>, expected_msg: &str) {
         match result {

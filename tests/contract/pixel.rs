@@ -709,3 +709,100 @@ fn payment_is_refunded_when_update_fails() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn update_fails_with_duplicate_pixel_ids() -> Result<()> {
+    let mut test = TestOrchestrator::new();
+    let (owner, token_id) = test.setup_single_token()?;
+
+    // Get initial balance
+    let initial_balance = test
+        .ctx
+        .app
+        .inner()
+        .wrap()
+        .query_balance(&owner, "ustars")?
+        .amount
+        .u128();
+
+    let updates = vec![
+        PixelUpdate {
+            id: 0,
+            color: "#FF0000".to_string(),
+            expiration_duration: 3600,
+        },
+        PixelUpdate {
+            id: 0, // Duplicate ID
+            color: "#00FF00".to_string(),
+            expiration_duration: 3600,
+        },
+    ];
+
+    let result = test
+        .ctx
+        .tiles
+        .update_pixel(&mut test.ctx.app, &owner, token_id, updates);
+
+    // Verify update failed
+    test.assert_error_invalid_config(result, "Duplicate pixel id: 0");
+
+    // Verify funds were refunded
+    test.assert_funds_received(&owner, initial_balance, "ustars");
+
+    Ok(())
+}
+
+#[test]
+fn update_fails_with_insufficient_funds() -> Result<()> {
+    let mut test = TestOrchestrator::new();
+    let (_, token_id) = test.setup_single_token()?;
+    let poor_user = test.ctx.users.poor_user();
+
+    let update = PixelUpdate {
+        id: 0,
+        color: "#FF0000".to_string(),
+        expiration_duration: 3600,
+    };
+
+    let result = test.ctx.tiles.update_pixel(
+        &mut test.ctx.app,
+        &poor_user.address,
+        token_id,
+        vec![update],
+    );
+
+    assert!(result.is_err());
+    // Could add more specific error checking if we have a specific error type for insufficient funds
+
+    Ok(())
+}
+
+#[test]
+fn update_fails_with_excess_funds() -> Result<()> {
+    let mut test = TestOrchestrator::new();
+    let (owner, token_id) = test.setup_single_token()?;
+
+    let update = PixelUpdate {
+        id: 0,
+        color: "#FF0000".to_string(),
+        expiration_duration: 3600,
+    };
+
+    // Calculate correct price
+    let price_scaling = test.ctx.tiles.query_price_scaling(&test.ctx.app)?;
+    let correct_price = price_scaling.calculate_price(3600).u128();
+
+    // Send excess funds (double the required amount)
+    let result = test.ctx.tiles.update_pixel_with_funds(
+        &mut test.ctx.app,
+        &owner,
+        token_id,
+        vec![update],
+        correct_price * 2,
+    );
+
+    // Should fail because exact amount is required
+    assert!(result.is_err());
+
+    Ok(())
+}
