@@ -5,7 +5,10 @@ use cw_multi_test::ContractWrapper;
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 use tiles::contract::msg::{ExecuteMsg, QueryMsg, TileExecuteMsg};
 use tiles::core::pricing::PriceScaling;
-use tiles::core::tile::{metadata::{PixelUpdate, TileMetadata}, Tile};
+use tiles::core::tile::{
+    metadata::{PixelUpdate, TileMetadata},
+    Tile,
+};
 
 use crate::common::app::TestApp;
 
@@ -91,7 +94,9 @@ impl TilesContract {
     ) -> Result<cw_multi_test::AppResponse> {
         let price_scaling = self.query_price_scaling(app)?;
         let total_price = updates.iter().fold(0u128, |acc, update| {
-            acc + price_scaling.calculate_price(update.expiration_duration).u128()
+            acc + price_scaling
+                .calculate_price(update.expiration_duration)
+                .u128()
         });
 
         app.execute_contract(

@@ -1,9 +1,9 @@
 pub mod common;
 
 mod contract {
-        pub mod mint;
-        pub mod pixel;
-        pub mod pricescaling;
+    pub mod mint;
+    pub mod pixel;
+    pub mod pricescaling;
 }
 
 mod core {

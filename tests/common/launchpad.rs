@@ -3,7 +3,6 @@ use crate::common::{
     contracts::{factory::FactoryContract, minter::MinterContract, tiles::TilesContract},
     users::TestUsers,
 };
-use cosmwasm_std::Addr;
 
 pub struct Launchpad {
     pub app: TestApp,

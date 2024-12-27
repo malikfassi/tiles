@@ -12,11 +12,10 @@ fn creator_can_update_price_scaling() -> Result<()> {
     let mut test = TestOrchestrator::new();
     let creator = test.ctx.users.tile_contract_creator();
 
-    let result = test.ctx.tiles.update_price_scaling(
-        &mut test.ctx.app,
-        &creator,
-        PriceScaling::default(),
-    );
+    let result =
+        test.ctx
+            .tiles
+            .update_price_scaling(&mut test.ctx.app, &creator, PriceScaling::default());
     assert!(result.is_ok());
 
     Ok(())
@@ -42,11 +41,10 @@ fn admin_cannot_update_price_scaling() -> Result<()> {
     let mut test = TestOrchestrator::new();
     let admin = test.ctx.users.admin();
 
-    let result = test.ctx.tiles.update_price_scaling(
-        &mut test.ctx.app,
-        &admin,
-        PriceScaling::default(),
-    );
+    let result =
+        test.ctx
+            .tiles
+            .update_price_scaling(&mut test.ctx.app, &admin, PriceScaling::default());
     assert!(result.is_err());
 
     Ok(())
@@ -64,11 +62,10 @@ fn cannot_set_hour_1_price_greater_than_hour_12_price() -> Result<()> {
         ..PriceScaling::default()
     };
 
-    let result = test.ctx.tiles.update_price_scaling(
-        &mut test.ctx.app,
-        &creator,
-        invalid_scaling,
-    );
+    let result = test
+        .ctx
+        .tiles
+        .update_price_scaling(&mut test.ctx.app, &creator, invalid_scaling);
     assert!(result.is_err());
 
     Ok(())
@@ -85,11 +82,10 @@ fn cannot_set_hour_12_price_greater_than_hour_24_price() -> Result<()> {
         ..PriceScaling::default()
     };
 
-    let result = test.ctx.tiles.update_price_scaling(
-        &mut test.ctx.app,
-        &creator,
-        invalid_scaling,
-    );
+    let result = test
+        .ctx
+        .tiles
+        .update_price_scaling(&mut test.ctx.app, &creator, invalid_scaling);
     assert!(result.is_err());
 
     Ok(())
@@ -105,11 +101,10 @@ fn cannot_set_zero_hour_1_price() -> Result<()> {
         ..PriceScaling::default()
     };
 
-    let result = test.ctx.tiles.update_price_scaling(
-        &mut test.ctx.app,
-        &creator,
-        invalid_scaling,
-    );
+    let result = test
+        .ctx
+        .tiles
+        .update_price_scaling(&mut test.ctx.app, &creator, invalid_scaling);
     assert!(result.is_err());
 
     Ok(())
@@ -122,11 +117,9 @@ fn price_scaling_update_is_persisted() -> Result<()> {
     let new_scaling = PriceScaling::default();
 
     // Update price scaling
-    test.ctx.tiles.update_price_scaling(
-        &mut test.ctx.app,
-        &creator,
-        new_scaling.clone(),
-    )?;
+    test.ctx
+        .tiles
+        .update_price_scaling(&mut test.ctx.app, &creator, new_scaling.clone())?;
 
     // Query and verify
     let stored_scaling = test.ctx.tiles.query_price_scaling(&test.ctx.app)?;

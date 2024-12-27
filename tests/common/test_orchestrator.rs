@@ -1,7 +1,7 @@
-use std::collections::HashMap;
 use anyhow::Result;
 use cosmwasm_std::Addr;
 use cw_multi_test::AppResponse;
+use std::collections::HashMap;
 use tiles::contract::error::ContractError;
 use tiles::core::tile::metadata::PixelUpdate;
 
@@ -12,6 +12,7 @@ pub struct TestOrchestrator {
     pub state: TestState,
 }
 
+#[derive(Default)]
 pub struct TestState {
     pub minted_tokens: HashMap<Addr, Vec<u32>>, // owner -> token_ids
     pub pixel_updates: HashMap<u32, Vec<PixelUpdate>>, // token_id -> updates
@@ -28,7 +29,8 @@ impl TestOrchestrator {
     // State setup helpers
     pub fn mint_token(&mut self, owner: &Addr) -> Result<u32> {
         let token_id = self.ctx.minter.mint(&mut self.ctx.app, owner)?;
-        self.state.minted_tokens
+        self.state
+            .minted_tokens
             .entry(owner.clone())
             .or_default()
             .push(token_id);
@@ -58,10 +60,12 @@ impl TestOrchestrator {
 
     // Assertions
     pub fn assert_token_owner(&self, token_id: u32, expected_owner: &Addr) {
-        self.ctx.tiles.assert_token_owner(&self.ctx.app, token_id, expected_owner);
+        self.ctx
+            .tiles
+            .assert_token_owner(&self.ctx.app, token_id, expected_owner);
     }
 
-    pub fn assert_pixel_color(&self, token_id: u32, pixel_id: u32, expected_color: &str) {
+    pub fn assert_pixel_color(&self, _token_id: u32, _pixel_id: u32, _expected_color: &str) {
         // TODO: Implement once we have a way to query pixel colors
         unimplemented!("Pixel color assertion not yet implemented");
     }
@@ -111,16 +115,23 @@ impl TestOrchestrator {
         let event = response
             .events
             .iter()
-            .find(|e| e.ty == "wasm" && e.attributes.iter().any(|a| a.key == "action" && a.value == "set_pixel_color"))
+            .find(|e| {
+                e.ty == "wasm"
+                    && e.attributes
+                        .iter()
+                        .any(|a| a.key == "action" && a.value == "set_pixel_color")
+            })
             .expect("Expected set_pixel_color event");
 
-        let token_id_attr = event.attributes
+        let token_id_attr = event
+            .attributes
             .iter()
             .find(|a| a.key == "token_id")
             .expect("Expected token_id attribute");
         assert_eq!(token_id_attr.value, token_id);
 
-        let sender_attr = event.attributes
+        let sender_attr = event
+            .attributes
             .iter()
             .find(|a| a.key == "sender")
             .expect("Expected sender attribute");
@@ -133,12 +144,3 @@ impl TestOrchestrator {
         Ok(())
     }
 }
-
-impl Default for TestState {
-    fn default() -> Self {
-        Self {
-            minted_tokens: HashMap::new(),
-            pixel_updates: HashMap::new(),
-        }
-    }
-} 

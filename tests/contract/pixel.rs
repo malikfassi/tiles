@@ -1,7 +1,6 @@
+use crate::common::TestOrchestrator;
 use anyhow::Result;
 use tiles::core::tile::metadata::{PixelUpdate, TileMetadata};
-use crate::common::TestOrchestrator;
-use crate::common::users::UserRole;
 
 #[test]
 fn can_set_pixel_color() -> Result<()> {
@@ -14,12 +13,10 @@ fn can_set_pixel_color() -> Result<()> {
         expiration_duration: 3600,
     };
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        vec![update],
-    )?;
+    let result = test
+        .ctx
+        .tiles
+        .update_pixel(&mut test.ctx.app, &owner, token_id, vec![update])?;
 
     // Verify events
     test.assert_pixel_update_event(&result, &token_id.to_string(), &owner);
@@ -59,12 +56,10 @@ fn all_valid_updates_succeed() -> Result<()> {
         },
     ];
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        updates.clone(),
-    )?;
+    let result =
+        test.ctx
+            .tiles
+            .update_pixel(&mut test.ctx.app, &owner, token_id, updates.clone())?;
 
     // Verify events
     test.assert_pixel_update_event(&result, &token_id.to_string(), &owner);
@@ -106,12 +101,10 @@ fn batch_fails_with_one_invalid_id() -> Result<()> {
         },
     ];
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        updates,
-    );
+    let result = test
+        .ctx
+        .tiles
+        .update_pixel(&mut test.ctx.app, &owner, token_id, updates);
 
     test.assert_error_invalid_config(result, "Invalid pixel id: 100");
     test.assert_token_hash(token_id, &initial_hash)?;
@@ -144,12 +137,10 @@ fn batch_fails_with_one_invalid_color() -> Result<()> {
         },
     ];
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        updates,
-    );
+    let result = test
+        .ctx
+        .tiles
+        .update_pixel(&mut test.ctx.app, &owner, token_id, updates);
 
     test.assert_error_invalid_config(result, "Invalid color format: invalid");
     test.assert_token_hash(token_id, &initial_hash)?;
@@ -182,12 +173,10 @@ fn batch_fails_with_one_invalid_expiration_too_short() -> Result<()> {
         },
     ];
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        updates,
-    );
+    let result = test
+        .ctx
+        .tiles
+        .update_pixel(&mut test.ctx.app, &owner, token_id, updates);
 
     test.assert_error_invalid_config(result, "Duration must be between 3600 and 86400 seconds");
     test.assert_token_hash(token_id, &initial_hash)?;
@@ -220,12 +209,10 @@ fn batch_fails_with_one_invalid_expiration_too_long() -> Result<()> {
         },
     ];
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        updates,
-    );
+    let result = test
+        .ctx
+        .tiles
+        .update_pixel(&mut test.ctx.app, &owner, token_id, updates);
 
     test.assert_error_invalid_config(result, "Duration must be between 3600 and 86400 seconds");
     test.assert_token_hash(token_id, &initial_hash)?;
@@ -244,12 +231,10 @@ fn cannot_set_pixel_with_invalid_id() -> Result<()> {
         expiration_duration: 3600,
     };
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        vec![update],
-    );
+    let result = test
+        .ctx
+        .tiles
+        .update_pixel(&mut test.ctx.app, &owner, token_id, vec![update]);
     test.assert_error_invalid_config(result, "Invalid pixel id: 100");
 
     Ok(())
@@ -266,12 +251,10 @@ fn cannot_set_pixel_with_invalid_color() -> Result<()> {
         expiration_duration: 3600,
     };
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        vec![update],
-    );
+    let result = test
+        .ctx
+        .tiles
+        .update_pixel(&mut test.ctx.app, &owner, token_id, vec![update]);
     test.assert_error_invalid_config(result, "Invalid color format: invalid");
 
     Ok(())
@@ -288,12 +271,10 @@ fn cannot_set_pixel_with_invalid_expiration() -> Result<()> {
         expiration_duration: 3599, // Less than minimum
     };
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        vec![update],
-    );
+    let result = test
+        .ctx
+        .tiles
+        .update_pixel(&mut test.ctx.app, &owner, token_id, vec![update]);
     test.assert_error_invalid_config(result, "Duration must be between 3600 and 86400 seconds");
 
     Ok(())
@@ -317,12 +298,10 @@ fn can_update_multiple_pixels() -> Result<()> {
         },
     ];
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        updates.clone(),
-    )?;
+    let result =
+        test.ctx
+            .tiles
+            .update_pixel(&mut test.ctx.app, &owner, token_id, updates.clone())?;
 
     // Verify events
     test.assert_pixel_update_event(&result, &token_id.to_string(), &owner);
@@ -354,12 +333,10 @@ fn hash_remains_unchanged_when_update_fails() -> Result<()> {
         expiration_duration: 3600,
     };
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        vec![update],
-    );
+    let result = test
+        .ctx
+        .tiles
+        .update_pixel(&mut test.ctx.app, &owner, token_id, vec![update]);
     test.assert_error_invalid_config(result, "Invalid pixel id: 100");
 
     // Verify hash hasn't changed
@@ -383,12 +360,10 @@ fn hash_changes_correctly_after_update() -> Result<()> {
         expiration_duration: 3600,
     };
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        vec![update.clone()],
-    )?;
+    let result =
+        test.ctx
+            .tiles
+            .update_pixel(&mut test.ctx.app, &owner, token_id, vec![update.clone()])?;
 
     // Verify events
     test.assert_pixel_update_event(&result, &token_id.to_string(), &owner);
@@ -404,7 +379,10 @@ fn hash_changes_correctly_after_update() -> Result<()> {
 
     // Verify hash has changed and matches expected
     test.assert_token_hash(token_id, &expected_hash)?;
-    assert_ne!(initial_hash, expected_hash, "Hash should change after successful update");
+    assert_ne!(
+        initial_hash, expected_hash,
+        "Hash should change after successful update"
+    );
 
     Ok(())
 }
@@ -431,12 +409,10 @@ fn hash_matches_expected_after_multiple_updates() -> Result<()> {
         },
     ];
 
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        updates.clone(),
-    )?;
+    let result =
+        test.ctx
+            .tiles
+            .update_pixel(&mut test.ctx.app, &owner, token_id, updates.clone())?;
 
     // Verify events
     test.assert_pixel_update_event(&result, &token_id.to_string(), &owner);
@@ -452,7 +428,10 @@ fn hash_matches_expected_after_multiple_updates() -> Result<()> {
 
     // Verify hash matches expected
     test.assert_token_hash(token_id, &expected_hash)?;
-    assert_ne!(initial_hash, expected_hash, "Hash should be different from initial");
+    assert_ne!(
+        initial_hash, expected_hash,
+        "Hash should be different from initial"
+    );
 
     Ok(())
 }
@@ -468,12 +447,10 @@ fn cannot_update_with_outdated_metadata() -> Result<()> {
         color: "#FF0000".to_string(),
         expiration_duration: 3600,
     };
-    let result = test.ctx.tiles.update_pixel(
-        &mut test.ctx.app,
-        &owner,
-        token_id,
-        vec![update1],
-    )?;
+    let result = test
+        .ctx
+        .tiles
+        .update_pixel(&mut test.ctx.app, &owner, token_id, vec![update1])?;
     test.assert_pixel_update_event(&result, &token_id.to_string(), &owner);
 
     // Try second update with outdated metadata
