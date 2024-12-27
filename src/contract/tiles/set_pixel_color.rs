@@ -32,7 +32,7 @@ pub fn set_pixel_color(
     let mut seen_ids = HashSet::new();
     let mut total_price = Uint128::zero();
 
-    // Single pass: validate duplicates, calculate price, and apply updates
+    // Single pass: validate duplicates, validate updates, calculate price
     for update in &updates {
         // Check for duplicates
         if !seen_ids.insert(update.id) {
@@ -41,6 +41,12 @@ pub fn set_pixel_color(
                 update.id
             )));
         }
+
+        // First validate the update integrity
+        update.validate_integrity()?;
+
+        // Then validate if it can be applied to the tile
+        update.validate_for_tile(&current_metadata.pixels[update.id as usize], current_time)?;
 
         // Add to total price
         total_price += price_scaling.calculate_price(update.expiration_duration);

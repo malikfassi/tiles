@@ -5,7 +5,7 @@ use sg_std::NATIVE_DENOM;
 use tiles::defaults::constants::MINT_PRICE;
 use vending_minter::msg::{ConfigResponse, ExecuteMsg as MinterExecuteMsg, QueryMsg};
 
-use crate::common::TestApp;
+use crate::common::app::TestApp;
 
 pub struct MinterContract {
     pub contract_addr: Addr,

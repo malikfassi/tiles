@@ -1,5 +1,5 @@
 use super::roles::{UserConfig, UserRole};
-use crate::common::TestApp;
+use crate::common::app::TestApp;
 use cosmwasm_std::{Addr, Coin};
 use sg_std::NATIVE_DENOM;
 use std::collections::HashMap;
@@ -95,10 +95,6 @@ impl TestUsers {
         assert_eq!(balance, expected_balance);
     }
 
-    pub fn get_address(&self, addr: &str) -> Addr {
-        Addr::unchecked(addr)
-    }
-
     pub fn get_buyer(&self) -> &User {
         self.get(UserRole::Buyer)
     }
@@ -111,16 +107,16 @@ impl TestUsers {
         self.get(UserRole::Poor)
     }
 
-    pub fn admin(&self) -> Addr {
-        self.get(UserRole::Admin).address.clone()
-    }
-
     pub fn tile_contract_creator(&self) -> Addr {
         self.get(UserRole::TileContractCreator).address.clone()
     }
 
     pub fn factory_contract_creator(&self) -> Addr {
         self.get(UserRole::FactoryContractCreator).address.clone()
+    }
+
+    pub fn admin(&self) -> Addr {
+        self.get(UserRole::Admin).address.clone()
     }
 
     pub fn fund_all_accounts(&self, app: &mut TestApp) {

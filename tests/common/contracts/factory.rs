@@ -17,7 +17,7 @@ use vending_factory::{
     state::{ParamsExtension, VendingMinterParams},
 };
 
-use crate::common::TestApp;
+use crate::common::app::TestApp;
 
 pub struct FactoryContract {
     pub contract_addr: Addr,

@@ -76,11 +76,7 @@ pub struct PixelUpdate {
 }
 
 impl PixelUpdate {
-    pub fn validate(
-        &self,
-        current_pixel: &PixelData,
-        current_time: u64,
-    ) -> Result<(), ContractError> {
+    pub fn validate_integrity(&self) -> Result<(), ContractError> {
         // Validate pixel id
         if self.id >= PIXELS_PER_TILE {
             return Err(ContractError::InvalidConfig(format!(
@@ -108,6 +104,14 @@ impl PixelUpdate {
             )));
         }
 
+        Ok(())
+    }
+
+    pub fn validate_for_tile(
+        &self,
+        current_pixel: &PixelData,
+        current_time: u64,
+    ) -> Result<(), ContractError> {
         // Validate current pixel is expired
         if current_pixel.expiration_timestamp > current_time {
             return Err(ContractError::InvalidConfig(

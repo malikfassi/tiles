@@ -1,13 +1,13 @@
 use anyhow::Result;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{coins, Addr};
 use cw721::{NftInfoResponse, OwnerOfResponse};
 use cw_multi_test::ContractWrapper;
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 use tiles::contract::msg::{ExecuteMsg, QueryMsg, TileExecuteMsg};
 use tiles::core::pricing::PriceScaling;
-use tiles::core::tile::Tile;
+use tiles::core::tile::{metadata::{PixelUpdate, TileMetadata}, Tile};
 
-use crate::common::TestApp;
+use crate::common::app::TestApp;
 
 pub struct TilesContract {
     pub contract_addr: Addr,
@@ -71,30 +71,51 @@ impl TilesContract {
         response
     }
 
-    pub fn query_token_owner(&self, app: &TestApp, token_id: u32) -> Result<Addr> {
-        let response: OwnerOfResponse = app.inner().wrap().query_wasm_smart(
+    pub fn update_pixel(
+        &self,
+        app: &mut TestApp,
+        sender: &Addr,
+        token_id: u32,
+        updates: Vec<PixelUpdate>,
+    ) -> Result<cw_multi_test::AppResponse> {
+        self.update_pixel_with_metadata(app, sender, token_id, updates, TileMetadata::default())
+    }
+
+    pub fn update_pixel_with_metadata(
+        &self,
+        app: &mut TestApp,
+        sender: &Addr,
+        token_id: u32,
+        updates: Vec<PixelUpdate>,
+        current_metadata: TileMetadata,
+    ) -> Result<cw_multi_test::AppResponse> {
+        let price_scaling = self.query_price_scaling(app)?;
+        let total_price = updates.iter().fold(0u128, |acc, update| {
+            acc + price_scaling.calculate_price(update.expiration_duration).u128()
+        });
+
+        app.execute_contract(
+            sender.clone(),
             self.contract_addr.clone(),
-            &QueryMsg::Base(Sg721QueryMsg::OwnerOf {
-                token_id: token_id.to_string(),
-                include_expired: None,
-            }),
-        )?;
-        Ok(Addr::unchecked(response.owner))
+            &ExecuteMsg::Extension {
+                msg: TileExecuteMsg::SetPixelColor {
+                    token_id: token_id.to_string(),
+                    current_metadata,
+                    updates,
+                },
+            },
+            &coins(total_price, "ustars"),
+        )
     }
 
     pub fn query_token_hash(&self, app: &TestApp, token_id: u32) -> Result<String> {
-        let nft_info: NftInfoResponse<Tile> = app.inner().wrap().query_wasm_smart(
+        let response: NftInfoResponse<Tile> = app.inner().wrap().query_wasm_smart(
             self.contract_addr.clone(),
             &QueryMsg::Base(Sg721QueryMsg::NftInfo {
                 token_id: token_id.to_string(),
             }),
         )?;
-        Ok(nft_info.extension.tile_hash)
-    }
-
-    pub fn assert_token_owner(&self, app: &TestApp, token_id: u32, expected_owner: &Addr) {
-        let actual_owner = self.query_token_owner(app, token_id).unwrap();
-        assert_eq!(actual_owner, *expected_owner);
+        Ok(response.extension.tile_hash)
     }
 
     pub fn query_price_scaling(&self, app: &TestApp) -> Result<PriceScaling> {
@@ -102,5 +123,20 @@ impl TilesContract {
             .inner()
             .wrap()
             .query_wasm_smart(self.contract_addr.clone(), &QueryMsg::PriceScaling {})?)
+    }
+
+    pub fn assert_token_owner(&self, app: &TestApp, token_id: u32, expected_owner: &Addr) {
+        let response: OwnerOfResponse = app
+            .inner()
+            .wrap()
+            .query_wasm_smart(
+                self.contract_addr.clone(),
+                &QueryMsg::Base(Sg721QueryMsg::OwnerOf {
+                    token_id: token_id.to_string(),
+                    include_expired: None,
+                }),
+            )
+            .unwrap();
+        assert_eq!(response.owner, expected_owner.to_string());
     }
 }

@@ -1,5 +1,5 @@
 mod roles;
-pub mod test_users;
+mod test_users;
 
-pub use roles::{UserConfig, UserRole};
-pub use test_users::*;
+pub use roles::UserRole;
+pub use test_users::TestUsers;
