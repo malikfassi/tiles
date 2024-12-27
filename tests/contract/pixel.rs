@@ -470,3 +470,50 @@ fn cannot_update_with_outdated_metadata() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn cannot_update_non_expired_pixel() -> Result<()> {
+    let mut test = TestOrchestrator::new();
+    let (owner, token_id) = test.setup_single_token()?;
+
+    // First update
+    let initial_update = PixelUpdate {
+        id: 0,
+        color: "#FF0000".to_string(),
+        expiration_duration: 3600,
+    };
+    let result = test.ctx.tiles.update_pixel(
+        &mut test.ctx.app,
+        &owner,
+        token_id,
+        vec![initial_update.clone()],
+    )?;
+    test.assert_pixel_update_event(&result, &token_id.to_string(), &owner);
+
+    // Try to update the same pixel before expiration
+    let update = PixelUpdate {
+        id: 0,
+        color: "#00FF00".to_string(),
+        expiration_duration: 3600,
+    };
+
+    // Get current metadata to avoid hash mismatch error
+    let mut current_metadata = TileMetadata::default();
+    current_metadata.apply_updates(
+        vec![initial_update],
+        &owner,
+        test.ctx.app.inner().block_info().time.seconds(),
+    );
+
+    let result = test.ctx.tiles.update_pixel_with_metadata(
+        &mut test.ctx.app,
+        &owner,
+        token_id,
+        vec![update],
+        current_metadata,
+    );
+
+    test.assert_error_invalid_config(result, "Pixel is not expired yet");
+
+    Ok(())
+}
