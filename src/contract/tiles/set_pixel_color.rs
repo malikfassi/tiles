@@ -1,7 +1,7 @@
 use cosmwasm_std::{BankMsg, Coin, DepsMut, Env, MessageInfo, Response, Uint128};
 use cw721::OwnerOfResponse;
-use sg721_base::{msg::QueryMsg as Sg721QueryMsg, Sg721Contract};
 use sg721::{CollectionInfo, RoyaltyInfoResponse};
+use sg721_base::{msg::QueryMsg as Sg721QueryMsg, Sg721Contract};
 use sg_std::StargazeMsgWrapper;
 use std::collections::HashSet;
 
@@ -43,9 +43,9 @@ pub fn set_pixel_color(
         env.contract.address.clone(),
         &QueryMsg::Base(Sg721QueryMsg::CollectionInfo {}),
     )?;
-    let royalty_info = collection_info.royalty_info.ok_or_else(|| {
-        ContractError::InvalidConfig("No royalty info configured".to_string())
-    })?;
+    let royalty_info = collection_info
+        .royalty_info
+        .ok_or_else(|| ContractError::InvalidConfig("No royalty info configured".to_string()))?;
 
     let price_scaling = PRICE_SCALING.load(deps.storage)?;
     let current_time = env.block.time.seconds();
