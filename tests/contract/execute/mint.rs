@@ -1,7 +1,7 @@
 #[cfg(test)]
 use crate::common::launchpad::Launchpad;
-use tiles::defaults::constants::MINT_PRICE;
 use tiles::core::tile::metadata::TileMetadata;
+use tiles::defaults::constants::MINT_PRICE;
 
 #[test]
 fn test_mint_success() {
@@ -33,13 +33,16 @@ fn test_mint_default_hash() {
     let buyer = ctx.users.get_buyer();
 
     let token_id = ctx.minter.mint(&mut ctx.app, &buyer.address).unwrap();
-    
+
     // Query the token's hash
     let token_hash = ctx.tiles.query_token_hash(&ctx.app, token_id).unwrap();
-    
+
     // Compute the expected default hash
     let default_metadata = TileMetadata::default();
     let expected_hash = default_metadata.hash();
-    
-    assert_eq!(token_hash, expected_hash, "Newly minted token should have the default metadata hash");
+
+    assert_eq!(
+        token_hash, expected_hash,
+        "Newly minted token should have the default metadata hash"
+    );
 }

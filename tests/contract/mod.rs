@@ -3,8 +3,8 @@ mod instantiate {
 }
 
 mod execute {
-    mod pricescaling;
     mod mint;
+    mod pricescaling;
 }
 
 mod query {

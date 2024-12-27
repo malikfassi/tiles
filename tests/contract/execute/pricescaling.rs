@@ -1,7 +1,9 @@
 use crate::common::launchpad::Launchpad;
 use cosmwasm_std::Uint128;
 use tiles::core::pricing::PriceScaling;
-use tiles::defaults::constants::{DEFAULT_PRICE_1_HOUR, DEFAULT_PRICE_12_HOURS, DEFAULT_PRICE_24_HOURS};
+use tiles::defaults::constants::{
+    DEFAULT_PRICE_12_HOURS, DEFAULT_PRICE_1_HOUR, DEFAULT_PRICE_24_HOURS,
+};
 
 #[test]
 fn creator_can_update_price_scaling() {
@@ -17,9 +19,9 @@ fn creator_can_update_price_scaling() {
 fn buyer_cannot_update_price_scaling() {
     let mut ctx = Launchpad::new();
     let buyer = ctx.users.get_buyer();
-    let result = ctx
-        .tiles
-        .update_price_scaling(&mut ctx.app, &buyer.address, PriceScaling::default());
+    let result =
+        ctx.tiles
+            .update_price_scaling(&mut ctx.app, &buyer.address, PriceScaling::default());
     assert!(result.is_err());
 }
 
@@ -37,14 +39,14 @@ fn admin_cannot_update_price_scaling() {
 fn cannot_set_hour_1_price_greater_than_hour_12_price() {
     let mut ctx = Launchpad::new();
     let creator = ctx.users.tile_contract_creator();
-    
+
     let invalid_scaling = PriceScaling {
         hour_1_price: Uint128::from(DEFAULT_PRICE_12_HOURS),
         hour_12_price: Uint128::from(DEFAULT_PRICE_1_HOUR),
         hour_24_price: Uint128::from(DEFAULT_PRICE_24_HOURS),
         ..PriceScaling::default()
     };
-    
+
     let result = ctx
         .tiles
         .update_price_scaling(&mut ctx.app, &creator, invalid_scaling);
@@ -55,13 +57,13 @@ fn cannot_set_hour_1_price_greater_than_hour_12_price() {
 fn cannot_set_hour_12_price_greater_than_hour_24_price() {
     let mut ctx = Launchpad::new();
     let creator = ctx.users.tile_contract_creator();
-    
+
     let invalid_scaling = PriceScaling {
         hour_12_price: Uint128::from(DEFAULT_PRICE_24_HOURS),
         hour_24_price: Uint128::from(DEFAULT_PRICE_12_HOURS),
         ..PriceScaling::default()
     };
-    
+
     let result = ctx
         .tiles
         .update_price_scaling(&mut ctx.app, &creator, invalid_scaling);
@@ -72,12 +74,12 @@ fn cannot_set_hour_12_price_greater_than_hour_24_price() {
 fn cannot_set_zero_hour_1_price() {
     let mut ctx = Launchpad::new();
     let creator = ctx.users.tile_contract_creator();
-    
+
     let invalid_scaling = PriceScaling {
         hour_1_price: Uint128::zero(),
         ..PriceScaling::default()
     };
-    
+
     let result = ctx
         .tiles
         .update_price_scaling(&mut ctx.app, &creator, invalid_scaling);
