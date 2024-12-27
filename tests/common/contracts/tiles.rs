@@ -3,13 +3,13 @@ use cosmwasm_std::{coins, Addr, Coin};
 use cw721::{NftInfoResponse, OwnerOfResponse};
 use cw_multi_test::ContractWrapper;
 use sg721_base::msg::QueryMsg as Sg721QueryMsg;
+use sg_std::NATIVE_DENOM;
 use tiles::contract::msg::{ExecuteMsg, QueryMsg, TileExecuteMsg};
 use tiles::core::pricing::PriceScaling;
 use tiles::core::tile::{
     metadata::{PixelUpdate, TileMetadata},
     Tile,
 };
-use sg_std::NATIVE_DENOM;
 
 use crate::common::app::TestApp;
 
