@@ -3,7 +3,7 @@ mod instantiate {
 }
 
 mod execute {
-    mod config;
+    mod pricescaling;
     mod mint;
 }
 

@@ -1,2 +1,2 @@
 mod mint;
-mod config; 
+mod pricescaling;

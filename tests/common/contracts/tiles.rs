@@ -82,7 +82,7 @@ impl TilesContract {
         Ok(Addr::unchecked(response.owner))
     }
 
-    pub fn query_tile_hash(&self, app: &TestApp, token_id: u32) -> Result<String> {
+    pub fn query_token_hash(&self, app: &TestApp, token_id: u32) -> Result<String> {
         let nft_info: NftInfoResponse<Tile> = app.inner().wrap().query_wasm_smart(
             self.contract_addr.clone(),
             &QueryMsg::Base(Sg721QueryMsg::NftInfo {
