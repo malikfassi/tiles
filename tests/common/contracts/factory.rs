@@ -20,7 +20,7 @@ pub struct FactoryContract {
 }
 
 impl FactoryContract {
-    pub fn new(app: &mut TestApp, label: &str) -> Self {
+    pub fn new(_app: &mut TestApp, label: &str) -> Self {
         Self {
             contract_addr: Addr::unchecked("factory111"), // Default address that will be updated
             label: label.to_string(),

@@ -2,7 +2,7 @@ use cosmwasm_std::{Addr, Coin, Decimal};
 use cw_multi_test::ContractWrapper;
 use sg2::msg::CollectionParams;
 use sg721::{CollectionInfo, RoyaltyInfoResponse};
-use sg_std::GENESIS_MINT_START_TIME;
+
 use sg_std::NATIVE_DENOM;
 use tiles::contract::{
     execute::execute_handler, instantiate::instantiate_handler, query::query_handler,

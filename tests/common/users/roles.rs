@@ -36,14 +36,14 @@ impl UserConfig {
     pub fn buyer() -> Self {
         Self {
             role: UserRole::Buyer,
-            initial_balance: MINT_PRICE as u128 * 10,
+            initial_balance: MINT_PRICE * 10,
         }
     }
 
     pub fn whale() -> Self {
         Self {
             role: UserRole::Whale,
-            initial_balance: MINT_PRICE as u128 * 100,
+            initial_balance: MINT_PRICE * 100,
         }
     }
 

@@ -10,7 +10,7 @@ fn test_mint_success() {
     let token_id = ctx.minter.mint(&mut ctx.app, &buyer.address).unwrap();
 
     let final_balance = ctx.app.get_balance(&buyer.address, "ustars").unwrap();
-    assert_eq!(initial_balance - MINT_PRICE as u128, final_balance);
+    assert_eq!(initial_balance - MINT_PRICE, final_balance);
 
     ctx.tiles
         .assert_token_owner(&ctx.app, token_id, &buyer.address);

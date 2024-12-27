@@ -3,9 +3,9 @@ use crate::common::{launchpad::Launchpad, TestApp};
 #[test]
 fn test_setup() {
     let ctx = Launchpad::new();
-    assert!(ctx.factory.contract_addr.as_str().len() > 0);
-    assert!(ctx.minter.contract_addr.as_str().len() > 0);
-    assert!(ctx.tiles.contract_addr.as_str().len() > 0);
+    assert!(!ctx.factory.contract_addr.as_str().is_empty());
+    assert!(!ctx.minter.contract_addr.as_str().is_empty());
+    assert!(!ctx.tiles.contract_addr.as_str().is_empty());
 }
 
 #[test]
