@@ -5,7 +5,6 @@ use cw721::{NftInfoResponse, OwnerOfResponse};
 use cw721_base::Action;
 use cw_multi_test::ContractWrapper;
 use sg721::{CollectionInfo, RoyaltyInfoResponse, UpdateCollectionInfoMsg};
-use sg721_base::msg::QueryMsg as Sg721QueryMsg;
 use sg_std::NATIVE_DENOM;
 use tiles::contract::msg::{ExecuteMsg, QueryMsg, TileExecuteMsg};
 use tiles::core::pricing::PriceScaling;

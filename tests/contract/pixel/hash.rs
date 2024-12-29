@@ -1,7 +1,7 @@
 use crate::common::TestOrchestrator;
 use anyhow::Result;
 use tiles::core::pricing::PriceScaling;
-use tiles::core::tile::metadata::{PixelUpdate, TileMetadata};
+use tiles::core::tile::metadata::PixelUpdate;
 use tiles::defaults::constants::DEFAULT_ROYALTY_SHARE;
 
 #[test]

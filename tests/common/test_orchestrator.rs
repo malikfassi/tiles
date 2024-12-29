@@ -25,6 +25,12 @@ pub struct TestState {
     pub token_metadata: HashMap<u32, TileMetadata>, // token_id -> current metadata
 }
 
+impl Default for TestOrchestrator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TestOrchestrator {
     pub fn new() -> Self {
         Self {

@@ -1,7 +1,5 @@
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
-use cw721_base::Extension;
 
-use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 
 use crate::contract::{

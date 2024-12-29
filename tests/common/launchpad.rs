@@ -12,6 +12,12 @@ pub struct Launchpad {
     pub tiles: TilesContract,
 }
 
+impl Default for Launchpad {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Launchpad {
     pub fn new() -> Self {
         let mut app = TestApp::new();
