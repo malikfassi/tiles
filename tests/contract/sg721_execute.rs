@@ -3,11 +3,7 @@ use cosmwasm_std::{to_json_binary, Addr};
 use cw721_base::Action;
 use sg721::UpdateCollectionInfoMsg;
 
-use crate::common::{
-    extract_token_id,
-    launchpad::Launchpad,
-    test_context::TestContext,
-};
+use crate::common::{extract_token_id, launchpad::Launchpad, test_context::TestContext};
 
 #[test]
 fn test_transfer_nft() -> Result<()> {
@@ -24,7 +20,8 @@ fn test_transfer_nft() -> Result<()> {
     )?;
 
     // Verify new owner
-    ctx.tiles.assert_token_owner(&ctx.app, token_id, &recipient.address);
+    ctx.tiles
+        .assert_token_owner(&ctx.app, token_id, &recipient.address);
     Ok(())
 }
 
@@ -48,7 +45,8 @@ fn test_send_nft() -> Result<()> {
     assert!(result.is_err());
 
     // Verify owner hasn't changed
-    ctx.tiles.assert_token_owner(&ctx.app, token_id, &buyer.address);
+    ctx.tiles
+        .assert_token_owner(&ctx.app, token_id, &buyer.address);
     Ok(())
 }
 
@@ -80,7 +78,9 @@ fn test_approve_operations() -> Result<()> {
     )?;
 
     // Verify new owner
-    launchpad.tiles.assert_token_owner(&launchpad.app, token_id, &recipient.address);
+    launchpad
+        .tiles
+        .assert_token_owner(&launchpad.app, token_id, &recipient.address);
 
     // Transfer back to original owner
     launchpad.tiles.execute_transfer_nft(
@@ -142,7 +142,9 @@ fn test_approve_all_operations() -> Result<()> {
         )?;
 
         // Verify new owner
-        launchpad.tiles.assert_token_owner(&launchpad.app, token_id, &recipient.address);
+        launchpad
+            .tiles
+            .assert_token_owner(&launchpad.app, token_id, &recipient.address);
 
         // Transfer back to original owner
         launchpad.tiles.execute_transfer_nft(
@@ -154,11 +156,9 @@ fn test_approve_all_operations() -> Result<()> {
     }
 
     // Test revoke all
-    launchpad.tiles.execute_revoke_all(
-        &mut launchpad.app,
-        &owner.address,
-        &operator.address,
-    )?;
+    launchpad
+        .tiles
+        .execute_revoke_all(&mut launchpad.app, &owner.address, &operator.address)?;
 
     // Verify operator can no longer transfer tokens
     let result = launchpad.tiles.execute_transfer_nft(
@@ -179,7 +179,9 @@ fn test_update_ownership() -> Result<()> {
     let new_owner = Addr::unchecked("new_contract_owner");
 
     // First mint a token to ensure contract is properly initialized
-    let response = launchpad.minter.mint(&mut launchpad.app, &launchpad.users.get_buyer().address)?;
+    let response = launchpad
+        .minter
+        .mint(&mut launchpad.app, &launchpad.users.get_buyer().address)?;
     let _token_id = extract_token_id(&response);
 
     // Transfer ownership
@@ -239,11 +241,8 @@ fn test_burn_nft() -> Result<()> {
     let (mut ctx, token_id, _) = TestContext::with_minted_token(&buyer.address)?;
 
     // Burn NFT
-    ctx.tiles.execute_burn(
-        &mut ctx.app,
-        &buyer.address,
-        token_id.to_string(),
-    )?;
+    ctx.tiles
+        .execute_burn(&mut ctx.app, &buyer.address, token_id.to_string())?;
 
     // Verify token no longer exists
     let result = ctx.tiles.query_owner_of(&ctx.app, token_id.to_string());
@@ -256,7 +255,7 @@ fn test_update_collection_info() -> Result<()> {
     let buyer = TestContext::new().users.get_buyer().clone();
     let (mut ctx, token_id, _) = TestContext::with_minted_token(&buyer.address)?;
     let creator = ctx.users.tile_contract_creator().clone();
-    
+
     let new_info = UpdateCollectionInfoMsg {
         creator: Some(creator.address.to_string()),
         description: Some("Updated description".to_string()),
@@ -288,10 +287,8 @@ fn test_freeze_collection_info() -> Result<()> {
     let creator = ctx.users.tile_contract_creator().clone();
 
     // Freeze collection info
-    ctx.tiles.execute_freeze_collection_info(
-        &mut ctx.app,
-        &creator.address,
-    )?;
+    ctx.tiles
+        .execute_freeze_collection_info(&mut ctx.app, &creator.address)?;
 
     // Attempt to update collection info should fail
     let new_collection_info = UpdateCollectionInfoMsg {

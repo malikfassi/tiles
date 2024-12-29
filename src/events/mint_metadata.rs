@@ -18,14 +18,13 @@ impl EventData for MintMetadataEventData {
     }
 
     fn into_event(self) -> Event {
-        Event::new(Self::event_type().as_str())
-            .add_attributes(vec![
-                Attribute::new("token_id", self.token_id),
-                Attribute::new("owner", self.owner),
-                Attribute::new("token_uri", self.token_uri),
-                Attribute::new("tile_hash", self.tile_hash),
-                Attribute::new("time", self.time),
-            ])
+        Event::new(Self::event_type().as_str()).add_attributes(vec![
+            Attribute::new("token_id", self.token_id),
+            Attribute::new("owner", self.owner),
+            Attribute::new("token_uri", self.token_uri),
+            Attribute::new("tile_hash", self.tile_hash),
+            Attribute::new("time", self.time),
+        ])
     }
 
     fn try_from_event(event: &Event) -> Option<Self> {
@@ -58,4 +57,4 @@ impl EventData for MintMetadataEventData {
             time: time?,
         })
     }
-} 
+}

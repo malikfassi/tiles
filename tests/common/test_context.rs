@@ -3,16 +3,16 @@ use cosmwasm_std::Addr;
 use cw_multi_test::AppResponse;
 use std::collections::HashMap;
 use tiles::{
-    core::tile::metadata::{PixelUpdate, TileMetadata, PixelData},
-    events::{EventData, MetadataUpdateEventData, PixelUpdateEventData, MintMetadataEventData},
+    core::tile::metadata::{PixelData, PixelUpdate, TileMetadata},
+    events::{EventData, MintMetadataEventData, PixelUpdateEventData},
 };
 
 use crate::common::{
     app::TestApp,
     contracts::{FactoryContract, MinterContract, TilesContract},
+    launchpad::Launchpad,
     users::TestUsers,
     EventAssertions,
-    launchpad::Launchpad,
 };
 
 pub struct TestContext {
@@ -22,6 +22,12 @@ pub struct TestContext {
     pub minter: MinterContract,
     pub factory: FactoryContract,
     token_metadata: HashMap<u32, TileMetadata>,
+}
+
+impl Default for TestContext {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl TestContext {
@@ -48,29 +54,41 @@ impl TestContext {
     pub fn mint_token(&mut self, buyer: &Addr) -> Result<AppResponse> {
         let response = self.minter.mint(&mut self.app, buyer)?;
         let token_id = EventAssertions::extract_token_id(&response);
-        
+
         // Parse the mint metadata event to get the initial metadata
-        let events = EventAssertions::find_events(&response, MintMetadataEventData::event_type().as_wasm_str().as_str());
-        let event = events.first().ok_or_else(|| anyhow::anyhow!("No mint metadata event found"))?;
+        let events = EventAssertions::find_events(
+            &response,
+            MintMetadataEventData::event_type().as_wasm_str().as_str(),
+        );
+        let event = events
+            .first()
+            .ok_or_else(|| anyhow::anyhow!("No mint metadata event found"))?;
         let metadata_event = MintMetadataEventData::try_from_event(event)
             .ok_or_else(|| anyhow::anyhow!("Failed to parse mint metadata event"))?;
-        
+
         // Create initial metadata with default state
         let metadata = TileMetadata::default();
-        assert_eq!(metadata.hash(), metadata_event.tile_hash, "Initial metadata hash mismatch");
+        assert_eq!(
+            metadata.hash(),
+            metadata_event.tile_hash,
+            "Initial metadata hash mismatch"
+        );
         self.token_metadata.insert(token_id, metadata);
-        
+
         Ok(response)
     }
 
     pub fn assert_balance(&self, addr: &Addr, denom: &str, expected: u128) {
-        let balance = self.app.get_balance(addr, denom)
+        let balance = self
+            .app
+            .get_balance(addr, denom)
             .expect("Failed to get balance");
         assert_eq!(balance, expected, "Balance mismatch");
     }
 
     pub fn get_token_metadata(&self, token_id: u32) -> Result<TileMetadata> {
-        self.token_metadata.get(&token_id)
+        self.token_metadata
+            .get(&token_id)
             .cloned()
             .ok_or_else(|| anyhow::anyhow!("No metadata found for token {}", token_id))
     }
@@ -111,4 +129,4 @@ impl TestContext {
 
         Ok(response)
     }
-} 
+}

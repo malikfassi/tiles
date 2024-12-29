@@ -1,8 +1,5 @@
 use anyhow::Result;
-use tiles::{
-    core::tile::metadata::TileMetadata,
-    defaults::constants::MINT_PRICE,
-};
+use tiles::{core::tile::metadata::TileMetadata, defaults::constants::MINT_PRICE};
 
 use crate::common::{EventAssertions, TestContext};
 
@@ -10,14 +7,17 @@ use crate::common::{EventAssertions, TestContext};
 fn test_successful_mint() -> Result<()> {
     let mut ctx = TestContext::new();
     let buyer = ctx.users.get_buyer().clone();
-    let initial_balance = ctx.app.get_balance(&buyer.address, "ustars")
+    let initial_balance = ctx
+        .app
+        .get_balance(&buyer.address, "ustars")
         .expect("Failed to get balance");
 
     let response = ctx.mint_token(&buyer.address)?;
     let token_id = EventAssertions::extract_token_id(&response);
 
     ctx.assert_balance(&buyer.address, "ustars", initial_balance - MINT_PRICE);
-    ctx.tiles.assert_token_owner(&ctx.app, token_id, &buyer.address);
+    ctx.tiles
+        .assert_token_owner(&ctx.app, token_id, &buyer.address);
     EventAssertions::assert_mint_metadata(&response, token_id, &buyer.address, None);
 
     Ok(())
@@ -27,7 +27,7 @@ fn test_successful_mint() -> Result<()> {
 fn test_insufficient_funds() -> Result<()> {
     let mut ctx = TestContext::new();
     let user = ctx.users.poor_user().clone();
-    
+
     let result = ctx.mint_token(&user.address);
     assert!(result.is_err());
 
@@ -38,7 +38,7 @@ fn test_insufficient_funds() -> Result<()> {
 fn test_default_hash() -> Result<()> {
     let mut ctx = TestContext::new();
     let buyer = ctx.users.get_buyer().clone();
-    
+
     let response = ctx.mint_token(&buyer.address)?;
     let token_id = EventAssertions::extract_token_id(&response);
 
@@ -58,7 +58,7 @@ fn test_default_hash() -> Result<()> {
         &response,
         token_id,
         &buyer.address,
-        Some(&expected_hash)
+        Some(&expected_hash),
     );
 
     Ok(())

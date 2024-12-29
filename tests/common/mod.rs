@@ -5,9 +5,9 @@ pub mod launchpad;
 pub mod test_context;
 pub mod users;
 
+use cw_multi_test::AppResponse;
 pub use event_assertions::EventAssertions;
 pub use test_context::TestContext;
-use cw_multi_test::AppResponse;
 
 pub fn extract_token_id(response: &AppResponse) -> u32 {
     response

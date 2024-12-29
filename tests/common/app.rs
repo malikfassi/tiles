@@ -1,11 +1,17 @@
 use cosmwasm_std::{Addr, Coin, Timestamp};
-use cw_multi_test::{Contract, Executor};
+use cw_multi_test::Contract;
 use sg_multi_test::StargazeApp;
 use sg_std::StargazeMsgWrapper;
 use sg_std::GENESIS_MINT_START_TIME;
 
 pub struct TestApp {
     app: StargazeApp,
+}
+
+impl Default for TestApp {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl TestApp {
@@ -42,16 +48,18 @@ impl TestApp {
     }
 
     pub fn get_balance(&self, addr: &Addr, denom: &str) -> Option<u128> {
-        self.app.wrap().query_balance(addr.to_string(), denom).ok().map(|c| c.amount.u128())
+        self.app
+            .wrap()
+            .query_balance(addr.to_string(), denom)
+            .ok()
+            .map(|c| c.amount.u128())
     }
 
     pub fn fund_account(&mut self, addr: &Addr, amount: u128, denom: &str) -> anyhow::Result<()> {
         self.app.init_modules(|router, _, storage| {
-            router.bank.init_balance(
-                storage,
-                addr,
-                vec![Coin::new(amount, denom)],
-            )
+            router
+                .bank
+                .init_balance(storage, addr, vec![Coin::new(amount, denom)])
         })
     }
 }

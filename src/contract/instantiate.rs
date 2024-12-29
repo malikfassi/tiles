@@ -1,8 +1,8 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
+use serde_json;
 use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
-use serde_json;
 
 use crate::{
     contract::{error::ContractError, msg::InstantiateMsg, state::PRICE_SCALING},
@@ -33,7 +33,8 @@ pub fn instantiate_handler(
         minter: msg.minter,
         price_scaling: serde_json::to_string(&price_scaling).unwrap_or_default(),
         time: env.block.time.to_string(),
-    }.into_event();
+    }
+    .into_event();
 
     Ok(Response::new()
         .add_event(config_event)

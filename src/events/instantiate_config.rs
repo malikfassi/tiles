@@ -17,13 +17,12 @@ impl EventData for InstantiateConfigEventData {
     }
 
     fn into_event(self) -> Event {
-        Event::new(Self::event_type().as_str())
-            .add_attributes(vec![
-                Attribute::new("collection_info", self.collection_info),
-                Attribute::new("minter", self.minter),
-                Attribute::new("price_scaling", self.price_scaling),
-                Attribute::new("time", self.time),
-            ])
+        Event::new(Self::event_type().as_str()).add_attributes(vec![
+            Attribute::new("collection_info", self.collection_info),
+            Attribute::new("minter", self.minter),
+            Attribute::new("price_scaling", self.price_scaling),
+            Attribute::new("time", self.time),
+        ])
     }
 
     fn try_from_event(event: &Event) -> Option<Self> {
@@ -53,4 +52,4 @@ impl EventData for InstantiateConfigEventData {
             time: time?,
         })
     }
-} 
+}

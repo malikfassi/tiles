@@ -18,13 +18,19 @@ pub struct Launchpad {
     pub minter: MinterContract,
 }
 
+impl Default for Launchpad {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Launchpad {
     pub fn new_empty() -> Self {
         let mut app = TestApp::new();
         let users = TestUsers::new();
         users.init_balances(&mut app); // Initialize user balances
         let factory = FactoryContract::new(&mut app, "factory");
-        
+
         Self {
             app,
             users,
@@ -61,18 +67,14 @@ impl Launchpad {
         Ok((addr, response))
     }
 
-    pub fn create_minter(
-        &mut self,
-        collection_code_id: u64,
-    ) -> Result<(Addr, Addr, AppResponse)> {
+    pub fn create_minter(&mut self, collection_code_id: u64) -> Result<(Addr, Addr, AppResponse)> {
         let creator = self.users.tile_contract_creator();
-        self.app.fund_account(&creator.address, CREATION_FEE, NATIVE_DENOM)?;
-        
-        let (minter_addr, tiles_addr, response) = self.factory.create_test_minter(
-            &mut self.app,
-            &creator.address,
-            collection_code_id,
-        )?;
+        self.app
+            .fund_account(&creator.address, CREATION_FEE, NATIVE_DENOM)?;
+
+        let (minter_addr, tiles_addr, response) =
+            self.factory
+                .create_test_minter(&mut self.app, &creator.address, collection_code_id)?;
 
         self.minter = MinterContract::new(minter_addr.clone());
         self.tiles = TilesContract::new(tiles_addr.clone());
@@ -85,7 +87,7 @@ impl Launchpad {
         let (factory_id, minter_id, collection_id) = launchpad.store_contracts()?;
         let (_, _) = launchpad.setup_factory(factory_id, minter_id, collection_id)?;
         let (_, _, _) = launchpad.create_minter(collection_id)?;
-        
+
         launchpad.app.advance_time(2 * 86400); // Advance 2 days
         Ok(launchpad)
     }

@@ -38,7 +38,8 @@ pub fn mint_handler(
         token_uri: token_uri.unwrap_or_default(),
         tile_hash: extension.tile_hash,
         time: env.block.time.to_string(),
-    }.into_event();
+    }
+    .into_event();
 
     // Forward to base contract with our extension and add our event
     let response = contract.execute(deps, env, info, mint_msg)?;

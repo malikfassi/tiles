@@ -1,5 +1,5 @@
 use anyhow::Result;
-use cosmwasm_std::{Addr, coins};
+use cosmwasm_std::{coins, Addr};
 use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 use sg_std::NATIVE_DENOM;
 use tiles::defaults::constants::MINT_PRICE;
@@ -35,7 +35,7 @@ impl MinterContract {
             buyer.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::Mint {},
-            &coins(MINT_PRICE.into(), NATIVE_DENOM),
+            &coins(MINT_PRICE, NATIVE_DENOM),
         )
     }
 }

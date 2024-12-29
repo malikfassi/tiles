@@ -2,9 +2,7 @@ use anyhow::Result;
 use cosmwasm_std::Uint128;
 use tiles::{
     core::pricing::PriceScaling,
-    defaults::constants::{
-        DEFAULT_PRICE_1_HOUR, DEFAULT_PRICE_12_HOURS, DEFAULT_PRICE_24_HOURS,
-    },
+    defaults::constants::{DEFAULT_PRICE_12_HOURS, DEFAULT_PRICE_1_HOUR, DEFAULT_PRICE_24_HOURS},
 };
 
 use crate::common::{EventAssertions, TestContext};
@@ -14,11 +12,9 @@ fn creator_can_update_price_scaling() -> Result<()> {
     let mut ctx = TestContext::new();
     let creator = ctx.users.tile_contract_creator();
 
-    let result = ctx.tiles.update_price_scaling(
-        &mut ctx.app,
-        &creator.address,
-        PriceScaling::default(),
-    );
+    let result =
+        ctx.tiles
+            .update_price_scaling(&mut ctx.app, &creator.address, PriceScaling::default());
     assert!(result.is_ok());
 
     Ok(())
@@ -29,11 +25,9 @@ fn pixel_operator_cannot_update_price_scaling() -> Result<()> {
     let mut ctx = TestContext::new();
     let operator = ctx.users.pixel_operator();
 
-    let result = ctx.tiles.update_price_scaling(
-        &mut ctx.app,
-        &operator.address,
-        PriceScaling::default(),
-    );
+    let result =
+        ctx.tiles
+            .update_price_scaling(&mut ctx.app, &operator.address, PriceScaling::default());
     assert!(result.is_err());
 
     Ok(())
@@ -44,11 +38,9 @@ fn buyer_cannot_update_price_scaling() -> Result<()> {
     let mut ctx = TestContext::new();
     let buyer = ctx.users.get_buyer();
 
-    let result = ctx.tiles.update_price_scaling(
-        &mut ctx.app,
-        &buyer.address,
-        PriceScaling::default(),
-    );
+    let result =
+        ctx.tiles
+            .update_price_scaling(&mut ctx.app, &buyer.address, PriceScaling::default());
     assert!(result.is_err());
 
     Ok(())
@@ -66,11 +58,9 @@ fn cannot_set_hour_1_price_greater_than_hour_12_price() -> Result<()> {
         quadratic_base: Uint128::from(1u128),
     };
 
-    let result = ctx.tiles.update_price_scaling(
-        &mut ctx.app,
-        &creator.address,
-        invalid_scaling,
-    );
+    let result = ctx
+        .tiles
+        .update_price_scaling(&mut ctx.app, &creator.address, invalid_scaling);
     assert!(result.is_err());
 
     Ok(())
@@ -88,11 +78,9 @@ fn cannot_set_hour_12_price_greater_than_hour_24_price() -> Result<()> {
         ..PriceScaling::default()
     };
 
-    let result = ctx.tiles.update_price_scaling(
-        &mut ctx.app,
-        &creator.address,
-        invalid_scaling,
-    );
+    let result = ctx
+        .tiles
+        .update_price_scaling(&mut ctx.app, &creator.address, invalid_scaling);
     assert!(result.is_err());
 
     Ok(())
@@ -109,11 +97,9 @@ fn cannot_set_zero_hour_1_price() -> Result<()> {
         ..PriceScaling::default()
     };
 
-    let result = ctx.tiles.update_price_scaling(
-        &mut ctx.app,
-        &creator.address,
-        invalid_scaling,
-    );
+    let result = ctx
+        .tiles
+        .update_price_scaling(&mut ctx.app, &creator.address, invalid_scaling);
     assert!(result.is_err());
 
     Ok(())
@@ -126,11 +112,8 @@ fn price_scaling_update_is_persisted() -> Result<()> {
     let new_scaling = PriceScaling::default();
 
     // Update price scaling
-    ctx.tiles.update_price_scaling(
-        &mut ctx.app,
-        &creator.address,
-        new_scaling.clone(),
-    )?;
+    ctx.tiles
+        .update_price_scaling(&mut ctx.app, &creator.address, new_scaling.clone())?;
 
     // Query and verify
     let stored_scaling = ctx.tiles.query_price_scaling(&ctx.app)?;
@@ -145,11 +128,9 @@ fn price_scaling_update_emits_correct_event() -> Result<()> {
     let creator = ctx.users.tile_contract_creator();
 
     let new_scaling = PriceScaling::default();
-    let response = ctx.tiles.update_price_scaling(
-        &mut ctx.app,
-        &creator.address,
-        new_scaling.clone(),
-    )?;
+    let response =
+        ctx.tiles
+            .update_price_scaling(&mut ctx.app, &creator.address, new_scaling.clone())?;
 
     // Assert the event
     EventAssertions::assert_price_scaling_update(&response, &new_scaling);

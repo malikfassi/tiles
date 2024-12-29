@@ -26,6 +26,12 @@ pub struct TestUsers {
     pub creator: User,
 }
 
+impl Default for TestUsers {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TestUsers {
     pub fn new() -> Self {
         Self {
@@ -50,27 +56,33 @@ impl TestUsers {
 
         for user in users_to_fund {
             app.inner_mut().init_modules(|router, _, storage| {
-                router.bank.init_balance(
-                    storage,
-                    &user.address,
-                    vec![Coin {
-                        denom: NATIVE_DENOM.to_string(),
-                        amount: Uint128::from((CREATION_FEE + MINT_PRICE) * 10u128),
-                    }],
-                ).unwrap();
+                router
+                    .bank
+                    .init_balance(
+                        storage,
+                        &user.address,
+                        vec![Coin {
+                            denom: NATIVE_DENOM.to_string(),
+                            amount: Uint128::from((CREATION_FEE + MINT_PRICE) * 10u128),
+                        }],
+                    )
+                    .unwrap();
             });
         }
 
         // Poor user gets minimal balance
         app.inner_mut().init_modules(|router, _, storage| {
-            router.bank.init_balance(
-                storage,
-                &self.poor_user.address,
-                vec![Coin {
-                    denom: NATIVE_DENOM.to_string(),
-                    amount: Uint128::from(MINT_PRICE / 2u128),
-                }],
-            ).unwrap();
+            router
+                .bank
+                .init_balance(
+                    storage,
+                    &self.poor_user.address,
+                    vec![Coin {
+                        denom: NATIVE_DENOM.to_string(),
+                        amount: Uint128::from(MINT_PRICE / 2u128),
+                    }],
+                )
+                .unwrap();
         });
     }
 

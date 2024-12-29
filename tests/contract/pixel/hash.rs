@@ -1,9 +1,6 @@
 use anyhow::Result;
 use tiles::{
-    core::{
-        pricing::PriceScaling,
-        tile::metadata::PixelUpdate,
-    },
+    core::{pricing::PriceScaling, tile::metadata::PixelUpdate},
     defaults::constants::DEFAULT_ROYALTY_SHARE,
 };
 

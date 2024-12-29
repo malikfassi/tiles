@@ -311,14 +311,20 @@ impl TilesContract {
     }
 
     pub fn assert_token_hash(&self, app: &TestApp, token_id: u32, expected: &str) {
-        let hash = self.query_token_hash(app, token_id)
+        let hash = self
+            .query_token_hash(app, token_id)
             .expect("Failed to query token hash");
         assert_eq!(hash, expected, "Token hash mismatch");
     }
 
     pub fn assert_token_owner(&self, app: &TestApp, token_id: u32, owner: &Addr) {
-        let queried_owner = self.query_owner_of(app, token_id.to_string())
+        let queried_owner = self
+            .query_owner_of(app, token_id.to_string())
             .expect("Failed to query token owner");
-        assert_eq!(queried_owner.owner, owner.to_string(), "Token owner mismatch");
+        assert_eq!(
+            queried_owner.owner,
+            owner.to_string(),
+            "Token owner mismatch"
+        );
     }
 }
