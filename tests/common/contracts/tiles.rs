@@ -3,7 +3,7 @@ use anyhow::Result;
 use cosmwasm_std::{coins, Addr, Binary, Coin};
 use cw721::{NftInfoResponse, OwnerOfResponse};
 use cw721_base::Action;
-use cw_multi_test::ContractWrapper;
+use cw_multi_test::{ContractWrapper, Executor};
 use sg721::{CollectionInfo, RoyaltyInfoResponse, UpdateCollectionInfoMsg};
 use sg_std::NATIVE_DENOM;
 use tiles::contract::msg::{ExecuteMsg, QueryMsg, TileExecuteMsg};
@@ -46,7 +46,7 @@ impl TilesContract {
         sender: &Addr,
         new_price_scaling: PriceScaling,
     ) -> Result<cw_multi_test::AppResponse> {
-        app.execute_contract(
+        app.inner_mut().execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::Extension {
@@ -71,7 +71,7 @@ impl TilesContract {
                 .u128()
         });
 
-        app.execute_contract(
+        app.inner_mut().execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::Extension {
@@ -94,7 +94,7 @@ impl TilesContract {
         funds_amount: u128,
         current_metadata: TileMetadata,
     ) -> Result<cw_multi_test::AppResponse> {
-        app.execute_contract(
+        app.inner_mut().execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::Extension {
@@ -125,21 +125,6 @@ impl TilesContract {
             .query_wasm_smart(self.contract_addr.clone(), &QueryMsg::PriceScaling {})?)
     }
 
-    pub fn assert_token_owner(&self, app: &TestApp, token_id: u32, expected_owner: &Addr) {
-        let response: OwnerOfResponse = app
-            .inner()
-            .wrap()
-            .query_wasm_smart(
-                self.contract_addr.clone(),
-                &QueryMsg::OwnerOf {
-                    token_id: token_id.to_string(),
-                    include_expired: None,
-                },
-            )
-            .unwrap();
-        assert_eq!(response.owner, expected_owner.to_string());
-    }
-
     pub fn execute_transfer_nft(
         &self,
         app: &mut TestApp,
@@ -147,7 +132,7 @@ impl TilesContract {
         recipient: &Addr,
         token_id: String,
     ) -> Result<cw_multi_test::AppResponse> {
-        app.execute_contract(
+        app.inner_mut().execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::TransferNft {
@@ -166,7 +151,7 @@ impl TilesContract {
         token_id: String,
         msg: Binary,
     ) -> Result<cw_multi_test::AppResponse> {
-        app.execute_contract(
+        app.inner_mut().execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::SendNft {
@@ -186,7 +171,7 @@ impl TilesContract {
         token_id: String,
         expires: Option<cw721::Expiration>,
     ) -> Result<cw_multi_test::AppResponse> {
-        app.execute_contract(
+        app.inner_mut().execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::Approve {
@@ -205,7 +190,7 @@ impl TilesContract {
         spender: &Addr,
         token_id: String,
     ) -> Result<cw_multi_test::AppResponse> {
-        app.execute_contract(
+        app.inner_mut().execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::Revoke {
@@ -223,7 +208,7 @@ impl TilesContract {
         operator: &Addr,
         expires: Option<cw721::Expiration>,
     ) -> Result<cw_multi_test::AppResponse> {
-        app.execute_contract(
+        app.inner_mut().execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::ApproveAll {
@@ -240,7 +225,7 @@ impl TilesContract {
         sender: &Addr,
         operator: &Addr,
     ) -> Result<cw_multi_test::AppResponse> {
-        app.execute_contract(
+        app.inner_mut().execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::RevokeAll {
@@ -256,7 +241,7 @@ impl TilesContract {
         sender: &Addr,
         token_id: String,
     ) -> Result<cw_multi_test::AppResponse> {
-        app.execute_contract(
+        app.inner_mut().execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::Burn { token_id },
@@ -270,7 +255,7 @@ impl TilesContract {
         sender: &Addr,
         action: Action,
     ) -> Result<cw_multi_test::AppResponse> {
-        app.execute_contract(
+        app.inner_mut().execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::UpdateOwnership(action),
@@ -284,7 +269,7 @@ impl TilesContract {
         sender: &Addr,
         collection_info: UpdateCollectionInfoMsg<RoyaltyInfoResponse>,
     ) -> Result<cw_multi_test::AppResponse> {
-        app.execute_contract(
+        app.inner_mut().execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::UpdateCollectionInfo { collection_info },
@@ -297,7 +282,7 @@ impl TilesContract {
         app: &mut TestApp,
         sender: &Addr,
     ) -> Result<cw_multi_test::AppResponse> {
-        app.execute_contract(
+        app.inner_mut().execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::FreezeCollectionInfo,
@@ -323,5 +308,17 @@ impl TilesContract {
             .inner()
             .wrap()
             .query_wasm_smart(self.contract_addr.clone(), &QueryMsg::CollectionInfo {})?)
+    }
+
+    pub fn assert_token_hash(&self, app: &TestApp, token_id: u32, expected: &str) {
+        let hash = self.query_token_hash(app, token_id)
+            .expect("Failed to query token hash");
+        assert_eq!(hash, expected, "Token hash mismatch");
+    }
+
+    pub fn assert_token_owner(&self, app: &TestApp, token_id: u32, owner: &Addr) {
+        let queried_owner = self.query_owner_of(app, token_id.to_string())
+            .expect("Failed to query token owner");
+        assert_eq!(queried_owner.owner, owner.to_string(), "Token owner mismatch");
     }
 }

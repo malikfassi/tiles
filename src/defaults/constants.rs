@@ -57,8 +57,3 @@ pub const COLLECTION_URI: &str = "ipfs://QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuX
 pub const START_TIME: &str = "1625097600"; // Example timestamp, should be set appropriately
 
 pub const DEPLOYER_ADDRESS: &str = "stars1pnet2e7tz7klwy48r7h3wl0n97td0haqjvs7mx";
-pub const TILE_CODE_ID: u64 = 4999;
-pub const MINTER_CODE_ID: u64 = 4997;
-pub const FACTORY_CODE_ID: u64 = 4998;
-pub const FACTORY_CONTRACT_ADDRESS: &str =
-    "stars1fag5lyn46cu5cz8l920saxh89gmk5mfthxntedln2z3l3zgcu0aqwx6s92";

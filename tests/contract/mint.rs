@@ -1,41 +1,49 @@
-#[cfg(test)]
-use crate::common::launchpad::Launchpad;
-use tiles::core::tile::metadata::TileMetadata;
-use tiles::defaults::constants::MINT_PRICE;
+use anyhow::Result;
+use tiles::{
+    core::tile::metadata::TileMetadata,
+    defaults::constants::MINT_PRICE,
+};
+
+use crate::common::{EventAssertions, TestContext};
 
 #[test]
-fn test_mint_success() {
-    let mut ctx = Launchpad::new();
-    let buyer = ctx.users.get_buyer();
-    let initial_balance = ctx.app.get_balance(&buyer.address, "ustars").unwrap();
+fn test_successful_mint() -> Result<()> {
+    let mut ctx = TestContext::new();
+    let buyer = ctx.users.get_buyer().clone();
+    let initial_balance = ctx.app.get_balance(&buyer.address, "ustars")
+        .expect("Failed to get balance");
 
-    let token_id = ctx.minter.mint(&mut ctx.app, &buyer.address).unwrap();
+    let response = ctx.mint_token(&buyer.address)?;
+    let token_id = EventAssertions::extract_token_id(&response);
 
-    let final_balance = ctx.app.get_balance(&buyer.address, "ustars").unwrap();
-    assert_eq!(initial_balance - MINT_PRICE, final_balance);
+    ctx.assert_balance(&buyer.address, "ustars", initial_balance - MINT_PRICE);
+    ctx.tiles.assert_token_owner(&ctx.app, token_id, &buyer.address);
+    EventAssertions::assert_mint_metadata(&response, token_id, &buyer.address, None);
 
-    ctx.tiles
-        .assert_token_owner(&ctx.app, token_id, &buyer.address);
+    Ok(())
 }
 
 #[test]
-fn test_mint_insufficient_funds() {
-    let mut ctx = Launchpad::new();
-    let user = ctx.users.poor_user();
-
-    let result = ctx.minter.mint(&mut ctx.app, &user.address);
+fn test_insufficient_funds() -> Result<()> {
+    let mut ctx = TestContext::new();
+    let user = ctx.users.poor_user().clone();
+    
+    let result = ctx.mint_token(&user.address);
     assert!(result.is_err());
+
+    Ok(())
 }
 
 #[test]
-fn test_mint_default_hash() {
-    let mut ctx = Launchpad::new();
-    let buyer = ctx.users.get_buyer();
-
-    let token_id = ctx.minter.mint(&mut ctx.app, &buyer.address).unwrap();
+fn test_default_hash() -> Result<()> {
+    let mut ctx = TestContext::new();
+    let buyer = ctx.users.get_buyer().clone();
+    
+    let response = ctx.mint_token(&buyer.address)?;
+    let token_id = EventAssertions::extract_token_id(&response);
 
     // Query the token's hash
-    let token_hash = ctx.tiles.query_token_hash(&ctx.app, token_id).unwrap();
+    let token_hash = ctx.tiles.query_token_hash(&ctx.app, token_id)?;
 
     // Compute the expected default hash
     let default_metadata = TileMetadata::default();
@@ -45,4 +53,13 @@ fn test_mint_default_hash() {
         token_hash, expected_hash,
         "Newly minted token should have the default metadata hash"
     );
+
+    EventAssertions::assert_mint_metadata(
+        &response,
+        token_id,
+        &buyer.address,
+        Some(&expected_hash)
+    );
+
+    Ok(())
 }

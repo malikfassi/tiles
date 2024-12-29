@@ -10,9 +10,19 @@ pub struct TestApp {
 
 impl TestApp {
     pub fn new() -> Self {
-        Self {
+        let mut app = Self {
             app: StargazeApp::default(),
-        }
+        };
+        app.set_genesis_time();
+        app
+    }
+
+    pub fn inner(&self) -> &StargazeApp {
+        &self.app
+    }
+
+    pub fn inner_mut(&mut self) -> &mut StargazeApp {
+        &mut self.app
     }
 
     pub fn set_genesis_time(&mut self) {
@@ -31,56 +41,17 @@ impl TestApp {
         self.app.store_code(contract)
     }
 
-    pub fn inner(&self) -> &StargazeApp {
-        &self.app
+    pub fn get_balance(&self, addr: &Addr, denom: &str) -> Option<u128> {
+        self.app.wrap().query_balance(addr.to_string(), denom).ok().map(|c| c.amount.u128())
     }
 
-    pub fn inner_mut(&mut self) -> &mut StargazeApp {
-        &mut self.app
-    }
-
-    pub fn get_balance(&self, address: &Addr, denom: &str) -> Option<u128> {
-        self.app
-            .wrap()
-            .query_balance(address.to_string(), denom)
-            .ok()
-            .map(|c| c.amount.u128())
-    }
-
-    pub fn instantiate_contract<T>(
-        &mut self,
-        code_id: u64,
-        sender: Addr,
-        msg: &T,
-        funds: &[Coin],
-        label: &str,
-        admin: Option<String>,
-    ) -> anyhow::Result<Addr>
-    where
-        T: serde::Serialize + std::fmt::Debug,
-    {
-        self.app
-            .instantiate_contract(code_id, sender, msg, funds, label, admin)
-    }
-
-    pub fn execute_contract<T>(
-        &mut self,
-        sender: Addr,
-        contract: Addr,
-        msg: &T,
-        funds: &[Coin],
-    ) -> anyhow::Result<cw_multi_test::AppResponse>
-    where
-        T: serde::Serialize + std::fmt::Debug,
-    {
-        self.app.execute_contract(sender, contract, msg, funds)
-    }
-}
-
-impl Default for TestApp {
-    fn default() -> Self {
-        let mut app = Self::new();
-        app.set_genesis_time();
-        app
+    pub fn fund_account(&mut self, addr: &Addr, amount: u128, denom: &str) -> anyhow::Result<()> {
+        self.app.init_modules(|router, _, storage| {
+            router.bank.init_balance(
+                storage,
+                addr,
+                vec![Coin::new(amount, denom)],
+            )
+        })
     }
 }

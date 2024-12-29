@@ -42,6 +42,14 @@ def get_random_expiration(current_time: int) -> int:
     duration = random.randint(PIXEL_MIN_EXPIRATION, PIXEL_MAX_EXPIRATION)
     return current_time + duration
 
+def get_tile_coordinates(tile_id: int) -> tuple:
+    """Convert tile ID to grid coordinates."""
+    # Assuming tiles are numbered from left to right, top to bottom
+    # tile_id starts from 1
+    x = (tile_id - 1) % TILE_SIZE
+    y = (tile_id - 1) // TILE_SIZE
+    return (x, y)
+
 def create_tile_image(tile_id: int, size: tuple = (500, 500)) -> Image:
     """Create a tile image with random colored pixels."""
     background_color = DEFAULT_COLOR
@@ -79,84 +87,29 @@ def create_tile_image(tile_id: int, size: tuple = (500, 500)) -> Image:
 
 def create_metadata(tile_id: int, pixel_colors: dict) -> dict:
     """Create metadata for a tile."""
-    current_time = get_random_timestamp(0, 86400)  # Random time in last 24 hours
-    pixels = []
-    active_colors = set()
-    pixel_attributes = []
+    x, y = get_tile_coordinates(tile_id)
     
-    for i in range(PIXELS_PER_TILE):
-        x = i % TILE_SIZE
-        y = i // TILE_SIZE
-        
-        if (x, y) in pixel_colors:
-            color = pixel_colors[(x, y)]
-            active_colors.add(color)
-            # Colored pixels have random recent timestamps
-            last_updated_at = get_random_timestamp(0, 43200)  # Last 12 hours
-        else:
-            color = DEFAULT_COLOR
-            # White pixels have older timestamps
-            last_updated_at = get_random_timestamp(43200, 86400)  # 12-24 hours ago
-        
-        expiration_timestamp = get_random_expiration(last_updated_at)
-        last_updated_by = random.choice(SAMPLE_ADDRESSES)
-        
-        # Add pixel data as attributes
-        pixel_attributes.extend([
-            {
-                "trait_type": f"Pixel {x},{y} Color",
-                "value": color
-            },
-            {
-                "trait_type": f"Pixel {x},{y} Expiration",
-                "value": datetime.fromtimestamp(expiration_timestamp).strftime("%Y-%m-%d %H:%M:%S")
-            },
-            {
-                "trait_type": f"Pixel {x},{y} Last Updated By",
-                "value": last_updated_by
-            }
-        ])
-        
-        # Keep pixel data for contract use
-        pixels.append({
-            "id": i,
-            "color": color,
-            "expiration_timestamp": expiration_timestamp,
-            "last_updated_by": last_updated_by,
-            "last_updated_at": last_updated_at
-        })
-    
-    return {
-        "name": f"{COLLECTION_NAME} #{tile_id}",
-        "description": COLLECTION_DESCRIPTION,
-        # Include full IPFS URL format for image
-        "image": f"ipfs://IMAGES_CID/{tile_id}.png",  # IMAGES_CID will be replaced after upload
-        "external_url": f"https://app.stargaze.zone/tokens/{tile_id}",
-        "attributes": [
-            {
-                "trait_type": "Grid Size",
-                "value": f"{TILE_SIZE}x{TILE_SIZE}"
-            },
-            {
-                "trait_type": "Total Pixels",
-                "value": str(PIXELS_PER_TILE)
-            },
-            {
-                "trait_type": "Active Colors",
-                "value": str(len(active_colors))
-            },
-            {
-                "trait_type": "Color Palette",
-                "value": "Modern"
-            },
-            {
-                "trait_type": "Colored Pixels",
-                "value": str(len(pixel_colors))
-            }
-        ],
-        "contract_data": {  # Keep contract-specific data separate
-            "pixels": pixels
+    # Simplified attributes - just essential info
+    attributes = [
+        {
+            "trait_type": "Grid Size",
+            "value": f"{TILE_SIZE}x{TILE_SIZE}"
+        },
+        {
+            "trait_type": "Active Colors",
+            "value": str(len(set(pixel_colors.values())))
+        },
+        {
+            "trait_type": "Colored Pixels",
+            "value": str(len(pixel_colors))
         }
+    ]
+
+    return {
+        "name": f"{COLLECTION_NAME} ({x},{y})",
+        "description": COLLECTION_DESCRIPTION,
+        "image": f"ipfs://IMAGES_CID/{tile_id}.png",
+        "attributes": attributes
     }
 
 def update_metadata_image_urls(images_cid: str):
@@ -208,24 +161,13 @@ def main():
         print(f"✅ Generated tile {tile_id}/{num_tiles}")
     
     print("\n✨ All tiles generated successfully!")
-    print("\nDirectory structure created (Stargaze compatible):")
-    print("ipfs/")
-    print("├── images/")
-    print("│   ├��─ 1.png")
-    print("│   ├── 2.png")
-    print("│   └── ...")
-    print("├── metadata/")
-    print("│   ├── 1.json")
-    print("│   ├── 2.json")
-    print("│   └── ...")
-    print("└── logo.png")
     print("\nNext steps:")
-    print("1. Upload images:")
-    print("   pinata-web3 upload ipfs/images")
+    print("1. Upload images to IPFS:")
+    print("   cd ipfs/images && pinata-web3 upload .")
     print("2. Update metadata with images CID:")
     print("   python scripts/update_metadata.py <IMAGES_CID>")
-    print("3. Upload metadata:")
-    print("   pinata-web3 upload ipfs/metadata")
+    print("3. Upload metadata to IPFS:")
+    print("   cd ../metadata && pinata-web3 upload .")
 
 if __name__ == "__main__":
     main() 

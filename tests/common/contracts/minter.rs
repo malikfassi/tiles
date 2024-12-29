@@ -1,9 +1,9 @@
 use anyhow::Result;
-use cosmwasm_std::{Addr, Coin};
-use cw_multi_test::ContractWrapper;
+use cosmwasm_std::{Addr, coins};
+use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 use sg_std::NATIVE_DENOM;
 use tiles::defaults::constants::MINT_PRICE;
-use vending_minter::msg::ExecuteMsg as MinterExecuteMsg;
+use vending_minter::msg::ExecuteMsg;
 
 use crate::common::app::TestApp;
 
@@ -28,27 +28,14 @@ impl MinterContract {
         Ok(app.store_code(contract))
     }
 
-    pub fn mint(&self, app: &mut TestApp, user: &Addr) -> Result<u32> {
-        // Mint through the minter contract
-        let response = app.execute_contract(
-            user.clone(),
+    /// Mints a new token for the given buyer
+    /// Returns the AppResponse which can be used to extract the token_id
+    pub fn mint(&self, app: &mut TestApp, buyer: &Addr) -> Result<AppResponse> {
+        app.inner_mut().execute_contract(
+            buyer.clone(),
             self.contract_addr.clone(),
-            &MinterExecuteMsg::Mint {},
-            &[Coin::new(MINT_PRICE, NATIVE_DENOM)],
-        )?;
-
-        // Extract token_id from response
-        let token_id = response
-            .events
-            .iter()
-            .find(|e| e.ty == "wasm")
-            .and_then(|e| {
-                e.attributes
-                    .iter()
-                    .find(|a| a.key == "token_id")
-                    .map(|a| a.value.parse::<u32>().unwrap())
-            })
-            .expect("Token ID not found in mint response");
-        Ok(token_id)
+            &ExecuteMsg::Mint {},
+            &coins(MINT_PRICE.into(), NATIVE_DENOM),
+        )
     }
 }

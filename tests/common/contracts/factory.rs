@@ -1,6 +1,6 @@
 use anyhow::Result;
 use cosmwasm_std::{Addr, Coin, Decimal};
-use cw_multi_test::ContractWrapper;
+use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 use sg2::msg::{CollectionParams, CreateMinterMsg};
 use sg721::{CollectionInfo, RoyaltyInfoResponse};
 use sg_std::NATIVE_DENOM;
@@ -21,6 +21,7 @@ use vending_factory::{
 
 use crate::common::app::TestApp;
 
+#[derive(Clone)]
 pub struct FactoryContract {
     pub contract_addr: Addr,
     pub label: String,
@@ -50,7 +51,7 @@ impl FactoryContract {
         minter_code_id: u64,
         collection_code_id: u64,
         creator: &Addr,
-    ) -> Result<Addr> {
+    ) -> Result<(Addr, cw_multi_test::AppResponse)> {
         let msg = FactoryInstantiateMsg {
             params: VendingMinterParams {
                 code_id: minter_code_id,
@@ -69,7 +70,7 @@ impl FactoryContract {
                 },
             },
         };
-        let addr = app.instantiate_contract(
+        let addr = app.inner_mut().instantiate_contract(
             factory_code_id,
             creator.clone(),
             &msg,
@@ -77,9 +78,8 @@ impl FactoryContract {
             &self.label,
             None,
         )?;
-
         self.contract_addr = addr.clone();
-        Ok(addr)
+        Ok((addr, cw_multi_test::AppResponse::default()))
     }
 
     pub fn create_minter(
@@ -89,7 +89,7 @@ impl FactoryContract {
         collection_params: CollectionParams,
         init_msg: VendingMinterInitMsgExtension,
     ) -> Result<cw_multi_test::AppResponse> {
-        app.execute_contract(
+        app.inner_mut().execute_contract(
             sender.clone(),
             self.contract_addr.clone(),
             &FactoryExecuteMsg::CreateMinter(CreateMinterMsg {
@@ -105,25 +105,23 @@ impl FactoryContract {
         app: &mut TestApp,
         creator: &Addr,
         collection_code_id: u64,
-    ) -> Result<(Addr, Addr), anyhow::Error> {
-        let collection_info = CollectionInfo {
-            creator: creator.to_string(),
-            description: COLLECTION_DESCRIPTION.to_string(),
-            image: COLLECTION_URI.to_string(),
-            external_link: None,
-            explicit_content: None,
-            start_trading_time: None,
-            royalty_info: Some(RoyaltyInfoResponse {
-                payment_address: creator.to_string(),
-                share: Decimal::percent(DEFAULT_ROYALTY_SHARE),
-            }),
-        };
-
+    ) -> Result<(Addr, Addr, AppResponse)> {
         let collection_params = CollectionParams {
             code_id: collection_code_id,
             name: COLLECTION_NAME.to_string(),
             symbol: COLLECTION_SYMBOL.to_string(),
-            info: collection_info.clone(),
+            info: CollectionInfo {
+                creator: creator.to_string(),
+                description: COLLECTION_DESCRIPTION.to_string(),
+                image: COLLECTION_URI.to_string(),
+                external_link: None,
+                explicit_content: None,
+                start_trading_time: None,
+                royalty_info: Some(RoyaltyInfoResponse {
+                    payment_address: creator.to_string(),
+                    share: Decimal::percent(DEFAULT_ROYALTY_SHARE),
+                }),
+            },
         };
 
         let block_time = app.inner().block_info().time;
@@ -137,10 +135,10 @@ impl FactoryContract {
             whitelist: None,
         };
 
-        let res = self.create_minter(app, creator, collection_params, init_msg)?;
+        let response = self.create_minter(app, creator, collection_params, init_msg)?;
 
         // Extract contract addresses
-        let minter_addr = res
+        let minter_addr = response
             .events
             .iter()
             .find(|e| e.ty == "instantiate")
@@ -155,7 +153,7 @@ impl FactoryContract {
             .map(|a| Addr::unchecked(a.value.clone()))
             .expect("Minter address not found in events");
 
-        let sg721_addr = res
+        let sg721_addr = response
             .events
             .iter()
             .find(|e| {
@@ -168,6 +166,6 @@ impl FactoryContract {
             .map(|a| Addr::unchecked(a.value.clone()))
             .expect("SG721 address not found in events");
 
-        Ok((minter_addr, sg721_addr))
+        Ok((minter_addr, sg721_addr, response))
     }
 }

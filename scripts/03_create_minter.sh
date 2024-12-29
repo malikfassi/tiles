@@ -115,24 +115,29 @@ if ! check_step "create_minter"; then
     sleep 10
     
     MINTER_TX_RESULT=$(starsd query tx "$MINTER_TXHASH" --output json --node "$NODE_URL")
-    MINTER_ADDR=$(echo "$MINTER_TX_RESULT" | jq -r '.logs[0].events[] | select(.type=="wasm") | .attributes[] | select(.key=="_contract_address") | .value')
     
-    if [ -z "$MINTER_ADDR" ]; then
-        echo -e "\033[0;31m❌ Minter creation failed\033[0m"
+    # Extract minter address (first instantiated contract)
+    MINTER_ADDR=$(echo "$MINTER_TX_RESULT" | jq -r '.logs[0].events[] | select(.type=="instantiate") | .attributes[] | select(.key=="_contract_address") | .value' | head -n 1)
+    
+    # Extract sg721 address (second instantiated contract)
+    SG721_ADDR=$(echo "$MINTER_TX_RESULT" | jq -r '.logs[0].events[] | select(.type=="instantiate") | .attributes[] | select(.key=="_contract_address") | .value' | tail -n 1)
+    
+    if [ -z "$MINTER_ADDR" ] || [ -z "$SG721_ADDR" ]; then
+        echo -e "\033[0;31m❌ Failed to extract contract addresses\033[0m"
         exit 1
     fi
     
     # Save all info to state
-    save_tx_info "create_minter" "$MINTER_TXHASH" "$MINTER_ADDR"
+    echo "minter_txhash=$MINTER_TXHASH" > "$CURRENT_STATE_FILE"
+    echo "minter_contract=$MINTER_ADDR" >> "$CURRENT_STATE_FILE"
+    echo "sg721_contract=$SG721_ADDR" >> "$CURRENT_STATE_FILE"
     mark_step_done "create_minter"
     
     echo -e "\033[0;32m✅ Minter created at: $MINTER_ADDR\033[0m"
+    echo -e "\033[0;32m✅ SG721 created at: $SG721_ADDR\033[0m"
     
-    # Query and save sg721 address
-    sleep 5
-    SG721_ADDR=$(starsd query wasm contract-state smart "$MINTER_ADDR" '{"collection_info":{}}' --node "$NODE_URL" --output json | jq -r .sg721_address)
-    if [ ! -z "$SG721_ADDR" ]; then
-        save_tx_info "sg721_contract" "$MINTER_TXHASH" "$SG721_ADDR"
-        echo -e "\033[0;32m✅ SG721 contract at: $SG721_ADDR\033[0m"
-    fi
+    # Query collection info
+    echo -e "${BLUE}Querying collection info...${NC}"
+    COLLECTION_INFO=$(starsd query wasm contract-state smart "$SG721_ADDR" '{"collection_info":{}}' --node "$NODE_URL" --output json)
+    echo "$COLLECTION_INFO" | jq .
 fi 

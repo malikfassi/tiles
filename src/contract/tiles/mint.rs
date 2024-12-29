@@ -5,6 +5,7 @@ use sg_std::StargazeMsgWrapper;
 use crate::{
     contract::{error::ContractError, msg::Sg721ExecuteMsg},
     core::tile::{metadata::TileMetadata, Tile},
+    events::{EventData, MintMetadataEventData},
 };
 
 pub fn mint_handler(
@@ -30,6 +31,16 @@ pub fn mint_handler(
         extension: extension.clone(),
     };
 
-    // Forward to base contract with our extension
-    Ok(contract.execute(deps, env, info, mint_msg)?)
+    // Create mint metadata event
+    let metadata_event = MintMetadataEventData {
+        token_id,
+        owner,
+        token_uri: token_uri.unwrap_or_default(),
+        tile_hash: extension.tile_hash,
+        time: env.block.time.to_string(),
+    }.into_event();
+
+    // Forward to base contract with our extension and add our event
+    let response = contract.execute(deps, env, info, mint_msg)?;
+    Ok(response.add_event(metadata_event))
 }

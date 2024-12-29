@@ -4,6 +4,12 @@ set -e
 # Load constants
 source scripts/00_load_constants.sh
 
+# Validate required constants
+if [ -z "$DEPLOYER_ADDRESS" ]; then
+    echo -e "\033[0;31mDEPLOYER_ADDRESS is not set\033[0m"
+    exit 1
+fi
+
 # Create state directory
 mkdir -p scripts/state
 

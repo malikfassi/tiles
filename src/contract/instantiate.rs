@@ -2,11 +2,13 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
+use serde_json;
 
 use crate::{
     contract::{error::ContractError, msg::InstantiateMsg, state::PRICE_SCALING},
     core::{pricing::PriceScaling, tile::Tile},
     defaults::constants::{CONTRACT_NAME, CONTRACT_VERSION},
+    events::{EventData, InstantiateConfigEventData},
 };
 
 pub fn instantiate_handler(
@@ -19,14 +21,21 @@ pub fn instantiate_handler(
 
     // Initialize base contract
     let contract = Sg721Contract::<Tile>::default();
-    contract.instantiate(deps.branch(), env, info.clone(), msg)?;
+    contract.instantiate(deps.branch(), env.clone(), info.clone(), msg.clone())?;
 
     // Save default price scaling
     let price_scaling = PriceScaling::default();
     PRICE_SCALING.save(deps.storage, &price_scaling)?;
 
+    // Create instantiate event with config
+    let config_event = InstantiateConfigEventData {
+        collection_info: serde_json::to_string(&msg.collection_info).unwrap_or_default(),
+        minter: msg.minter,
+        price_scaling: serde_json::to_string(&price_scaling).unwrap_or_default(),
+        time: env.block.time.to_string(),
+    }.into_event();
+
     Ok(Response::new()
-        .add_attribute("method", "instantiate")
-        .add_attribute("contract_name", CONTRACT_NAME)
-        .add_attribute("contract_version", CONTRACT_VERSION))
+        .add_event(config_event)
+        .add_attribute("method", "instantiate"))
 }

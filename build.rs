@@ -51,6 +51,9 @@ fn main() {
         "AIRDROP_MINT_PRICE": AIRDROP_MINT_PRICE,
         "AIRDROP_MINT_FEE_BPS": AIRDROP_MINT_FEE_BPS,
         "SHUFFLE_FEE": SHUFFLE_FEE,
+
+        // Deployer Configuration
+        "DEPLOYER_ADDRESS": DEPLOYER_ADDRESS,
     });
 
     // Write constants to JSON file

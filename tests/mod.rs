@@ -1,10 +1,16 @@
 pub mod common;
 
-mod contract {
+pub mod contract {
+    pub mod instantiate;
     pub mod mint;
-    pub mod pixel;
+    pub mod pixel {
+        pub mod basic;
+        pub mod hash;
+        pub mod payment;
+        pub mod validation;
+    }
     pub mod pricescaling;
-    pub mod sg721_features;
+    pub mod sg721_execute;
 }
 
 mod core {
