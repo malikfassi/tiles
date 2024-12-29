@@ -1,7 +1,7 @@
 use anyhow::Result;
-use tiles::core::{pricing::PriceScaling, tile::metadata::PixelUpdate};
+use tiles::core::tile::metadata::PixelUpdate;
 
-use crate::utils::{ResponseAssertions, StateAssertions, TestSetup};
+use crate::utils::{ResponseAssertions, TestSetup};
 
 #[test]
 fn hash_changes_after_pixel_update() -> Result<()> {

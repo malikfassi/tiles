@@ -1,7 +1,7 @@
 use anyhow::Result;
 use cosmwasm_std::Event;
 use cw_multi_test::AppResponse;
-use tiles::events::{EventData, EventType};
+use tiles::events::EventData;
 
 pub struct EventParser {}
 

@@ -1,10 +1,6 @@
 use anyhow::Result;
-use cosmwasm_std::Uint128;
 use sg_std::NATIVE_DENOM;
-use tiles::{
-    core::{pricing::PriceScaling, tile::metadata::PixelUpdate},
-    defaults::constants::DEFAULT_ROYALTY_SHARE,
-};
+use tiles::core::tile::metadata::PixelUpdate;
 
 use crate::utils::{ResponseAssertions, StateAssertions, TestSetup};
 

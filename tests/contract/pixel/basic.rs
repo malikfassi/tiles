@@ -1,10 +1,7 @@
 use anyhow::Result;
-use tiles::{
-    core::pricing::PriceScaling, core::tile::metadata::PixelUpdate,
-    defaults::constants::DEFAULT_ROYALTY_SHARE,
-};
+use tiles::core::tile::metadata::PixelUpdate;
 
-use crate::utils::{ResponseAssertions, StateAssertions, TestSetup};
+use crate::utils::{ResponseAssertions, TestSetup};
 
 #[test]
 fn can_set_pixel_color() -> Result<()> {

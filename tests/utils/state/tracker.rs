@@ -1,23 +1,28 @@
 use anyhow::Result;
-use cosmwasm_std::Addr;
 use cw_multi_test::AppResponse;
 use std::collections::HashMap;
 use tiles::{
     core::{
         pricing::PriceScaling,
-        tile::metadata::{PixelData, PixelUpdate, TileMetadata},
+        tile::metadata::{PixelUpdate, TileMetadata},
     },
     events::{
-        EventData, EventType, InstantiatePriceScalingEventData, MintMetadataEventData,
+        InstantiatePriceScalingEventData, MintMetadataEventData,
         PixelUpdateEventData, PriceScalingUpdateEventData,
     },
 };
 
-use crate::utils::{assertions::ResponseAssertions, events::EventParser};
+use crate::utils::events::EventParser;
 
 pub struct StateTracker {
     pub tiles: HashMap<u32, TileMetadata>,
     pub price_scaling: Option<PriceScaling>,
+}
+
+impl Default for StateTracker {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StateTracker {

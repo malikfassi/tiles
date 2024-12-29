@@ -1,11 +1,10 @@
-use anyhow::Result;
-use cosmwasm_std::{Addr, Event, Uint128};
+use cosmwasm_std::{Addr, Uint128};
 use cw_multi_test::AppResponse;
 
 use tiles::{
     core::{pricing::PriceScaling, tile::metadata::PixelUpdate},
     events::{
-        EventData, InstantiatePriceScalingEventData, MintMetadataEventData,
+        InstantiatePriceScalingEventData, MintMetadataEventData,
         PaymentDistributionEventData, PixelUpdateEventData, PriceScalingUpdateEventData,
     },
 };

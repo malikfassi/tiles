@@ -1,8 +1,6 @@
 use anyhow::Result;
 use cosmwasm_std::Addr;
 use cw_multi_test::AppResponse;
-use sg_std::NATIVE_DENOM;
-use tiles::defaults::constants::CREATION_FEE;
 
 use crate::utils::{
     app::TestApp,

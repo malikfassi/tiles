@@ -1,6 +1,5 @@
 use anyhow::Result;
 use cosmwasm_std::to_json_binary;
-use cw721_base::Action;
 use sg721::UpdateCollectionInfoMsg;
 
 use crate::utils::{events::EventParser, TestSetup};

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use cosmwasm_std::{Addr, Coin, Timestamp};
+use cosmwasm_std::{Addr, Timestamp};
 use cw_multi_test::Contract;
 use sg_multi_test::StargazeApp;
 use sg_std::{StargazeMsgWrapper, GENESIS_MINT_START_TIME};

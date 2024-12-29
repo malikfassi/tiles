@@ -1,5 +1,5 @@
 use anyhow::Result;
-use tiles::{core::tile::metadata::TileMetadata, defaults::constants::MINT_PRICE};
+use tiles::defaults::constants::MINT_PRICE;
 
 use crate::utils::{events::EventParser, ResponseAssertions, StateAssertions, TestSetup};
 

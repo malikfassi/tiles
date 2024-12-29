@@ -5,7 +5,6 @@ use tiles::core::tile::metadata::PixelUpdate;
 
 use crate::utils::{
     app::TestApp,
-    assertions::ResponseAssertions,
     contracts::{factory::FactoryContract, minter::MinterContract, tiles::TilesContract},
     events::EventParser,
     launchpad::Launchpad,
