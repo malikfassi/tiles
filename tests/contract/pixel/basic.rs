@@ -4,12 +4,12 @@ use tiles::{
     defaults::constants::DEFAULT_ROYALTY_SHARE,
 };
 
-use crate::common::{EventAssertions, TestContext};
+use crate::utils::{ResponseAssertions, StateAssertions, TestSetup};
 
 #[test]
 fn can_set_pixel_color() -> Result<()> {
-    let buyer = TestContext::new().users.get_buyer().clone();
-    let (mut ctx, token_id, _) = TestContext::with_minted_token(&buyer.address)?;
+    let (mut setup, token_id) = TestSetup::with_minted_token()?;
+    let buyer = setup.users.get_buyer().clone();
 
     let update = PixelUpdate {
         id: 0,
@@ -17,24 +17,14 @@ fn can_set_pixel_color() -> Result<()> {
         expiration_duration: 3600,
     };
 
-    let result = ctx.update_pixel(&buyer.address, token_id, vec![update.clone()])?;
+    let result = setup.update_pixel(&buyer.address, token_id, vec![update.clone()])?;
 
-    // Calculate total price using PriceScaling
-    let price_scaling = PriceScaling::default();
-    let total_price = price_scaling
-        .calculate_total_price(std::iter::once(&update.expiration_duration))
-        .u128();
-    let royalty_amount = total_price * DEFAULT_ROYALTY_SHARE as u128 / 100;
-    let owner_amount = total_price - royalty_amount;
-
-    // Assert all events
-    EventAssertions::assert_pixel_update(&result, token_id, &[update], &buyer.address);
-    EventAssertions::assert_payment_distribution(
+    ResponseAssertions::assert_payment_distribution(
         &result,
         token_id,
         &buyer.address,
-        royalty_amount,
-        owner_amount,
+        &setup.state,
+        &[&update],
     );
 
     Ok(())
@@ -42,8 +32,8 @@ fn can_set_pixel_color() -> Result<()> {
 
 #[test]
 fn all_valid_updates_succeed() -> Result<()> {
-    let buyer = TestContext::new().users.get_buyer().clone();
-    let (mut ctx, token_id, _) = TestContext::with_minted_token(&buyer.address)?;
+    let (mut setup, token_id) = TestSetup::with_minted_token()?;
+    let buyer = setup.users.get_buyer().clone();
 
     let updates = vec![
         PixelUpdate {
@@ -63,24 +53,14 @@ fn all_valid_updates_succeed() -> Result<()> {
         },
     ];
 
-    let result = ctx.update_pixel(&buyer.address, token_id, updates.clone())?;
+    let result = setup.update_pixel(&buyer.address, token_id, updates.clone())?;
 
-    // Calculate total price using PriceScaling
-    let price_scaling = PriceScaling::default();
-    let total_price = price_scaling
-        .calculate_total_price(updates.iter().map(|u| &u.expiration_duration))
-        .u128();
-    let royalty_amount = total_price * DEFAULT_ROYALTY_SHARE as u128 / 100;
-    let owner_amount = total_price - royalty_amount;
-
-    // Assert all events for each update
-    EventAssertions::assert_pixel_update(&result, token_id, &updates, &buyer.address);
-    EventAssertions::assert_payment_distribution(
+    ResponseAssertions::assert_payment_distribution(
         &result,
         token_id,
         &buyer.address,
-        royalty_amount,
-        owner_amount,
+        &setup.state,
+        &updates.iter().collect::<Vec<_>>(),
     );
 
     Ok(())
@@ -88,8 +68,8 @@ fn all_valid_updates_succeed() -> Result<()> {
 
 #[test]
 fn can_update_multiple_pixels() -> Result<()> {
-    let buyer = TestContext::new().users.get_buyer().clone();
-    let (mut ctx, token_id, _) = TestContext::with_minted_token(&buyer.address)?;
+    let (mut setup, token_id) = TestSetup::with_minted_token()?;
+    let buyer = setup.users.get_buyer().clone();
 
     let updates = vec![
         PixelUpdate {
@@ -109,24 +89,14 @@ fn can_update_multiple_pixels() -> Result<()> {
         },
     ];
 
-    let result = ctx.update_pixel(&buyer.address, token_id, updates.clone())?;
+    let result = setup.update_pixel(&buyer.address, token_id, updates.clone())?;
 
-    // Calculate total price using PriceScaling
-    let price_scaling = PriceScaling::default();
-    let total_price = price_scaling
-        .calculate_total_price(updates.iter().map(|u| &u.expiration_duration))
-        .u128();
-    let royalty_amount = total_price * DEFAULT_ROYALTY_SHARE as u128 / 100;
-    let owner_amount = total_price - royalty_amount;
-
-    // Assert all events for each update
-    EventAssertions::assert_pixel_update(&result, token_id, &updates, &buyer.address);
-    EventAssertions::assert_payment_distribution(
+    ResponseAssertions::assert_payment_distribution(
         &result,
         token_id,
         &buyer.address,
-        royalty_amount,
-        owner_amount,
+        &setup.state,
+        &updates.iter().collect::<Vec<_>>(),
     );
 
     Ok(())

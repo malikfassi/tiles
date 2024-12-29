@@ -18,9 +18,12 @@ pub fn mint_handler(
 ) -> Result<Response<StargazeMsgWrapper>, ContractError> {
     let contract: Sg721Contract<Tile> = Sg721Contract::default();
 
+    // Generate initial metadata
+    let metadata = TileMetadata::default();
+
     // Generate our own extension
     let extension = Tile {
-        tile_hash: TileMetadata::default().hash(),
+        tile_hash: metadata.hash(),
     };
 
     // Create mint message with our Tile extension
@@ -34,10 +37,9 @@ pub fn mint_handler(
     // Create mint metadata event
     let metadata_event = MintMetadataEventData {
         token_id,
-        owner,
-        token_uri: token_uri.unwrap_or_default(),
+        owner: deps.api.addr_validate(&owner)?,
+        new_pixels: metadata.pixels,
         tile_hash: extension.tile_hash,
-        time: env.block.time.to_string(),
     }
     .into_event();
 

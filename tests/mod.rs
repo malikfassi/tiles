@@ -1,5 +1,4 @@
-pub mod common;
-
+pub mod utils;
 pub mod contract {
     pub mod instantiate;
     pub mod mint;

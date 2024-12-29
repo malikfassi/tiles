@@ -19,12 +19,14 @@ use vending_factory::{
     state::{ParamsExtension, VendingMinterParams},
 };
 
-use crate::common::app::TestApp;
+use crate::utils::app::TestApp;
 
 #[derive(Clone)]
 pub struct FactoryContract {
     pub contract_addr: Addr,
     pub label: String,
+    pub minter_code_id: Option<u64>,
+    pub collection_code_id: Option<u64>,
 }
 
 impl FactoryContract {
@@ -32,6 +34,8 @@ impl FactoryContract {
         Self {
             contract_addr: Addr::unchecked("factory111"), // Default address that will be updated
             label: label.to_string(),
+            minter_code_id: None,
+            collection_code_id: None,
         }
     }
 
@@ -52,6 +56,8 @@ impl FactoryContract {
         collection_code_id: u64,
         creator: &Addr,
     ) -> Result<(Addr, cw_multi_test::AppResponse)> {
+        self.minter_code_id = Some(minter_code_id);
+        self.collection_code_id = Some(collection_code_id);
         let msg = FactoryInstantiateMsg {
             params: VendingMinterParams {
                 code_id: minter_code_id,
@@ -60,7 +66,7 @@ impl FactoryContract {
                 creation_fee: Coin::new(CREATION_FEE, NATIVE_DENOM),
                 min_mint_price: Coin::new(MIN_MINT_PRICE, NATIVE_DENOM),
                 mint_fee_bps: MINT_FEE_BPS,
-                max_trading_offset_secs: MAX_TRADING_OFFSET_SECS,
+                max_trading_offset_secs: 0,
                 extension: ParamsExtension {
                     max_token_limit: MAX_TOKEN_LIMIT,
                     max_per_address_limit: MAX_PER_ADDRESS_LIMIT,
@@ -104,8 +110,10 @@ impl FactoryContract {
         &self,
         app: &mut TestApp,
         creator: &Addr,
-        collection_code_id: u64,
     ) -> Result<(Addr, Addr, AppResponse)> {
+        // Use the collection code ID from factory initialization
+        let collection_code_id = self.collection_code_id.expect("Collection code ID not set");
+
         let collection_params = CollectionParams {
             code_id: collection_code_id,
             name: COLLECTION_NAME.to_string(),
@@ -115,7 +123,7 @@ impl FactoryContract {
                 description: COLLECTION_DESCRIPTION.to_string(),
                 image: COLLECTION_URI.to_string(),
                 external_link: None,
-                explicit_content: None,
+                explicit_content: Some(false),
                 start_trading_time: None,
                 royalty_info: Some(RoyaltyInfoResponse {
                     payment_address: creator.to_string(),
@@ -125,28 +133,57 @@ impl FactoryContract {
         };
 
         let block_time = app.inner().block_info().time;
+        println!("\nCreating minter with parameters:");
+        println!("Block time: {}", block_time);
+
         let init_msg = VendingMinterInitMsgExtension {
             base_token_uri: BASE_TOKEN_URI.to_string(),
             payment_address: Some(creator.to_string()),
-            start_time: block_time.plus_seconds(TWENTY_FOUR_HOURS), // Start in 1 day
+            start_time: block_time, // Start immediately
             num_tokens: MAX_TOKEN_LIMIT,
             mint_price: Coin::new(MINT_PRICE, NATIVE_DENOM),
             per_address_limit: MAX_PER_ADDRESS_LIMIT,
             whitelist: None,
         };
+        println!("Start time: {}", init_msg.start_time);
+        println!(
+            "Mint price: {} {}",
+            init_msg.mint_price.amount, init_msg.mint_price.denom
+        );
+        println!("Per address limit: {}", init_msg.per_address_limit);
 
         let response = self.create_minter(app, creator, collection_params, init_msg)?;
 
+        // Debug print all events
+        println!("\nAll events:");
+        for (i, event) in response.events.iter().enumerate() {
+            println!("\nEvent {}: {}", i, event.ty);
+            for attr in &event.attributes {
+                println!("  {} = {}", attr.key, attr.value);
+            }
+        }
+
         // Extract contract addresses
+        let minter_code_id = self.minter_code_id.expect("Minter code ID not set");
         let minter_addr = response
             .events
             .iter()
             .find(|e| e.ty == "instantiate")
             .and_then(|e| {
                 let code_id_attr = e.attributes.iter().find(|a| a.key == "code_id")?;
-                if code_id_attr.value == "2" {
-                    e.attributes.iter().find(|a| a.key == "_contract_addr")
+                println!(
+                    "\nFound instantiate event with code_id: {}",
+                    code_id_attr.value
+                );
+                if code_id_attr.value == minter_code_id.to_string() {
+                    let addr = e.attributes.iter().find(|a| a.key == "_contract_addr");
+                    println!("Found minter address: {:?}", addr.map(|a| &a.value));
+                    addr
                 } else {
+                    println!(
+                        "Code ID didn't match expected minter code ID {}",
+                        minter_code_id
+                    );
                     None
                 }
             })
@@ -162,8 +199,12 @@ impl FactoryContract {
                         .iter()
                         .any(|a| a.key == "action" && a.value == "instantiate_sg721_reply")
             })
-            .and_then(|e| e.attributes.iter().find(|a| a.key == "sg721_address"))
-            .map(|a| Addr::unchecked(a.value.clone()))
+            .and_then(|e| {
+                e.attributes
+                    .iter()
+                    .find(|a| a.key == "sg721_address")
+                    .map(|a| Addr::unchecked(a.value.clone()))
+            })
             .expect("SG721 address not found in events");
 
         Ok((minter_addr, sg721_addr, response))

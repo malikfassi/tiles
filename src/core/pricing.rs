@@ -1,6 +1,6 @@
 use crate::defaults::constants::{
     DEFAULT_PRICE_12_HOURS, DEFAULT_PRICE_1_HOUR, DEFAULT_PRICE_24_HOURS,
-    DEFAULT_PRICE_QUADRATIC_BASE,
+    DEFAULT_PRICE_QUADRATIC_BASE, DEFAULT_ROYALTY_SHARE,
 };
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Uint128;
@@ -101,5 +101,11 @@ impl PriceScaling {
         durations
             .map(|duration| self.calculate_price(*duration))
             .sum()
+    }
+
+    pub fn calculate_royalty_amounts(&self, total_price: Uint128) -> (Uint128, Uint128) {
+        let royalty_amount = total_price.multiply_ratio(DEFAULT_ROYALTY_SHARE as u128, 100u128);
+        let owner_amount = total_price - royalty_amount;
+        (royalty_amount, owner_amount)
     }
 }

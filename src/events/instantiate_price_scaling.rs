@@ -4,16 +4,16 @@ use serde::{Deserialize, Serialize};
 use crate::events::{EventData, EventType};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-pub struct InstantiateConfigEventData {
+pub struct InstantiatePriceScalingEventData {
     pub collection_info: String,
     pub minter: String,
     pub price_scaling: String,
     pub time: String,
 }
 
-impl EventData for InstantiateConfigEventData {
+impl EventData for InstantiatePriceScalingEventData {
     fn event_type() -> EventType {
-        EventType::InstantiateConfigEvent
+        EventType::InstantiatePriceScalingEvent
     }
 
     fn into_event(self) -> Event {
@@ -26,7 +26,7 @@ impl EventData for InstantiateConfigEventData {
     }
 
     fn try_from_event(event: &Event) -> Option<Self> {
-        if event.ty != Self::event_type().as_str() {
+        if event.ty != Self::event_type().as_wasm_str() {
             return None;
         }
 

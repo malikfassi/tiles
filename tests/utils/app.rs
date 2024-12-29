@@ -1,8 +1,8 @@
+use anyhow::Result;
 use cosmwasm_std::{Addr, Coin, Timestamp};
 use cw_multi_test::Contract;
 use sg_multi_test::StargazeApp;
-use sg_std::StargazeMsgWrapper;
-use sg_std::GENESIS_MINT_START_TIME;
+use sg_std::{StargazeMsgWrapper, GENESIS_MINT_START_TIME};
 
 pub struct TestApp {
     app: StargazeApp,
@@ -31,6 +31,14 @@ impl TestApp {
         &mut self.app
     }
 
+    pub fn get_balance(&self, addr: &Addr, denom: &str) -> Result<u128> {
+        Ok(self.app.wrap().query_balance(addr, denom)?.amount.u128())
+    }
+
+    pub fn store_code(&mut self, contract: Box<dyn Contract<StargazeMsgWrapper>>) -> u64 {
+        self.app.store_code(contract)
+    }
+
     pub fn set_genesis_time(&mut self) {
         let mut block = self.app.block_info();
         block.time = Timestamp::from_nanos(GENESIS_MINT_START_TIME);
@@ -41,25 +49,5 @@ impl TestApp {
         let mut block = self.app.block_info();
         block.time = block.time.plus_seconds(seconds);
         self.app.set_block(block);
-    }
-
-    pub fn store_code(&mut self, contract: Box<dyn Contract<StargazeMsgWrapper>>) -> u64 {
-        self.app.store_code(contract)
-    }
-
-    pub fn get_balance(&self, addr: &Addr, denom: &str) -> Option<u128> {
-        self.app
-            .wrap()
-            .query_balance(addr.to_string(), denom)
-            .ok()
-            .map(|c| c.amount.u128())
-    }
-
-    pub fn fund_account(&mut self, addr: &Addr, amount: u128, denom: &str) -> anyhow::Result<()> {
-        self.app.init_modules(|router, _, storage| {
-            router
-                .bank
-                .init_balance(storage, addr, vec![Coin::new(amount, denom)])
-        })
     }
 }

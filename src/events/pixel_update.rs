@@ -1,17 +1,14 @@
-use cosmwasm_std::{Addr, Event};
+use cosmwasm_std::{Attribute, Event};
 use serde::{Deserialize, Serialize};
 
 use super::{EventData, EventType};
+use crate::core::tile::metadata::PixelData;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PixelUpdateEventData {
     pub token_id: String,
-    pub pixel_id: u32,
-    pub color: String,
-    pub expiration_duration: u64,
-    pub expiration_timestamp: u64,
-    pub last_updated_by: Addr,
-    pub last_updated_at: u64,
+    pub new_pixels: Vec<PixelData>,
+    pub tile_hash: String,
 }
 
 impl EventData for PixelUpdateEventData {
@@ -20,17 +17,14 @@ impl EventData for PixelUpdateEventData {
     }
 
     fn into_event(self) -> Event {
-        Event::new(Self::event_type().as_str())
-            .add_attribute("token_id", self.token_id)
-            .add_attribute("pixel_id", self.pixel_id.to_string())
-            .add_attribute("color", self.color)
-            .add_attribute("expiration_duration", self.expiration_duration.to_string())
-            .add_attribute(
-                "expiration_timestamp",
-                self.expiration_timestamp.to_string(),
-            )
-            .add_attribute("last_updated_by", self.last_updated_by.to_string())
-            .add_attribute("last_updated_at", self.last_updated_at.to_string())
+        Event::new(Self::event_type().as_str()).add_attributes(vec![
+            Attribute::new("token_id", self.token_id),
+            Attribute::new("tile_hash", self.tile_hash),
+            Attribute::new(
+                "pixels",
+                serde_json::to_string(&self.new_pixels).unwrap_or_default(),
+            ),
+        ])
     }
 
     fn try_from_event(event: &Event) -> Option<Self> {
@@ -46,14 +40,14 @@ impl EventData for PixelUpdateEventData {
                 .map(|a| a.value.clone())
         };
 
+        let token_id = get_attr("token_id")?;
+        let tile_hash = get_attr("tile_hash")?;
+        let new_pixels: Vec<PixelData> = serde_json::from_str(&get_attr("pixels")?).ok()?;
+
         Some(Self {
-            token_id: get_attr("token_id")?,
-            pixel_id: get_attr("pixel_id")?.parse().ok()?,
-            color: get_attr("color")?,
-            expiration_duration: get_attr("expiration_duration")?.parse().ok()?,
-            expiration_timestamp: get_attr("expiration_timestamp")?.parse().ok()?,
-            last_updated_by: Addr::unchecked(get_attr("last_updated_by")?),
-            last_updated_at: get_attr("last_updated_at")?.parse().ok()?,
+            token_id,
+            new_pixels,
+            tile_hash,
         })
     }
 }

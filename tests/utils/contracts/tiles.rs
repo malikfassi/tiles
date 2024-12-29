@@ -1,4 +1,4 @@
-use crate::common::app::TestApp;
+use crate::utils::app::TestApp;
 use anyhow::Result;
 use cosmwasm_std::{coins, Addr, Binary, Coin};
 use cw721::{NftInfoResponse, OwnerOfResponse};

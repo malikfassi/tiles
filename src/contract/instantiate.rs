@@ -8,7 +8,7 @@ use crate::{
     contract::{error::ContractError, msg::InstantiateMsg, state::PRICE_SCALING},
     core::{pricing::PriceScaling, tile::Tile},
     defaults::constants::{CONTRACT_NAME, CONTRACT_VERSION},
-    events::{EventData, InstantiateConfigEventData},
+    events::{EventData, InstantiatePriceScalingEventData},
 };
 
 pub fn instantiate_handler(
@@ -28,7 +28,7 @@ pub fn instantiate_handler(
     PRICE_SCALING.save(deps.storage, &price_scaling)?;
 
     // Create instantiate event with config
-    let config_event = InstantiateConfigEventData {
+    let config_event = InstantiatePriceScalingEventData {
         collection_info: serde_json::to_string(&msg.collection_info).unwrap_or_default(),
         minter: msg.minter,
         price_scaling: serde_json::to_string(&price_scaling).unwrap_or_default(),

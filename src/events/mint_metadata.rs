@@ -1,15 +1,17 @@
-use cosmwasm_std::{Attribute, Event};
+use cosmwasm_std::{Addr, Attribute, Event};
 use serde::{Deserialize, Serialize};
 
-use crate::events::{EventData, EventType};
+use crate::{
+    core::tile::metadata::PixelData,
+    events::{EventData, EventType},
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct MintMetadataEventData {
     pub token_id: String,
-    pub owner: String,
-    pub token_uri: String,
+    pub owner: Addr,
+    pub new_pixels: Vec<PixelData>,
     pub tile_hash: String,
-    pub time: String,
 }
 
 impl EventData for MintMetadataEventData {
@@ -20,10 +22,12 @@ impl EventData for MintMetadataEventData {
     fn into_event(self) -> Event {
         Event::new(Self::event_type().as_str()).add_attributes(vec![
             Attribute::new("token_id", self.token_id),
-            Attribute::new("owner", self.owner),
-            Attribute::new("token_uri", self.token_uri),
+            Attribute::new("owner", self.owner.to_string()),
             Attribute::new("tile_hash", self.tile_hash),
-            Attribute::new("time", self.time),
+            Attribute::new(
+                "pixels",
+                serde_json::to_string(&self.new_pixels).unwrap_or_default(),
+            ),
         ])
     }
 
@@ -32,29 +36,24 @@ impl EventData for MintMetadataEventData {
             return None;
         }
 
-        let mut token_id = None;
-        let mut owner = None;
-        let mut token_uri = None;
-        let mut tile_hash = None;
-        let mut time = None;
+        let get_attr = |key: &str| {
+            event
+                .attributes
+                .iter()
+                .find(|a| a.key == key)
+                .map(|a| a.value.clone())
+        };
 
-        for attr in &event.attributes {
-            match attr.key.as_str() {
-                "token_id" => token_id = Some(attr.value.clone()),
-                "owner" => owner = Some(attr.value.clone()),
-                "token_uri" => token_uri = Some(attr.value.clone()),
-                "tile_hash" => tile_hash = Some(attr.value.clone()),
-                "time" => time = Some(attr.value.clone()),
-                _ => {}
-            }
-        }
+        let token_id = get_attr("token_id")?;
+        let owner = Addr::unchecked(get_attr("owner")?);
+        let tile_hash = get_attr("tile_hash")?;
+        let new_pixels: Vec<PixelData> = serde_json::from_str(&get_attr("pixels")?).ok()?;
 
         Some(Self {
-            token_id: token_id?,
-            owner: owner?,
-            token_uri: token_uri?,
-            tile_hash: tile_hash?,
-            time: time?,
+            token_id,
+            owner,
+            new_pixels,
+            tile_hash,
         })
     }
 }

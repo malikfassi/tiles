@@ -5,7 +5,7 @@ use sg_std::NATIVE_DENOM;
 use tiles::defaults::constants::MINT_PRICE;
 use vending_minter::msg::ExecuteMsg;
 
-use crate::common::app::TestApp;
+use crate::utils::app::TestApp;
 
 pub struct MinterContract {
     pub contract_addr: Addr,
@@ -31,11 +31,19 @@ impl MinterContract {
     /// Mints a new token for the given buyer
     /// Returns the AppResponse which can be used to extract the token_id
     pub fn mint(&self, app: &mut TestApp, buyer: &Addr) -> Result<AppResponse> {
-        app.inner_mut().execute_contract(
+        let result = app.inner_mut().execute_contract(
             buyer.clone(),
             self.contract_addr.clone(),
             &ExecuteMsg::Mint {},
             &coins(MINT_PRICE, NATIVE_DENOM),
-        )
+        );
+
+        match result {
+            Ok(response) => Ok(response),
+            Err(e) => {
+                println!("\nMint failed with error: {}", e);
+                Err(anyhow::anyhow!("Mint failed: {}", e))
+            }
+        }
     }
 }

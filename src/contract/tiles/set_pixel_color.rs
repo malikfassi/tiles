@@ -7,7 +7,7 @@ use std::collections::HashSet;
 use crate::{
     contract::{error::ContractError, msg::QueryMsg, state::PRICE_SCALING},
     core::tile::{
-        metadata::{PixelUpdate, TileMetadata},
+        metadata::{PixelData, PixelUpdate, TileMetadata},
         Tile,
     },
     events::{
@@ -98,26 +98,27 @@ pub fn set_pixel_color(
     ];
 
     // Create events for each pixel update
-    let pixel_events = updates
-        .iter()
-        .map(|update| {
-            let event = PixelUpdateEventData {
-                token_id: token_id.clone(),
-                pixel_id: update.id,
-                color: update.color.clone(),
-                expiration_duration: update.expiration_duration,
-                expiration_timestamp: current_time + update.expiration_duration,
-                last_updated_by: info.sender.clone(),
-                last_updated_at: current_time,
-            }
-            .into_event();
-            println!("Pixel update event: {:?}", event);
-            event
-        })
-        .collect::<Vec<_>>();
+    let mut new_pixels = Vec::with_capacity(updates.len());
+    for update in &updates {
+        new_pixels.push(PixelData {
+            id: update.id,
+            color: update.color.clone(),
+            expiration_timestamp: current_time + update.expiration_duration,
+            last_updated_by: info.sender.clone(),
+            last_updated_at: current_time,
+        });
+    }
 
     // Apply all updates at once
     current_metadata.apply_updates(updates, &info.sender, current_time);
+
+    // Create pixel update event
+    let pixel_event = PixelUpdateEventData {
+        token_id: token_id.clone(),
+        new_pixels,
+        tile_hash: current_metadata.hash(),
+    }
+    .into_event();
 
     // Create metadata updated event
     let metadata_event = MetadataUpdateEventData {
@@ -125,7 +126,6 @@ pub fn set_pixel_color(
         resulting_hash: current_metadata.hash(),
     }
     .into_event();
-    println!("Metadata update event: {:?}", metadata_event);
 
     // Create payment distribution event
     let payment_event = PaymentDistributionEventData {
@@ -135,7 +135,6 @@ pub fn set_pixel_color(
         owner_amount: owner_amount.u128(),
     }
     .into_event();
-    println!("Payment distribution event: {:?}", payment_event);
 
     // Update token extension with new metadata hash
     token.extension.tile_hash = current_metadata.hash();
@@ -143,7 +142,7 @@ pub fn set_pixel_color(
 
     let response = Response::new()
         .add_messages(bank_msgs)
-        .add_events(pixel_events)
+        .add_event(pixel_event)
         .add_event(metadata_event)
         .add_event(payment_event);
 

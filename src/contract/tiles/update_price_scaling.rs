@@ -5,7 +5,7 @@ use sg_std::StargazeMsgWrapper;
 use crate::{
     contract::{error::ContractError, state::PRICE_SCALING},
     core::{pricing::PriceScaling, tile::Tile},
-    events::{EventData, PriceScalingUpdateEventData},
+    events::{EventData, EventType, PriceScalingUpdateEventData},
 };
 
 pub fn update_price_scaling(

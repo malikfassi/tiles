@@ -2,7 +2,7 @@ use cosmwasm_std::{Addr, Coin, Uint128};
 use sg_std::NATIVE_DENOM;
 use tiles::defaults::constants::{CREATION_FEE, MINT_PRICE};
 
-use crate::common::app::TestApp;
+use crate::utils::app::TestApp;
 
 #[derive(Clone)]
 pub struct User {
@@ -17,6 +17,7 @@ impl User {
     }
 }
 
+#[derive(Clone)]
 pub struct TestUsers {
     pub buyer: User,
     pub tile_creator: User,
@@ -90,6 +91,14 @@ impl TestUsers {
         &self.buyer
     }
 
+    pub fn tile_contract_creator(&self) -> &User {
+        &self.tile_creator
+    }
+
+    pub fn factory_contract_creator(&self) -> &User {
+        &self.factory_creator
+    }
+
     pub fn poor_user(&self) -> &User {
         &self.poor_user
     }
@@ -98,11 +107,7 @@ impl TestUsers {
         &self.pixel_operator
     }
 
-    pub fn tile_contract_creator(&self) -> &User {
+    pub fn creator(&self) -> &User {
         &self.creator
-    }
-
-    pub fn factory_contract_creator(&self) -> &User {
-        &self.factory_creator
     }
 }
