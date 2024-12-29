@@ -7,3 +7,11 @@ vendor/
 
 # windsurf rules
 .windsurfrules
+
+/scripts/__pycache__/
+/scripts/assets/
+/launchpad/
+/ipfs/
+/docs/
+/artifacts/
+.env
