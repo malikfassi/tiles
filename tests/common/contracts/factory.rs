@@ -5,9 +5,10 @@ use sg2::msg::{CollectionParams, CreateMinterMsg};
 use sg721::{CollectionInfo, RoyaltyInfoResponse};
 use sg_std::NATIVE_DENOM;
 use tiles::defaults::constants::{
-    AIRDROP_MINT_FEE_BPS, AIRDROP_MINT_PRICE, CREATION_FEE, DEFAULT_ROYALTY_SHARE,
-    MAX_PER_ADDRESS_LIMIT, MAX_TOKEN_LIMIT, MAX_TRADING_OFFSET_SECS, MINT_FEE_BPS, MINT_PRICE,
-    MIN_MINT_PRICE, SHUFFLE_FEE,
+    AIRDROP_MINT_FEE_BPS, AIRDROP_MINT_PRICE, BASE_TOKEN_URI, COLLECTION_DESCRIPTION, 
+    COLLECTION_NAME, COLLECTION_SYMBOL, COLLECTION_URI, CREATION_FEE, DEFAULT_ROYALTY_SHARE, 
+    MAX_PER_ADDRESS_LIMIT, MAX_TOKEN_LIMIT, MAX_TRADING_OFFSET_SECS, MINT_FEE_BPS, MINT_PRICE, 
+    MIN_MINT_PRICE, SHUFFLE_FEE, TWENTY_FOUR_HOURS,
 };
 
 use vending_factory::{
@@ -107,8 +108,8 @@ impl FactoryContract {
     ) -> Result<(Addr, Addr), anyhow::Error> {
         let collection_info = CollectionInfo {
             creator: creator.to_string(),
-            description: "Test Collection".to_string(),
-            image: "https://example.com/image.png".to_string(),
+            description: COLLECTION_DESCRIPTION.to_string(),
+            image: COLLECTION_URI.to_string(),
             external_link: None,
             explicit_content: None,
             start_trading_time: None,
@@ -120,17 +121,17 @@ impl FactoryContract {
 
         let collection_params = CollectionParams {
             code_id: collection_code_id,
-            name: "Test Collection".to_string(),
-            symbol: "TEST".to_string(),
+            name: COLLECTION_NAME.to_string(),
+            symbol: COLLECTION_SYMBOL.to_string(),
             info: collection_info.clone(),
         };
 
         let block_time = app.inner().block_info().time;
         let init_msg = VendingMinterInitMsgExtension {
-            base_token_uri: "ipfs://test/".to_string(),
+            base_token_uri: BASE_TOKEN_URI.to_string(),
             payment_address: Some(creator.to_string()),
-            start_time: block_time.plus_seconds(86400), // Start in 1 day
-            num_tokens: 100,
+            start_time: block_time.plus_seconds(TWENTY_FOUR_HOURS), // Start in 1 day
+            num_tokens: MAX_TOKEN_LIMIT,
             mint_price: Coin::new(MINT_PRICE, NATIVE_DENOM),
             per_address_limit: MAX_PER_ADDRESS_LIMIT,
             whitelist: None,

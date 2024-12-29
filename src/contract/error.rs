@@ -34,12 +34,6 @@ pub enum ContractError {
     Overflow(String),
 }
 
-impl From<cw721_base::ContractError> for ContractError {
-    fn from(err: cw721_base::ContractError) -> Self {
-        ContractError::Base(sg721_base::ContractError::from(err))
-    }
-}
-
 impl From<OverflowError> for ContractError {
     fn from(err: OverflowError) -> Self {
         ContractError::Overflow(err.to_string())

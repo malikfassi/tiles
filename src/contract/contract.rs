@@ -1,6 +1,8 @@
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cw721_base::Extension;
 
 use sg_std::StargazeMsgWrapper;
+use sg721_base::Sg721Contract;
 
 use crate::contract::{
     error::ContractError,
@@ -30,7 +32,7 @@ pub fn execute(
     execute_handler(deps, env, info, msg)
 }
 
-#[entry_point]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     query_handler(deps, env, msg)
 }

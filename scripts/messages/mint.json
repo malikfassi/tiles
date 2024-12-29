@@ -1,0 +1,8 @@
+{
+  "mint": {
+    "extension": null,
+    "owner": "$WALLET_ADDRESS",
+    "token_id": "$TOKEN_ID",
+    "token_uri": "$TOKEN_URI"
+  }
+}

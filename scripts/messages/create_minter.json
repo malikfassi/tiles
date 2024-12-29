@@ -1,0 +1,31 @@
+{
+  "collection_params": {
+    "code_id": "$TILE_CODE_ID",
+    "info": {
+      "creator": "$DEPLOYER_ADDRESS",
+      "description": "$COLLECTION_DESCRIPTION",
+      "explicit_content": false,
+      "external_link": null,
+      "image": "$COLLECTION_URI",
+      "royalty_info": {
+        "payment_address": "$DEPLOYER_ADDRESS",
+        "share": "0.$DEFAULT_ROYALTY_SHARE"
+      },
+      "start_trading_time": null
+    },
+    "name": "$COLLECTION_NAME",
+    "symbol": "$COLLECTION_SYMBOL"
+  },
+  "init_msg": {
+    "base_token_uri": "$BASE_TOKEN_URI",
+    "mint_price": {
+      "amount": "$MINT_PRICE",
+      "denom": "$TOKEN_DENOM"
+    },
+    "num_tokens": "$MAX_TOKEN_LIMIT",
+    "payment_address": "$DEPLOYER_ADDRESS",
+    "per_address_limit": "$MAX_PER_ADDRESS_LIMIT",
+    "start_time": "$START_TIME",
+    "whitelist": null
+  }
+}

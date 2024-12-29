@@ -112,9 +112,9 @@ impl TilesContract {
     pub fn query_token_hash(&self, app: &TestApp, token_id: u32) -> Result<String> {
         let response: NftInfoResponse<Tile> = app.inner().wrap().query_wasm_smart(
             self.contract_addr.clone(),
-            &QueryMsg::Base(Sg721QueryMsg::NftInfo {
+            &QueryMsg::NftInfo {
                 token_id: token_id.to_string(),
-            }),
+            },
         )?;
         Ok(response.extension.tile_hash)
     }
@@ -132,10 +132,10 @@ impl TilesContract {
             .wrap()
             .query_wasm_smart(
                 self.contract_addr.clone(),
-                &QueryMsg::Base(Sg721QueryMsg::OwnerOf {
+                &QueryMsg::OwnerOf {
                     token_id: token_id.to_string(),
                     include_expired: None,
-                }),
+                },
             )
             .unwrap();
         assert_eq!(response.owner, expected_owner.to_string());
@@ -309,10 +309,10 @@ impl TilesContract {
     pub fn query_owner_of(&self, app: &TestApp, token_id: String) -> Result<OwnerOfResponse> {
         Ok(app.inner().wrap().query_wasm_smart(
             self.contract_addr.clone(),
-            &QueryMsg::Base(Sg721QueryMsg::OwnerOf {
-                token_id,
+            &QueryMsg::OwnerOf {
+                token_id: token_id.to_string(),
                 include_expired: None,
-            }),
+            },
         )?)
     }
 
@@ -322,7 +322,7 @@ impl TilesContract {
     ) -> Result<CollectionInfo<RoyaltyInfoResponse>> {
         Ok(app.inner().wrap().query_wasm_smart(
             self.contract_addr.clone(),
-            &QueryMsg::Base(Sg721QueryMsg::CollectionInfo {}),
+            &QueryMsg::CollectionInfo {},
         )?)
     }
 }

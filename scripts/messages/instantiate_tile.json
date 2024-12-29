@@ -1,0 +1,17 @@
+{
+  "collection_info": {
+    "creator": "$DEPLOYER_ADDRESS",
+    "description": "$COLLECTION_DESCRIPTION",
+    "explicit_content": null,
+    "external_link": null,
+    "image": "$COLLECTION_URI",
+    "royalty_info": {
+      "payment_address": "$DEPLOYER_ADDRESS",
+      "share": "0.$DEFAULT_ROYALTY_SHARE"
+    },
+    "start_trading_time": null
+  },
+  "minter": "$DEPLOYER_ADDRESS",
+  "name": "$CONTRACT_NAME",
+  "symbol": "TILE"
+}

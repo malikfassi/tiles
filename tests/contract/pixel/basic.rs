@@ -2,6 +2,7 @@ use crate::common::TestOrchestrator;
 use anyhow::Result;
 use tiles::core::tile::metadata::PixelUpdate;
 use tiles::defaults::constants::DEFAULT_ROYALTY_SHARE;
+use tiles::core::pricing::PriceScaling;
 
 #[test]
 fn can_set_pixel_color() -> Result<()> {
@@ -16,14 +17,20 @@ fn can_set_pixel_color() -> Result<()> {
 
     let result = test.update_pixels(token_id, vec![update.clone()], &owner)?;
 
+    // Calculate total price using PriceScaling
+    let price_scaling = PriceScaling::default();
+    let total_price = price_scaling.calculate_total_price(std::iter::once(&update.expiration_duration)).u128();
+    let royalty_amount = total_price * DEFAULT_ROYALTY_SHARE as u128 / 100;
+    let owner_amount = total_price - royalty_amount;
+
     // Assert all events
     test.assert_pixel_update_event(&result, &token_id.to_string(), &update, &owner);
     test.assert_payment_distribution_event(
         &result,
         &token_id.to_string(),
         &owner,
-        100000000 * DEFAULT_ROYALTY_SHARE as u128 / 100, // royalty amount
-        100000000 * (100 - DEFAULT_ROYALTY_SHARE) as u128 / 100, // owner amount
+        royalty_amount,
+        owner_amount,
     );
 
     Ok(())
@@ -54,6 +61,12 @@ fn all_valid_updates_succeed() -> Result<()> {
 
     let result = test.update_pixels(token_id, updates.clone(), &owner)?;
 
+    // Calculate total price using PriceScaling
+    let price_scaling = PriceScaling::default();
+    let total_price = price_scaling.calculate_total_price(updates.iter().map(|u| &u.expiration_duration)).u128();
+    let royalty_amount = total_price * DEFAULT_ROYALTY_SHARE as u128 / 100;
+    let owner_amount = total_price - royalty_amount;
+
     // Assert all events for each update
     for update in updates {
         test.assert_pixel_update_event(&result, &token_id.to_string(), &update, &owner);
@@ -62,8 +75,8 @@ fn all_valid_updates_succeed() -> Result<()> {
         &result,
         &token_id.to_string(),
         &owner,
-        300000000 * DEFAULT_ROYALTY_SHARE as u128 / 100, // royalty amount
-        300000000 * (100 - DEFAULT_ROYALTY_SHARE) as u128 / 100, // owner amount
+        royalty_amount,
+        owner_amount,
     );
 
     Ok(())
@@ -94,6 +107,12 @@ fn can_update_multiple_pixels() -> Result<()> {
 
     let result = test.update_pixels(token_id, updates.clone(), &owner)?;
 
+    // Calculate total price using PriceScaling
+    let price_scaling = PriceScaling::default();
+    let total_price = price_scaling.calculate_total_price(updates.iter().map(|u| &u.expiration_duration)).u128();
+    let royalty_amount = total_price * DEFAULT_ROYALTY_SHARE as u128 / 100;
+    let owner_amount = total_price - royalty_amount;
+
     // Assert all events for each update
     for update in updates {
         test.assert_pixel_update_event(&result, &token_id.to_string(), &update, &owner);
@@ -102,8 +121,8 @@ fn can_update_multiple_pixels() -> Result<()> {
         &result,
         &token_id.to_string(),
         &owner,
-        300000000 * DEFAULT_ROYALTY_SHARE as u128 / 100, // royalty amount
-        300000000 * (100 - DEFAULT_ROYALTY_SHARE) as u128 / 100, // owner amount
+        royalty_amount,
+        owner_amount,
     );
 
     Ok(())

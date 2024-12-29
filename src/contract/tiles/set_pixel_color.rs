@@ -1,6 +1,6 @@
 use cosmwasm_std::{CosmosMsg, DepsMut, Env, MessageInfo, Response, Uint128};
 use cw721::OwnerOfResponse;
-use sg721_base::{msg::QueryMsg as Sg721QueryMsg, Sg721Contract};
+use sg721_base::Sg721Contract;
 use sg_std::StargazeMsgWrapper;
 use std::collections::HashSet;
 
@@ -32,12 +32,13 @@ pub fn set_pixel_color(
     }
 
     // Get token owner
+    let owner_query = QueryMsg::OwnerOf {
+        token_id: token_id.clone(),
+        include_expired: None,
+    };
     let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
         env.contract.address.clone(),
-        &QueryMsg::Base(Sg721QueryMsg::OwnerOf {
-            token_id: token_id.clone(),
-            include_expired: None,
-        }),
+        &owner_query,
     )?;
 
     let price_scaling = PRICE_SCALING.load(deps.storage)?;

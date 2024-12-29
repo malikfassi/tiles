@@ -1,0 +1,608 @@
+2024-12-28 15:40:20,218 - DEBUG - Using selector: KqueueSelector
+2024-12-28 15:40:20,218 - INFO - 🗂️ Preparing directory structure...
+2024-12-28 15:40:20,218 - INFO - ✅ Directory structure prepared!
+2024-12-28 15:40:20,218 - INFO - 📤 Starting parallel image uploads...
+2024-12-28 15:40:20,218 - INFO - Found 9 images to upload
+2024-12-28 15:40:20,218 - INFO - Starting file upload for 5.png
+2024-12-28 15:40:20,219 - INFO - Starting file upload for 1.png
+2024-12-28 15:40:20,219 - INFO - Starting file upload for 9.png
+2024-12-28 15:40:20,219 - INFO - Starting file upload for 3.png
+2024-12-28 15:40:20,219 - INFO - Starting file upload for 4.png
+2024-12-28 15:40:20,219 - INFO - Starting file upload for 7.png
+2024-12-28 15:40:20,220 - INFO - Starting file upload for 6.png
+2024-12-28 15:40:20,220 - INFO - Starting file upload for 2.png
+2024-12-28 15:40:20,220 - INFO - Starting file upload for 8.png
+2024-12-28 15:40:24,246 - INFO - ✅ File upload successful for 7.png - CID: QmUc8HSi5AEDyTQqS51qtqKj6L9Ghv7MgngNw9pvWLsMGm (took 4.03s)
+2024-12-28 15:40:24,247 - INFO - ✅ File upload successful for 2.png - CID: QmUyGHt4uKTVX7QdvDssRgSniSZVoKNkoeivhCfPe9sNNf (took 4.03s)
+2024-12-28 15:40:24,247 - INFO - Progress: 1/9 images uploaded
+2024-12-28 15:40:24,248 - INFO - Progress: 2/9 images uploaded
+2024-12-28 15:40:24,331 - INFO - ✅ File upload successful for 9.png - CID: QmSNEuSAN6nUNbT7TEGiETkoRhJRq5upPkQLzd11wvNYiT (took 4.11s)
+2024-12-28 15:40:24,331 - INFO - Progress: 3/9 images uploaded
+2024-12-28 15:40:24,336 - INFO - ✅ File upload successful for 6.png - CID: Qme3aZNGBarbBsHXSPNHtaANe5NWNwvB1rjG1YbXkUrRmT (took 4.12s)
+2024-12-28 15:40:24,337 - INFO - Progress: 4/9 images uploaded
+2024-12-28 15:40:24,452 - INFO - ✅ File upload successful for 3.png - CID: QmPy3Fk8S3w3zW7RzQohZ588Q7amL7nBwkwi16pQwpQ3Zg (took 4.23s)
+2024-12-28 15:40:24,453 - INFO - Progress: 5/9 images uploaded
+2024-12-28 15:40:24,525 - INFO - ✅ File upload successful for 4.png - CID: Qmc2oXgtaGBYayn3nuZr36Bs1VM1oHxPNuCdmPvzvqK1hG (took 4.31s)
+2024-12-28 15:40:24,526 - INFO - Progress: 6/9 images uploaded
+2024-12-28 15:40:24,529 - INFO - ✅ File upload successful for 1.png - CID: Qmcf3tV4fnCzccMmcBZ8DdYd9gbxj1Cab6xEbrSx7brKnM (took 4.31s)
+2024-12-28 15:40:24,529 - INFO - Progress: 7/9 images uploaded
+2024-12-28 15:40:24,567 - INFO - ✅ File upload successful for 8.png - CID: QmWQsajWmazNx19MPwQWMMfP27k4onQzBZVTT8H8nsRuwx (took 4.35s)
+2024-12-28 15:40:24,568 - INFO - Progress: 8/9 images uploaded
+2024-12-28 15:40:24,652 - INFO - ✅ File upload successful for 5.png - CID: QmQUro2Etk2r3CKS7FJ1LTFztk54t3R817G1FFNZ4XXbTk (took 4.43s)
+2024-12-28 15:40:24,653 - INFO - Progress: 9/9 images uploaded
+2024-12-28 15:40:24,653 - INFO - ✅ All 9 images uploaded successfully!
+2024-12-28 15:40:24,654 - INFO - 📝 Updating metadata files with image CIDs...
+2024-12-28 15:40:24,681 - INFO - ✅ Metadata files updated with image CIDs
+2024-12-28 15:40:24,681 - INFO - 📤 Starting parallel metadata uploads...
+2024-12-28 15:40:24,681 - INFO - Found 9 metadata files to upload
+2024-12-28 15:40:24,685 - INFO - Starting JSON upload for tile_3_metadata
+2024-12-28 15:40:24,685 - INFO - Starting JSON upload for tile_8_metadata
+2024-12-28 15:40:24,686 - INFO - Starting JSON upload for tile_4_metadata
+2024-12-28 15:40:24,686 - INFO - Starting JSON upload for tile_9_metadata
+2024-12-28 15:40:24,686 - INFO - Starting JSON upload for tile_7_metadata
+2024-12-28 15:40:24,687 - INFO - Starting JSON upload for tile_1_metadata
+2024-12-28 15:40:24,687 - INFO - Starting JSON upload for tile_2_metadata
+2024-12-28 15:40:24,688 - INFO - Starting JSON upload for tile_5_metadata
+2024-12-28 15:40:24,688 - INFO - Starting JSON upload for tile_6_metadata
+2024-12-28 15:40:27,161 - INFO - ✅ JSON upload successful for tile_3_metadata - CID: QmNPiCL9zm4YW1svuTFC7FVqNuGQiwX6qLRiUPCwii9Ucq (took 2.48s)
+2024-12-28 15:40:27,162 - INFO - ✅ JSON upload successful for tile_8_metadata - CID: QmbrG96RAvQbMyuD9yzVhYUspRBdcmpSH41hHRAMBt1kuv (took 2.48s)
+2024-12-28 15:40:27,162 - INFO - Progress: 1/9 metadata files uploaded
+2024-12-28 15:40:27,162 - INFO - Progress: 2/9 metadata files uploaded
+2024-12-28 15:40:27,166 - INFO - ✅ JSON upload successful for tile_9_metadata - CID: Qmc7JCXeinCgdrbNQGDFsiEpKbtpPJdSzQTZm4Hgc6rATp (took 2.48s)
+2024-12-28 15:40:27,166 - INFO - Progress: 3/9 metadata files uploaded
+2024-12-28 15:40:27,180 - INFO - ✅ JSON upload successful for tile_7_metadata - CID: QmUE4F8rHBScBEySE1nZVKfTSt4k292gPfiWeNuUDmkkny (took 2.49s)
+2024-12-28 15:40:27,181 - INFO - Progress: 4/9 metadata files uploaded
+2024-12-28 15:40:27,202 - INFO - ✅ JSON upload successful for tile_4_metadata - CID: QmNjxscTXobxeTSbTo1L7azHKsk8dS2eHc8jkLqhhjTjMo (took 2.52s)
+2024-12-28 15:40:27,203 - INFO - Progress: 5/9 metadata files uploaded
+2024-12-28 15:40:27,218 - INFO - ✅ JSON upload successful for tile_1_metadata - CID: QmU8ixxoWt7LYrASWZ3AdNsTFR5ez7RDVRRZWzfBxPiTop (took 2.53s)
+2024-12-28 15:40:27,218 - INFO - Progress: 6/9 metadata files uploaded
+2024-12-28 15:40:27,240 - INFO - ✅ JSON upload successful for tile_2_metadata - CID: QmV3p1gcjHDvTuXtH3o8KgGdf8TqpmKruPvRZyLBnhDrSJ (took 2.55s)
+2024-12-28 15:40:27,241 - INFO - Progress: 7/9 metadata files uploaded
+2024-12-28 15:40:27,261 - INFO - ✅ JSON upload successful for tile_5_metadata - CID: QmSJaokz4oVwxpriPMKnVDcP8Q1K8zggQbPWwnr8YJQ2Qf (took 2.57s)
+2024-12-28 15:40:27,261 - INFO - Progress: 8/9 metadata files uploaded
+2024-12-28 15:40:27,365 - INFO - ✅ JSON upload successful for tile_6_metadata - CID: QmZLGMj4Ekkp2BGyHcg1C1wwUvjMMr8bd9CDi5DarmQxNZ (took 2.68s)
+2024-12-28 15:40:27,366 - INFO - Progress: 9/9 metadata files uploaded
+2024-12-28 15:40:27,366 - INFO - ✅ All 9 metadata files uploaded successfully!
+2024-12-28 15:40:27,366 - INFO - ✨ All content uploaded successfully!
+2024-12-28 15:40:27,366 - INFO - 
+📝 Update your constants.rs with:
+2024-12-28 15:40:27,366 - INFO - pub const COLLECTION_URI: &str = "ipfs://QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuXdjNkjZw";
+2024-12-28 15:40:27,366 - INFO - pub const BASE_TOKEN_URI: &str = "ipfs://Qmc7JCXeinCgdrbNQGDFsiEpKbtpPJdSzQTZm4Hgc6rATp/";
+2024-12-28 15:40:27,417 - DEBUG - Starting new HTTPS connection (1): gateway.pinata.cloud:443
+2024-12-28 15:40:27,936 - DEBUG - https://gateway.pinata.cloud:443 "GET /ipfs/Qmc7JCXeinCgdrbNQGDFsiEpKbtpPJdSzQTZm4Hgc6rATp HTTP/1.1" 200 None
+2024-12-28 15:41:07,193 - DEBUG - Using selector: KqueueSelector
+2024-12-28 15:41:07,193 - INFO - 🗂️ Preparing directory structure...
+2024-12-28 15:41:07,193 - INFO - ✅ Directory structure prepared!
+2024-12-28 15:41:07,193 - INFO - 📤 Starting parallel image uploads...
+2024-12-28 15:41:07,193 - INFO - Found 9 images to upload
+2024-12-28 15:41:07,194 - INFO - Starting file upload for 5.png
+2024-12-28 15:41:07,194 - INFO - Starting file upload for 1.png
+2024-12-28 15:41:07,194 - INFO - Starting file upload for 9.png
+2024-12-28 15:41:07,194 - INFO - Starting file upload for 3.png
+2024-12-28 15:41:07,195 - INFO - Starting file upload for 7.png
+2024-12-28 15:41:07,195 - INFO - Starting file upload for 4.png
+2024-12-28 15:41:07,195 - INFO - Starting file upload for 6.png
+2024-12-28 15:41:07,195 - INFO - Starting file upload for 2.png
+2024-12-28 15:41:07,196 - INFO - Starting file upload for 8.png
+2024-12-28 15:41:10,468 - INFO - ✅ File upload successful for 8.png - CID: QmWQsajWmazNx19MPwQWMMfP27k4onQzBZVTT8H8nsRuwx (took 3.27s)
+2024-12-28 15:41:10,469 - INFO - ✅ File upload successful for 4.png - CID: Qmc2oXgtaGBYayn3nuZr36Bs1VM1oHxPNuCdmPvzvqK1hG (took 3.27s)
+2024-12-28 15:41:10,470 - INFO - ✅ File upload successful for 1.png - CID: Qmcf3tV4fnCzccMmcBZ8DdYd9gbxj1Cab6xEbrSx7brKnM (took 3.28s)
+2024-12-28 15:41:10,470 - INFO - Progress: 1/9 images uploaded
+2024-12-28 15:41:10,470 - INFO - Progress: 2/9 images uploaded
+2024-12-28 15:41:10,470 - INFO - Progress: 3/9 images uploaded
+2024-12-28 15:41:10,559 - INFO - ✅ File upload successful for 7.png - CID: QmUc8HSi5AEDyTQqS51qtqKj6L9Ghv7MgngNw9pvWLsMGm (took 3.36s)
+2024-12-28 15:41:10,559 - INFO - Progress: 4/9 images uploaded
+2024-12-28 15:41:10,679 - INFO - ✅ File upload successful for 2.png - CID: QmUyGHt4uKTVX7QdvDssRgSniSZVoKNkoeivhCfPe9sNNf (took 3.48s)
+2024-12-28 15:41:10,680 - INFO - Progress: 5/9 images uploaded
+2024-12-28 15:41:10,759 - INFO - ✅ File upload successful for 6.png - CID: Qme3aZNGBarbBsHXSPNHtaANe5NWNwvB1rjG1YbXkUrRmT (took 3.56s)
+2024-12-28 15:41:10,760 - INFO - Progress: 6/9 images uploaded
+2024-12-28 15:41:10,880 - INFO - ✅ File upload successful for 3.png - CID: QmPy3Fk8S3w3zW7RzQohZ588Q7amL7nBwkwi16pQwpQ3Zg (took 3.68s)
+2024-12-28 15:41:10,880 - INFO - Progress: 7/9 images uploaded
+2024-12-28 15:41:11,008 - INFO - ✅ File upload successful for 9.png - CID: QmSNEuSAN6nUNbT7TEGiETkoRhJRq5upPkQLzd11wvNYiT (took 3.81s)
+2024-12-28 15:41:11,009 - INFO - Progress: 8/9 images uploaded
+2024-12-28 15:41:11,079 - INFO - ✅ File upload successful for 5.png - CID: QmQUro2Etk2r3CKS7FJ1LTFztk54t3R817G1FFNZ4XXbTk (took 3.89s)
+2024-12-28 15:41:11,080 - INFO - Progress: 9/9 images uploaded
+2024-12-28 15:41:11,080 - INFO - ✅ All 9 images uploaded successfully!
+2024-12-28 15:41:11,080 - INFO - 📝 Updating metadata files with image CIDs...
+2024-12-28 15:41:11,112 - INFO - ✅ Metadata files updated with image CIDs
+2024-12-28 15:41:11,113 - INFO - 📤 Starting parallel metadata uploads...
+2024-12-28 15:41:11,113 - INFO - Found 9 metadata files to upload
+2024-12-28 15:41:11,116 - INFO - Starting JSON upload for tile_1_metadata
+2024-12-28 15:41:11,117 - INFO - Starting JSON upload for tile_2_metadata
+2024-12-28 15:41:11,117 - INFO - Starting JSON upload for tile_7_metadata
+2024-12-28 15:41:11,118 - INFO - Starting JSON upload for tile_5_metadata
+2024-12-28 15:41:11,118 - INFO - Starting JSON upload for tile_9_metadata
+2024-12-28 15:41:11,118 - INFO - Starting JSON upload for tile_4_metadata
+2024-12-28 15:41:11,119 - INFO - Starting JSON upload for tile_8_metadata
+2024-12-28 15:41:11,119 - INFO - Starting JSON upload for tile_3_metadata
+2024-12-28 15:41:11,120 - INFO - Starting JSON upload for tile_6_metadata
+2024-12-28 15:41:13,847 - INFO - ✅ JSON upload successful for tile_1_metadata - CID: QmU8ixxoWt7LYrASWZ3AdNsTFR5ez7RDVRRZWzfBxPiTop (took 2.73s)
+2024-12-28 15:41:13,849 - INFO - ✅ JSON upload successful for tile_5_metadata - CID: QmSJaokz4oVwxpriPMKnVDcP8Q1K8zggQbPWwnr8YJQ2Qf (took 2.73s)
+2024-12-28 15:41:13,849 - INFO - ✅ JSON upload successful for tile_2_metadata - CID: QmV3p1gcjHDvTuXtH3o8KgGdf8TqpmKruPvRZyLBnhDrSJ (took 2.73s)
+2024-12-28 15:41:13,850 - INFO - ✅ JSON upload successful for tile_7_metadata - CID: QmUE4F8rHBScBEySE1nZVKfTSt4k292gPfiWeNuUDmkkny (took 2.73s)
+2024-12-28 15:41:13,850 - INFO - ✅ JSON upload successful for tile_8_metadata - CID: QmbrG96RAvQbMyuD9yzVhYUspRBdcmpSH41hHRAMBt1kuv (took 2.73s)
+2024-12-28 15:41:13,850 - INFO - ✅ JSON upload successful for tile_4_metadata - CID: QmNjxscTXobxeTSbTo1L7azHKsk8dS2eHc8jkLqhhjTjMo (took 2.73s)
+2024-12-28 15:41:13,850 - INFO - ✅ JSON upload successful for tile_9_metadata - CID: Qmc7JCXeinCgdrbNQGDFsiEpKbtpPJdSzQTZm4Hgc6rATp (took 2.73s)
+2024-12-28 15:41:13,850 - INFO - ✅ JSON upload successful for tile_3_metadata - CID: QmNPiCL9zm4YW1svuTFC7FVqNuGQiwX6qLRiUPCwii9Ucq (took 2.73s)
+2024-12-28 15:41:13,851 - INFO - Progress: 1/9 metadata files uploaded
+2024-12-28 15:41:13,851 - INFO - Progress: 2/9 metadata files uploaded
+2024-12-28 15:41:13,851 - INFO - Progress: 3/9 metadata files uploaded
+2024-12-28 15:41:13,851 - INFO - Progress: 4/9 metadata files uploaded
+2024-12-28 15:41:13,851 - INFO - Progress: 5/9 metadata files uploaded
+2024-12-28 15:41:13,851 - INFO - Progress: 6/9 metadata files uploaded
+2024-12-28 15:41:13,851 - INFO - Progress: 7/9 metadata files uploaded
+2024-12-28 15:41:13,851 - INFO - Progress: 8/9 metadata files uploaded
+2024-12-28 15:41:13,964 - INFO - ✅ JSON upload successful for tile_6_metadata - CID: QmZLGMj4Ekkp2BGyHcg1C1wwUvjMMr8bd9CDi5DarmQxNZ (took 2.84s)
+2024-12-28 15:41:13,965 - INFO - Progress: 9/9 metadata files uploaded
+2024-12-28 15:41:13,965 - INFO - ✅ All 9 metadata files uploaded successfully!
+2024-12-28 15:41:13,965 - INFO - ✨ All content uploaded successfully!
+2024-12-28 15:41:13,965 - INFO - 
+📝 Update your constants.rs with:
+2024-12-28 15:41:13,965 - INFO - pub const COLLECTION_URI: &str = "ipfs://QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuXdjNkjZw";
+2024-12-28 15:41:13,965 - INFO - pub const BASE_TOKEN_URI: &str = "ipfs://QmV3p1gcjHDvTuXtH3o8KgGdf8TqpmKruPvRZyLBnhDrSJ/";
+2024-12-28 15:43:31,870 - DEBUG - Using selector: KqueueSelector
+2024-12-28 15:43:31,870 - INFO - 🗂️ Preparing directory structure...
+2024-12-28 15:43:31,870 - INFO - ✅ Directory structure prepared!
+2024-12-28 15:43:31,870 - INFO - 📤 Starting parallel image uploads...
+2024-12-28 15:43:31,870 - INFO - Found 9 images to upload
+2024-12-28 15:43:31,870 - INFO - Starting file upload for 8.png
+2024-12-28 15:43:31,871 - INFO - Starting file upload for 6.png
+2024-12-28 15:43:31,871 - INFO - Starting file upload for 5.png
+2024-12-28 15:43:31,872 - INFO - Starting file upload for 1.png
+2024-12-28 15:43:31,872 - INFO - Starting file upload for 7.png
+2024-12-28 15:43:31,872 - INFO - Starting file upload for 9.png
+2024-12-28 15:43:31,872 - INFO - Starting file upload for 3.png
+2024-12-28 15:43:31,872 - INFO - Starting file upload for 2.png
+2024-12-28 15:43:31,872 - INFO - Starting file upload for 4.png
+2024-12-28 15:43:35,769 - INFO - ✅ File upload successful for 3.png - CID: QmPy3Fk8S3w3zW7RzQohZ588Q7amL7nBwkwi16pQwpQ3Zg (took 3.90s)
+2024-12-28 15:43:35,770 - INFO - Progress: 1/9 images uploaded
+2024-12-28 15:43:35,880 - INFO - ✅ File upload successful for 5.png - CID: QmQUro2Etk2r3CKS7FJ1LTFztk54t3R817G1FFNZ4XXbTk (took 4.01s)
+2024-12-28 15:43:35,881 - INFO - Progress: 2/9 images uploaded
+2024-12-28 15:43:35,959 - INFO - ✅ File upload successful for 1.png - CID: Qmcf3tV4fnCzccMmcBZ8DdYd9gbxj1Cab6xEbrSx7brKnM (took 4.09s)
+2024-12-28 15:43:35,960 - INFO - Progress: 3/9 images uploaded
+2024-12-28 15:43:35,997 - INFO - ✅ File upload successful for 4.png - CID: Qmc2oXgtaGBYayn3nuZr36Bs1VM1oHxPNuCdmPvzvqK1hG (took 4.12s)
+2024-12-28 15:43:35,997 - INFO - Progress: 4/9 images uploaded
+2024-12-28 15:43:36,161 - INFO - ✅ File upload successful for 2.png - CID: QmUyGHt4uKTVX7QdvDssRgSniSZVoKNkoeivhCfPe9sNNf (took 4.29s)
+2024-12-28 15:43:36,162 - INFO - Progress: 5/9 images uploaded
+2024-12-28 15:43:36,362 - INFO - ✅ File upload successful for 8.png - CID: QmWQsajWmazNx19MPwQWMMfP27k4onQzBZVTT8H8nsRuwx (took 4.49s)
+2024-12-28 15:43:36,363 - INFO - ✅ File upload successful for 7.png - CID: QmUc8HSi5AEDyTQqS51qtqKj6L9Ghv7MgngNw9pvWLsMGm (took 4.49s)
+2024-12-28 15:43:36,363 - INFO - Progress: 6/9 images uploaded
+2024-12-28 15:43:36,364 - INFO - Progress: 7/9 images uploaded
+2024-12-28 15:43:36,370 - INFO - ✅ File upload successful for 6.png - CID: Qme3aZNGBarbBsHXSPNHtaANe5NWNwvB1rjG1YbXkUrRmT (took 4.50s)
+2024-12-28 15:43:36,370 - INFO - Progress: 8/9 images uploaded
+2024-12-28 15:43:36,395 - INFO - ✅ File upload successful for 9.png - CID: QmSNEuSAN6nUNbT7TEGiETkoRhJRq5upPkQLzd11wvNYiT (took 4.52s)
+2024-12-28 15:43:36,396 - INFO - Progress: 9/9 images uploaded
+2024-12-28 15:43:36,396 - INFO - ✅ All 9 images uploaded successfully!
+2024-12-28 15:43:36,396 - INFO - 📝 Updating metadata files with image CIDs...
+2024-12-28 15:43:36,424 - INFO - ✅ Metadata files updated with image CIDs
+2024-12-28 15:43:36,425 - INFO - 📤 Starting parallel metadata uploads...
+2024-12-28 15:43:36,425 - INFO - Found 9 metadata files to upload
+2024-12-28 15:43:36,428 - INFO - Starting JSON upload for tile_4_metadata
+2024-12-28 15:43:36,428 - INFO - Starting JSON upload for tile_9_metadata
+2024-12-28 15:43:36,429 - INFO - Starting JSON upload for tile_5_metadata
+2024-12-28 15:43:36,429 - INFO - Starting JSON upload for tile_6_metadata
+2024-12-28 15:43:36,429 - INFO - Starting JSON upload for tile_8_metadata
+2024-12-28 15:43:36,430 - INFO - Starting JSON upload for tile_7_metadata
+2024-12-28 15:43:36,430 - INFO - Starting JSON upload for tile_1_metadata
+2024-12-28 15:43:36,431 - INFO - Starting JSON upload for tile_3_metadata
+2024-12-28 15:43:36,431 - INFO - Starting JSON upload for tile_2_metadata
+2024-12-28 15:43:39,149 - INFO - ✅ JSON upload successful for tile_4_metadata - CID: QmNjxscTXobxeTSbTo1L7azHKsk8dS2eHc8jkLqhhjTjMo (took 2.72s)
+2024-12-28 15:43:39,149 - INFO - ✅ JSON upload successful for tile_9_metadata - CID: Qmc7JCXeinCgdrbNQGDFsiEpKbtpPJdSzQTZm4Hgc6rATp (took 2.72s)
+2024-12-28 15:43:39,149 - INFO - ✅ JSON upload successful for tile_6_metadata - CID: QmZLGMj4Ekkp2BGyHcg1C1wwUvjMMr8bd9CDi5DarmQxNZ (took 2.72s)
+2024-12-28 15:43:39,149 - INFO - ✅ JSON upload successful for tile_5_metadata - CID: QmSJaokz4oVwxpriPMKnVDcP8Q1K8zggQbPWwnr8YJQ2Qf (took 2.72s)
+2024-12-28 15:43:39,149 - INFO - Progress: 1/9 metadata files uploaded
+2024-12-28 15:43:39,149 - INFO - Progress: 2/9 metadata files uploaded
+2024-12-28 15:43:39,149 - INFO - Progress: 3/9 metadata files uploaded
+2024-12-28 15:43:39,149 - INFO - Progress: 4/9 metadata files uploaded
+2024-12-28 15:43:39,154 - INFO - ✅ JSON upload successful for tile_8_metadata - CID: QmbrG96RAvQbMyuD9yzVhYUspRBdcmpSH41hHRAMBt1kuv (took 2.73s)
+2024-12-28 15:43:39,155 - INFO - Progress: 5/9 metadata files uploaded
+2024-12-28 15:43:39,239 - INFO - ✅ JSON upload successful for tile_7_metadata - CID: QmUE4F8rHBScBEySE1nZVKfTSt4k292gPfiWeNuUDmkkny (took 2.81s)
+2024-12-28 15:43:39,240 - INFO - Progress: 6/9 metadata files uploaded
+2024-12-28 15:43:39,240 - INFO - ✅ JSON upload successful for tile_2_metadata - CID: QmV3p1gcjHDvTuXtH3o8KgGdf8TqpmKruPvRZyLBnhDrSJ (took 2.81s)
+2024-12-28 15:43:39,240 - INFO - Progress: 7/9 metadata files uploaded
+2024-12-28 15:43:39,245 - INFO - ✅ JSON upload successful for tile_1_metadata - CID: QmU8ixxoWt7LYrASWZ3AdNsTFR5ez7RDVRRZWzfBxPiTop (took 2.81s)
+2024-12-28 15:43:39,245 - INFO - Progress: 8/9 metadata files uploaded
+2024-12-28 15:43:39,259 - INFO - ✅ JSON upload successful for tile_3_metadata - CID: QmNPiCL9zm4YW1svuTFC7FVqNuGQiwX6qLRiUPCwii9Ucq (took 2.83s)
+2024-12-28 15:43:39,259 - INFO - Progress: 9/9 metadata files uploaded
+2024-12-28 15:43:39,259 - INFO - ✅ All 9 metadata files uploaded successfully!
+2024-12-28 15:43:39,259 - INFO - 
+🔍 Verifying Stargaze compatibility...
+2024-12-28 15:43:39,259 - INFO - 
+Verifying image CIDs...
+2024-12-28 15:43:39,752 - INFO - ✅ Image CID verified for tile 3: QmPy3Fk8S3w3zW7RzQohZ588Q7amL7nBwkwi16pQwpQ3Zg
+2024-12-28 15:43:40,377 - INFO - ✅ Image CID verified for tile 5: QmQUro2Etk2r3CKS7FJ1LTFztk54t3R817G1FFNZ4XXbTk
+2024-12-28 15:43:40,991 - INFO - ✅ Image CID verified for tile 1: Qmcf3tV4fnCzccMmcBZ8DdYd9gbxj1Cab6xEbrSx7brKnM
+2024-12-28 15:43:41,298 - INFO - ✅ Image CID verified for tile 4: Qmc2oXgtaGBYayn3nuZr36Bs1VM1oHxPNuCdmPvzvqK1hG
+2024-12-28 15:43:41,767 - INFO - ✅ Image CID verified for tile 2: QmUyGHt4uKTVX7QdvDssRgSniSZVoKNkoeivhCfPe9sNNf
+2024-12-28 15:43:42,529 - INFO - ✅ Image CID verified for tile 8: QmWQsajWmazNx19MPwQWMMfP27k4onQzBZVTT8H8nsRuwx
+2024-12-28 15:43:43,144 - INFO - ✅ Image CID verified for tile 7: QmUc8HSi5AEDyTQqS51qtqKj6L9Ghv7MgngNw9pvWLsMGm
+2024-12-28 15:43:43,810 - INFO - ✅ Image CID verified for tile 6: Qme3aZNGBarbBsHXSPNHtaANe5NWNwvB1rjG1YbXkUrRmT
+2024-12-28 15:43:44,147 - INFO - ✅ Image CID verified for tile 9: QmSNEuSAN6nUNbT7TEGiETkoRhJRq5upPkQLzd11wvNYiT
+2024-12-28 15:43:44,147 - INFO - 
+Verifying metadata CIDs and structure...
+2024-12-28 15:43:44,680 - ERROR - ❌ Image CID mismatch in metadata for tile 6
+2024-12-28 15:43:44,681 - ERROR - Expected: Qme3aZNGBarbBsHXSPNHtaANe5NWNwvB1rjG1YbXkUrRmT
+2024-12-28 15:43:44,681 - ERROR - Found: Qmc2oXgtaGBYayn3nuZr36Bs1VM1oHxPNuCdmPvzvqK1hG
+2024-12-28 15:43:44,681 - ERROR - ❌ Stargaze compatibility verification failed!
+2024-12-28 15:44:48,681 - DEBUG - Using selector: KqueueSelector
+2024-12-28 15:44:48,681 - INFO - 🗂️ Preparing directory structure...
+2024-12-28 15:44:48,681 - INFO - ✅ Directory structure prepared!
+2024-12-28 15:44:48,681 - INFO - 📤 Starting parallel image uploads...
+2024-12-28 15:44:48,681 - INFO - Found 9 images to upload
+2024-12-28 15:44:48,682 - INFO - Starting file upload for 8.png
+2024-12-28 15:44:48,682 - INFO - Starting file upload for 6.png
+2024-12-28 15:44:48,682 - INFO - Starting file upload for 5.png
+2024-12-28 15:44:48,683 - INFO - Starting file upload for 1.png
+2024-12-28 15:44:48,683 - INFO - Starting file upload for 7.png
+2024-12-28 15:44:48,683 - INFO - Starting file upload for 9.png
+2024-12-28 15:44:48,683 - INFO - Starting file upload for 3.png
+2024-12-28 15:44:48,683 - INFO - Starting file upload for 2.png
+2024-12-28 15:44:48,684 - INFO - Starting file upload for 4.png
+2024-12-28 15:44:52,490 - INFO - ✅ File upload successful for 5.png - CID: QmQUro2Etk2r3CKS7FJ1LTFztk54t3R817G1FFNZ4XXbTk (took 3.81s)
+2024-12-28 15:44:52,491 - INFO - Progress: 1/9 images uploaded
+2024-12-28 15:44:52,547 - INFO - ✅ File upload successful for 3.png - CID: QmPy3Fk8S3w3zW7RzQohZ588Q7amL7nBwkwi16pQwpQ3Zg (took 3.86s)
+2024-12-28 15:44:52,547 - INFO - Progress: 2/9 images uploaded
+2024-12-28 15:44:52,573 - INFO - ✅ File upload successful for 9.png - CID: QmSNEuSAN6nUNbT7TEGiETkoRhJRq5upPkQLzd11wvNYiT (took 3.89s)
+2024-12-28 15:44:52,573 - INFO - Progress: 3/9 images uploaded
+2024-12-28 15:44:52,633 - INFO - ✅ File upload successful for 6.png - CID: Qme3aZNGBarbBsHXSPNHtaANe5NWNwvB1rjG1YbXkUrRmT (took 3.95s)
+2024-12-28 15:44:52,633 - INFO - Progress: 4/9 images uploaded
+2024-12-28 15:44:52,675 - INFO - ✅ File upload successful for 2.png - CID: QmUyGHt4uKTVX7QdvDssRgSniSZVoKNkoeivhCfPe9sNNf (took 3.99s)
+2024-12-28 15:44:52,675 - INFO - Progress: 5/9 images uploaded
+2024-12-28 15:44:52,724 - INFO - ✅ File upload successful for 1.png - CID: Qmcf3tV4fnCzccMmcBZ8DdYd9gbxj1Cab6xEbrSx7brKnM (took 4.04s)
+2024-12-28 15:44:52,724 - INFO - Progress: 6/9 images uploaded
+2024-12-28 15:44:52,735 - INFO - ✅ File upload successful for 7.png - CID: QmUc8HSi5AEDyTQqS51qtqKj6L9Ghv7MgngNw9pvWLsMGm (took 4.05s)
+2024-12-28 15:44:52,735 - INFO - Progress: 7/9 images uploaded
+2024-12-28 15:44:52,760 - INFO - ✅ File upload successful for 8.png - CID: QmWQsajWmazNx19MPwQWMMfP27k4onQzBZVTT8H8nsRuwx (took 4.08s)
+2024-12-28 15:44:52,760 - INFO - Progress: 8/9 images uploaded
+2024-12-28 15:44:52,791 - INFO - ✅ File upload successful for 4.png - CID: Qmc2oXgtaGBYayn3nuZr36Bs1VM1oHxPNuCdmPvzvqK1hG (took 4.11s)
+2024-12-28 15:44:52,791 - INFO - Progress: 9/9 images uploaded
+2024-12-28 15:44:52,791 - INFO - ✅ All 9 images uploaded successfully!
+2024-12-28 15:44:52,791 - INFO - 📝 Updating metadata files with image CIDs...
+2024-12-28 15:44:52,811 - INFO - ✅ Metadata files updated with image CIDs
+2024-12-28 15:44:52,811 - INFO - 📤 Starting parallel metadata uploads...
+2024-12-28 15:44:52,811 - INFO - Found 9 metadata files to upload
+2024-12-28 15:44:52,813 - INFO - Starting JSON upload for tile_2_metadata
+2024-12-28 15:44:52,814 - INFO - Starting JSON upload for tile_5_metadata
+2024-12-28 15:44:52,814 - INFO - Starting JSON upload for tile_9_metadata
+2024-12-28 15:44:52,814 - INFO - Starting JSON upload for tile_4_metadata
+2024-12-28 15:44:52,815 - INFO - Starting JSON upload for tile_6_metadata
+2024-12-28 15:44:52,815 - INFO - Starting JSON upload for tile_8_metadata
+2024-12-28 15:44:52,815 - INFO - Starting JSON upload for tile_1_metadata
+2024-12-28 15:44:52,816 - INFO - Starting JSON upload for tile_3_metadata
+2024-12-28 15:44:52,816 - INFO - Starting JSON upload for tile_7_metadata
+2024-12-28 15:44:55,991 - INFO - ✅ JSON upload successful for tile_5_metadata - CID: QmSJaokz4oVwxpriPMKnVDcP8Q1K8zggQbPWwnr8YJQ2Qf (took 3.18s)
+2024-12-28 15:44:55,992 - INFO - Progress: 1/9 metadata files uploaded
+2024-12-28 15:44:55,992 - INFO - ✅ JSON upload successful for tile_2_metadata - CID: QmV3p1gcjHDvTuXtH3o8KgGdf8TqpmKruPvRZyLBnhDrSJ (took 3.18s)
+2024-12-28 15:44:55,992 - INFO - Progress: 2/9 metadata files uploaded
+2024-12-28 15:44:56,078 - INFO - ✅ JSON upload successful for tile_8_metadata - CID: QmbrG96RAvQbMyuD9yzVhYUspRBdcmpSH41hHRAMBt1kuv (took 3.26s)
+2024-12-28 15:44:56,079 - INFO - Progress: 3/9 metadata files uploaded
+2024-12-28 15:44:56,082 - INFO - ✅ JSON upload successful for tile_6_metadata - CID: QmZLGMj4Ekkp2BGyHcg1C1wwUvjMMr8bd9CDi5DarmQxNZ (took 3.27s)
+2024-12-28 15:44:56,082 - INFO - Progress: 4/9 metadata files uploaded
+2024-12-28 15:44:56,084 - INFO - ✅ JSON upload successful for tile_9_metadata - CID: Qmc7JCXeinCgdrbNQGDFsiEpKbtpPJdSzQTZm4Hgc6rATp (took 3.27s)
+2024-12-28 15:44:56,084 - INFO - Progress: 5/9 metadata files uploaded
+2024-12-28 15:44:56,113 - INFO - ✅ JSON upload successful for tile_3_metadata - CID: QmNPiCL9zm4YW1svuTFC7FVqNuGQiwX6qLRiUPCwii9Ucq (took 3.30s)
+2024-12-28 15:44:56,113 - INFO - Progress: 6/9 metadata files uploaded
+2024-12-28 15:44:56,119 - INFO - ✅ JSON upload successful for tile_4_metadata - CID: QmNjxscTXobxeTSbTo1L7azHKsk8dS2eHc8jkLqhhjTjMo (took 3.31s)
+2024-12-28 15:44:56,120 - INFO - Progress: 7/9 metadata files uploaded
+2024-12-28 15:44:56,245 - INFO - ✅ JSON upload successful for tile_1_metadata - CID: QmU8ixxoWt7LYrASWZ3AdNsTFR5ez7RDVRRZWzfBxPiTop (took 3.43s)
+2024-12-28 15:44:56,245 - INFO - Progress: 8/9 metadata files uploaded
+2024-12-28 15:44:56,291 - INFO - ✅ JSON upload successful for tile_7_metadata - CID: QmUE4F8rHBScBEySE1nZVKfTSt4k292gPfiWeNuUDmkkny (took 3.47s)
+2024-12-28 15:44:56,291 - INFO - Progress: 9/9 metadata files uploaded
+2024-12-28 15:44:56,291 - INFO - ✅ All 9 metadata files uploaded successfully!
+2024-12-28 15:44:56,291 - INFO - 
+🔍 Verifying Stargaze compatibility...
+2024-12-28 15:44:56,291 - INFO - 
+Verifying image CIDs...
+2024-12-28 15:44:56,632 - INFO - ✅ Image CID verified for tile 5: QmQUro2Etk2r3CKS7FJ1LTFztk54t3R817G1FFNZ4XXbTk
+2024-12-28 15:44:56,802 - INFO - ✅ Image CID verified for tile 3: QmPy3Fk8S3w3zW7RzQohZ588Q7amL7nBwkwi16pQwpQ3Zg
+2024-12-28 15:44:56,950 - INFO - ✅ Image CID verified for tile 9: QmSNEuSAN6nUNbT7TEGiETkoRhJRq5upPkQLzd11wvNYiT
+2024-12-28 15:44:57,121 - INFO - ✅ Image CID verified for tile 6: Qme3aZNGBarbBsHXSPNHtaANe5NWNwvB1rjG1YbXkUrRmT
+2024-12-28 15:44:57,267 - INFO - ✅ Image CID verified for tile 2: QmUyGHt4uKTVX7QdvDssRgSniSZVoKNkoeivhCfPe9sNNf
+2024-12-28 15:44:57,442 - INFO - ✅ Image CID verified for tile 1: Qmcf3tV4fnCzccMmcBZ8DdYd9gbxj1Cab6xEbrSx7brKnM
+2024-12-28 15:44:57,577 - INFO - ✅ Image CID verified for tile 7: QmUc8HSi5AEDyTQqS51qtqKj6L9Ghv7MgngNw9pvWLsMGm
+2024-12-28 15:44:57,729 - INFO - ✅ Image CID verified for tile 8: QmWQsajWmazNx19MPwQWMMfP27k4onQzBZVTT8H8nsRuwx
+2024-12-28 15:44:57,879 - INFO - ✅ Image CID verified for tile 4: Qmc2oXgtaGBYayn3nuZr36Bs1VM1oHxPNuCdmPvzvqK1hG
+2024-12-28 15:44:57,879 - INFO - 
+Verifying metadata CIDs and structure...
+2024-12-28 15:44:58,293 - ERROR - ❌ Image CID mismatch in metadata for tile 6
+2024-12-28 15:44:58,293 - ERROR - Expected: Qme3aZNGBarbBsHXSPNHtaANe5NWNwvB1rjG1YbXkUrRmT
+2024-12-28 15:44:58,293 - ERROR - Found: QmQUro2Etk2r3CKS7FJ1LTFztk54t3R817G1FFNZ4XXbTk
+2024-12-28 15:44:58,294 - ERROR - ❌ Stargaze compatibility verification failed!
+2024-12-28 15:47:49,789 - DEBUG - Using selector: KqueueSelector
+2024-12-28 15:47:49,789 - INFO - 🗂️ Preparing directory structure...
+2024-12-28 15:47:49,790 - INFO - ✅ Directory structure prepared!
+2024-12-28 15:47:49,790 - INFO - 📤 Uploading content directory...
+2024-12-28 15:47:49,790 - INFO - 📤 Uploading images...
+2024-12-28 15:47:49,790 - INFO - 📝 Updating metadata files with image paths...
+2024-12-28 15:47:49,790 - INFO - 📤 Uploading metadata files...
+2024-12-28 15:47:49,790 - INFO - 📤 Uploading final directory structure...
+2024-12-28 15:47:49,859 - DEBUG - Starting new HTTPS connection (1): api.pinata.cloud:443
+2024-12-28 15:47:53,356 - DEBUG - https://api.pinata.cloud:443 "POST /pinning/pinFileToIPFS HTTP/1.1" 400 34
+2024-12-28 15:47:53,361 - ERROR - ❌ Failed to upload content directory
+2024-12-28 15:48:52,072 - DEBUG - Using selector: KqueueSelector
+2024-12-28 15:48:52,072 - INFO - 🗂️ Preparing directory structure...
+2024-12-28 15:48:52,073 - INFO - ✅ Directory structure prepared!
+2024-12-28 15:48:52,073 - INFO - 📤 Uploading content directory...
+2024-12-28 15:48:52,073 - INFO - 📤 Uploading directory structure...
+2024-12-28 15:48:52,152 - DEBUG - Starting new HTTPS connection (1): api.pinata.cloud:443
+2024-12-28 15:48:55,015 - DEBUG - https://api.pinata.cloud:443 "POST /pinning/pinFileToIPFS HTTP/1.1" 400 34
+2024-12-28 15:48:55,020 - ERROR - ❌ Failed to upload content directory
+2024-12-28 15:50:12,987 - DEBUG - Using selector: KqueueSelector
+2024-12-28 15:50:12,988 - INFO - 🗂️ Preparing directory structure...
+2024-12-28 15:50:36,863 - DEBUG - Using selector: KqueueSelector
+2024-12-28 15:50:36,863 - INFO - 🗂️ Preparing directory structure...
+2024-12-28 15:50:36,863 - INFO - Found logo file, keeping it in place
+2024-12-28 15:50:36,863 - INFO - ✅ Directory structure prepared!
+2024-12-28 15:50:36,864 - INFO - 📤 Uploading images...
+2024-12-28 15:50:36,864 - INFO - Starting file upload for 1.png
+2024-12-28 15:50:40,835 - INFO - ✅ File upload successful for 1.png - CID: Qmcf3tV4fnCzccMmcBZ8DdYd9gbxj1Cab6xEbrSx7brKnM (took 3.97s)
+2024-12-28 15:50:40,836 - INFO - Progress: 1/9 images uploaded
+2024-12-28 15:50:40,836 - INFO - Starting file upload for 2.png
+2024-12-28 15:50:43,383 - INFO - ✅ File upload successful for 2.png - CID: QmUyGHt4uKTVX7QdvDssRgSniSZVoKNkoeivhCfPe9sNNf (took 2.55s)
+2024-12-28 15:50:43,383 - INFO - Progress: 2/9 images uploaded
+2024-12-28 15:50:43,383 - INFO - Starting file upload for 3.png
+2024-12-28 15:50:45,840 - INFO - ✅ File upload successful for 3.png - CID: QmPy3Fk8S3w3zW7RzQohZ588Q7amL7nBwkwi16pQwpQ3Zg (took 2.46s)
+2024-12-28 15:50:45,840 - INFO - Progress: 3/9 images uploaded
+2024-12-28 15:50:45,840 - INFO - Starting file upload for 4.png
+2024-12-28 15:50:48,520 - INFO - ✅ File upload successful for 4.png - CID: Qmc2oXgtaGBYayn3nuZr36Bs1VM1oHxPNuCdmPvzvqK1hG (took 2.68s)
+2024-12-28 15:50:48,521 - INFO - Progress: 4/9 images uploaded
+2024-12-28 15:50:48,522 - INFO - Starting file upload for 5.png
+2024-12-28 15:50:51,486 - INFO - ✅ File upload successful for 5.png - CID: QmQUro2Etk2r3CKS7FJ1LTFztk54t3R817G1FFNZ4XXbTk (took 2.96s)
+2024-12-28 15:50:51,486 - INFO - Progress: 5/9 images uploaded
+2024-12-28 15:50:51,486 - INFO - Starting file upload for 6.png
+2024-12-28 15:50:53,774 - INFO - ✅ File upload successful for 6.png - CID: Qme3aZNGBarbBsHXSPNHtaANe5NWNwvB1rjG1YbXkUrRmT (took 2.29s)
+2024-12-28 15:50:53,774 - INFO - Progress: 6/9 images uploaded
+2024-12-28 15:50:53,774 - INFO - Starting file upload for 7.png
+2024-12-28 15:50:55,954 - INFO - ✅ File upload successful for 7.png - CID: QmUc8HSi5AEDyTQqS51qtqKj6L9Ghv7MgngNw9pvWLsMGm (took 2.18s)
+2024-12-28 15:50:55,956 - INFO - Progress: 7/9 images uploaded
+2024-12-28 15:50:55,956 - INFO - Starting file upload for 8.png
+2024-12-28 15:50:58,156 - INFO - ✅ File upload successful for 8.png - CID: QmWQsajWmazNx19MPwQWMMfP27k4onQzBZVTT8H8nsRuwx (took 2.20s)
+2024-12-28 15:50:58,156 - INFO - Progress: 8/9 images uploaded
+2024-12-28 15:50:58,156 - INFO - Starting file upload for 9.png
+2024-12-28 15:51:00,354 - INFO - ✅ File upload successful for 9.png - CID: QmSNEuSAN6nUNbT7TEGiETkoRhJRq5upPkQLzd11wvNYiT (took 2.20s)
+2024-12-28 15:51:00,354 - INFO - Progress: 9/9 images uploaded
+2024-12-28 15:51:00,355 - INFO - 📤 Uploading metadata files...
+2024-12-28 15:51:00,358 - INFO - Starting JSON upload for tile_1_metadata
+2024-12-28 15:51:02,603 - INFO - ✅ JSON upload successful for tile_1_metadata - CID: QmU8ixxoWt7LYrASWZ3AdNsTFR5ez7RDVRRZWzfBxPiTop (took 2.25s)
+2024-12-28 15:51:02,604 - INFO - Progress: 1/9 metadata files uploaded
+2024-12-28 15:51:02,605 - INFO - Starting JSON upload for tile_2_metadata
+2024-12-28 15:51:04,628 - INFO - ✅ JSON upload successful for tile_2_metadata - CID: QmV3p1gcjHDvTuXtH3o8KgGdf8TqpmKruPvRZyLBnhDrSJ (took 2.02s)
+2024-12-28 15:51:04,629 - INFO - Progress: 2/9 metadata files uploaded
+2024-12-28 15:51:04,629 - INFO - Starting JSON upload for tile_3_metadata
+2024-12-28 15:51:06,674 - INFO - ✅ JSON upload successful for tile_3_metadata - CID: QmNPiCL9zm4YW1svuTFC7FVqNuGQiwX6qLRiUPCwii9Ucq (took 2.04s)
+2024-12-28 15:51:06,674 - INFO - Progress: 3/9 metadata files uploaded
+2024-12-28 15:51:06,676 - INFO - Starting JSON upload for tile_4_metadata
+2024-12-28 15:51:08,907 - INFO - ✅ JSON upload successful for tile_4_metadata - CID: QmNjxscTXobxeTSbTo1L7azHKsk8dS2eHc8jkLqhhjTjMo (took 2.23s)
+2024-12-28 15:51:08,930 - INFO - Progress: 4/9 metadata files uploaded
+2024-12-28 15:51:08,932 - INFO - Starting JSON upload for tile_5_metadata
+2024-12-28 15:51:11,668 - INFO - ✅ JSON upload successful for tile_5_metadata - CID: QmSJaokz4oVwxpriPMKnVDcP8Q1K8zggQbPWwnr8YJQ2Qf (took 2.74s)
+2024-12-28 15:51:11,669 - INFO - Progress: 5/9 metadata files uploaded
+2024-12-28 15:51:11,670 - INFO - Starting JSON upload for tile_6_metadata
+2024-12-28 15:51:13,757 - INFO - ✅ JSON upload successful for tile_6_metadata - CID: QmZLGMj4Ekkp2BGyHcg1C1wwUvjMMr8bd9CDi5DarmQxNZ (took 2.09s)
+2024-12-28 15:51:13,758 - INFO - Progress: 6/9 metadata files uploaded
+2024-12-28 15:51:13,759 - INFO - Starting JSON upload for tile_7_metadata
+2024-12-28 15:51:15,795 - INFO - ✅ JSON upload successful for tile_7_metadata - CID: QmUE4F8rHBScBEySE1nZVKfTSt4k292gPfiWeNuUDmkkny (took 2.04s)
+2024-12-28 15:51:15,796 - INFO - Progress: 7/9 metadata files uploaded
+2024-12-28 15:51:15,798 - INFO - Starting JSON upload for tile_8_metadata
+2024-12-28 15:51:18,710 - INFO - ✅ JSON upload successful for tile_8_metadata - CID: QmbrG96RAvQbMyuD9yzVhYUspRBdcmpSH41hHRAMBt1kuv (took 2.91s)
+2024-12-28 15:51:18,712 - INFO - Progress: 8/9 metadata files uploaded
+2024-12-28 15:51:18,715 - INFO - Starting JSON upload for tile_9_metadata
+2024-12-28 15:51:20,754 - INFO - ✅ JSON upload successful for tile_9_metadata - CID: Qmc7JCXeinCgdrbNQGDFsiEpKbtpPJdSzQTZm4Hgc6rATp (took 2.04s)
+2024-12-28 15:51:20,755 - INFO - Progress: 9/9 metadata files uploaded
+2024-12-28 15:51:20,755 - INFO - 
+🔍 Verifying Stargaze compatibility...
+2024-12-28 15:51:20,755 - INFO - 
+Verifying file structure:
+2024-12-28 15:51:20,755 - INFO - ✓ Images named numerically (1.png, 2.png, ...)
+2024-12-28 15:51:20,755 - INFO - ✓ Metadata named numerically (1.json, 2.json, ...)
+2024-12-28 15:51:20,755 - INFO - ✓ Image and metadata files match
+2024-12-28 15:51:20,756 - INFO - 
+📝 Stargaze Configuration:
+2024-12-28 15:51:20,756 - INFO - Collection URI: ipfs://QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuXdjNkjZw
+2024-12-28 15:51:20,756 - INFO - Base Token URI: ipfs://QmU8ixxoWt7LYrASWZ3AdNsTFR5ez7RDVRRZWzfBxPiTop/
+2024-12-28 15:51:20,756 - INFO - 
+To verify on Stargaze:
+2024-12-28 15:51:20,756 - INFO - 1. Collection Image: https://ipfs.io/ipfs/QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuXdjNkjZw
+2024-12-28 15:51:20,756 - INFO - 2. Sample Metadata: https://ipfs.io/ipfs/QmU8ixxoWt7LYrASWZ3AdNsTFR5ez7RDVRRZWzfBxPiTop
+2024-12-28 15:51:20,756 - INFO - 3. Sample Image: https://ipfs.io/ipfs/Qmcf3tV4fnCzccMmcBZ8DdYd9gbxj1Cab6xEbrSx7brKnM
+2024-12-28 16:04:14,510 - DEBUG - Using selector: KqueueSelector
+2024-12-28 16:04:14,511 - INFO - 🗂️ Preparing directory structure...
+2024-12-28 16:04:14,511 - INFO - Found logo file, keeping it in place
+2024-12-28 16:04:14,511 - INFO - ✅ Directory structure prepared!
+2024-12-28 16:04:14,512 - INFO - 📤 Uploading images...
+2024-12-28 16:04:14,512 - INFO - Starting file upload for 1.png
+2024-12-28 16:04:17,665 - INFO - ✅ File upload successful for 1.png - CID: Qmcf3tV4fnCzccMmcBZ8DdYd9gbxj1Cab6xEbrSx7brKnM (took 3.15s)
+2024-12-28 16:04:17,665 - INFO - Progress: 1/9 images uploaded
+2024-12-28 16:04:17,665 - INFO - Starting file upload for 2.png
+2024-12-28 16:04:20,710 - INFO - ✅ File upload successful for 2.png - CID: QmUyGHt4uKTVX7QdvDssRgSniSZVoKNkoeivhCfPe9sNNf (took 3.05s)
+2024-12-28 16:04:20,710 - INFO - Progress: 2/9 images uploaded
+2024-12-28 16:04:20,711 - INFO - Starting file upload for 3.png
+2024-12-28 16:04:22,978 - INFO - ✅ File upload successful for 3.png - CID: QmPy3Fk8S3w3zW7RzQohZ588Q7amL7nBwkwi16pQwpQ3Zg (took 2.27s)
+2024-12-28 16:04:22,978 - INFO - Progress: 3/9 images uploaded
+2024-12-28 16:04:22,979 - INFO - Starting file upload for 4.png
+2024-12-28 16:04:25,436 - INFO - ✅ File upload successful for 4.png - CID: Qmc2oXgtaGBYayn3nuZr36Bs1VM1oHxPNuCdmPvzvqK1hG (took 2.46s)
+2024-12-28 16:04:25,436 - INFO - Progress: 4/9 images uploaded
+2024-12-28 16:04:25,436 - INFO - Starting file upload for 5.png
+2024-12-28 16:04:27,788 - INFO - ✅ File upload successful for 5.png - CID: QmQUro2Etk2r3CKS7FJ1LTFztk54t3R817G1FFNZ4XXbTk (took 2.35s)
+2024-12-28 16:04:27,788 - INFO - Progress: 5/9 images uploaded
+2024-12-28 16:04:27,788 - INFO - Starting file upload for 6.png
+2024-12-28 16:04:29,980 - INFO - ✅ File upload successful for 6.png - CID: Qme3aZNGBarbBsHXSPNHtaANe5NWNwvB1rjG1YbXkUrRmT (took 2.19s)
+2024-12-28 16:04:29,980 - INFO - Progress: 6/9 images uploaded
+2024-12-28 16:04:29,980 - INFO - Starting file upload for 7.png
+2024-12-28 16:04:32,836 - INFO - ✅ File upload successful for 7.png - CID: QmUc8HSi5AEDyTQqS51qtqKj6L9Ghv7MgngNw9pvWLsMGm (took 2.86s)
+2024-12-28 16:04:32,837 - INFO - Progress: 7/9 images uploaded
+2024-12-28 16:04:32,837 - INFO - Starting file upload for 8.png
+2024-12-28 16:04:35,095 - INFO - ✅ File upload successful for 8.png - CID: QmWQsajWmazNx19MPwQWMMfP27k4onQzBZVTT8H8nsRuwx (took 2.26s)
+2024-12-28 16:04:35,095 - INFO - Progress: 8/9 images uploaded
+2024-12-28 16:04:35,095 - INFO - Starting file upload for 9.png
+2024-12-28 16:04:37,545 - INFO - ✅ File upload successful for 9.png - CID: QmSNEuSAN6nUNbT7TEGiETkoRhJRq5upPkQLzd11wvNYiT (took 2.45s)
+2024-12-28 16:04:37,546 - INFO - Progress: 9/9 images uploaded
+2024-12-28 16:04:37,546 - INFO - 📤 Uploading metadata files...
+2024-12-28 16:04:37,548 - INFO - Starting JSON upload for tile_1_metadata
+2024-12-28 16:04:39,598 - INFO - ✅ JSON upload successful for tile_1_metadata - CID: QmU8ixxoWt7LYrASWZ3AdNsTFR5ez7RDVRRZWzfBxPiTop (took 2.05s)
+2024-12-28 16:04:39,598 - INFO - Progress: 1/9 metadata files uploaded
+2024-12-28 16:04:39,600 - INFO - Starting JSON upload for tile_2_metadata
+2024-12-28 16:04:42,611 - INFO - ✅ JSON upload successful for tile_2_metadata - CID: QmV3p1gcjHDvTuXtH3o8KgGdf8TqpmKruPvRZyLBnhDrSJ (took 3.01s)
+2024-12-28 16:04:42,612 - INFO - Progress: 2/9 metadata files uploaded
+2024-12-28 16:04:42,613 - INFO - Starting JSON upload for tile_3_metadata
+2024-12-28 16:04:44,862 - INFO - ✅ JSON upload successful for tile_3_metadata - CID: QmNPiCL9zm4YW1svuTFC7FVqNuGQiwX6qLRiUPCwii9Ucq (took 2.25s)
+2024-12-28 16:04:44,862 - INFO - Progress: 3/9 metadata files uploaded
+2024-12-28 16:04:44,864 - INFO - Starting JSON upload for tile_4_metadata
+2024-12-28 16:04:48,168 - INFO - ✅ JSON upload successful for tile_4_metadata - CID: QmNjxscTXobxeTSbTo1L7azHKsk8dS2eHc8jkLqhhjTjMo (took 3.30s)
+2024-12-28 16:04:48,168 - INFO - Progress: 4/9 metadata files uploaded
+2024-12-28 16:04:48,170 - INFO - Starting JSON upload for tile_5_metadata
+2024-12-28 16:04:50,317 - INFO - ✅ JSON upload successful for tile_5_metadata - CID: QmSJaokz4oVwxpriPMKnVDcP8Q1K8zggQbPWwnr8YJQ2Qf (took 2.15s)
+2024-12-28 16:04:50,317 - INFO - Progress: 5/9 metadata files uploaded
+2024-12-28 16:04:50,318 - INFO - Starting JSON upload for tile_6_metadata
+2024-12-28 16:04:52,572 - INFO - ✅ JSON upload successful for tile_6_metadata - CID: QmZLGMj4Ekkp2BGyHcg1C1wwUvjMMr8bd9CDi5DarmQxNZ (took 2.25s)
+2024-12-28 16:04:52,572 - INFO - Progress: 6/9 metadata files uploaded
+2024-12-28 16:04:52,573 - INFO - Starting JSON upload for tile_7_metadata
+2024-12-28 16:04:54,663 - INFO - ✅ JSON upload successful for tile_7_metadata - CID: QmUE4F8rHBScBEySE1nZVKfTSt4k292gPfiWeNuUDmkkny (took 2.09s)
+2024-12-28 16:04:54,663 - INFO - Progress: 7/9 metadata files uploaded
+2024-12-28 16:04:54,664 - INFO - Starting JSON upload for tile_8_metadata
+2024-12-28 16:04:56,900 - INFO - ✅ JSON upload successful for tile_8_metadata - CID: QmbrG96RAvQbMyuD9yzVhYUspRBdcmpSH41hHRAMBt1kuv (took 2.24s)
+2024-12-28 16:04:56,900 - INFO - Progress: 8/9 metadata files uploaded
+2024-12-28 16:04:56,902 - INFO - Starting JSON upload for tile_9_metadata
+2024-12-28 16:04:58,942 - INFO - ✅ JSON upload successful for tile_9_metadata - CID: Qmc7JCXeinCgdrbNQGDFsiEpKbtpPJdSzQTZm4Hgc6rATp (took 2.04s)
+2024-12-28 16:04:58,942 - INFO - Progress: 9/9 metadata files uploaded
+2024-12-28 16:04:58,942 - INFO - 
+🔍 Verifying Stargaze compatibility...
+2024-12-28 16:04:58,942 - INFO - 
+Verifying file structure:
+2024-12-28 16:04:58,943 - INFO - ✓ Images named numerically (1.png, 2.png, ...)
+2024-12-28 16:04:58,943 - INFO - ✓ Metadata named numerically (1.json, 2.json, ...)
+2024-12-28 16:04:58,943 - INFO - ✓ Image and metadata files match
+2024-12-28 16:04:58,943 - INFO - 
+📝 Stargaze Configuration:
+2024-12-28 16:04:58,943 - INFO - Collection URI: ipfs://QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuXdjNkjZw
+2024-12-28 16:04:58,943 - INFO - Base Token URI: ipfs://QmU8ixxoWt7LYrASWZ3AdNsTFR5ez7RDVRRZWzfBxPiTop/
+2024-12-28 16:04:58,943 - INFO - 
+To verify on Stargaze:
+2024-12-28 16:04:58,943 - INFO - 1. Collection Image: https://ipfs.io/ipfs/QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuXdjNkjZw
+2024-12-28 16:04:58,943 - INFO - 2. Sample Metadata: https://ipfs.io/ipfs/QmU8ixxoWt7LYrASWZ3AdNsTFR5ez7RDVRRZWzfBxPiTop
+2024-12-28 16:04:58,943 - INFO - 3. Sample Image: https://ipfs.io/ipfs/Qmcf3tV4fnCzccMmcBZ8DdYd9gbxj1Cab6xEbrSx7brKnM
+2024-12-28 16:07:21,510 - DEBUG - Using selector: KqueueSelector
+2024-12-28 16:07:21,510 - INFO - 🗂️ Preparing directory structure...
+2024-12-28 16:07:21,511 - INFO - Found logo file, keeping it in place
+2024-12-28 16:07:21,511 - INFO - ✅ Directory structure prepared!
+2024-12-28 16:07:21,511 - INFO - 📤 Uploading images...
+2024-12-28 16:07:21,511 - INFO - Starting file upload for 1.png
+2024-12-28 16:07:25,173 - INFO - ✅ File upload successful for 1.png - CID: Qmcf3tV4fnCzccMmcBZ8DdYd9gbxj1Cab6xEbrSx7brKnM (took 3.66s)
+2024-12-28 16:07:25,173 - INFO - Progress: 1/9 images uploaded
+2024-12-28 16:07:25,173 - INFO - Starting file upload for 2.png
+2024-12-28 16:07:27,891 - INFO - ✅ File upload successful for 2.png - CID: QmUyGHt4uKTVX7QdvDssRgSniSZVoKNkoeivhCfPe9sNNf (took 2.72s)
+2024-12-28 16:07:27,891 - INFO - Progress: 2/9 images uploaded
+2024-12-28 16:07:27,892 - INFO - Starting file upload for 3.png
+2024-12-28 16:07:30,171 - INFO - ✅ File upload successful for 3.png - CID: QmPy3Fk8S3w3zW7RzQohZ588Q7amL7nBwkwi16pQwpQ3Zg (took 2.28s)
+2024-12-28 16:07:30,172 - INFO - Progress: 3/9 images uploaded
+2024-12-28 16:07:30,172 - INFO - Starting file upload for 4.png
+2024-12-28 16:07:32,433 - INFO - ✅ File upload successful for 4.png - CID: Qmc2oXgtaGBYayn3nuZr36Bs1VM1oHxPNuCdmPvzvqK1hG (took 2.26s)
+2024-12-28 16:07:32,433 - INFO - Progress: 4/9 images uploaded
+2024-12-28 16:07:32,433 - INFO - Starting file upload for 5.png
+2024-12-28 16:07:34,796 - INFO - ✅ File upload successful for 5.png - CID: QmQUro2Etk2r3CKS7FJ1LTFztk54t3R817G1FFNZ4XXbTk (took 2.36s)
+2024-12-28 16:07:34,797 - INFO - Progress: 5/9 images uploaded
+2024-12-28 16:07:34,797 - INFO - Starting file upload for 6.png
+2024-12-28 16:07:36,997 - INFO - ✅ File upload successful for 6.png - CID: Qme3aZNGBarbBsHXSPNHtaANe5NWNwvB1rjG1YbXkUrRmT (took 2.20s)
+2024-12-28 16:07:36,997 - INFO - Progress: 6/9 images uploaded
+2024-12-28 16:07:36,997 - INFO - Starting file upload for 7.png
+2024-12-28 16:07:39,246 - INFO - ✅ File upload successful for 7.png - CID: QmUc8HSi5AEDyTQqS51qtqKj6L9Ghv7MgngNw9pvWLsMGm (took 2.25s)
+2024-12-28 16:07:39,247 - INFO - Progress: 7/9 images uploaded
+2024-12-28 16:07:39,247 - INFO - Starting file upload for 8.png
+2024-12-28 16:07:41,451 - INFO - ✅ File upload successful for 8.png - CID: QmWQsajWmazNx19MPwQWMMfP27k4onQzBZVTT8H8nsRuwx (took 2.20s)
+2024-12-28 16:07:41,451 - INFO - Progress: 8/9 images uploaded
+2024-12-28 16:07:41,452 - INFO - Starting file upload for 9.png
+2024-12-28 16:07:43,712 - INFO - ✅ File upload successful for 9.png - CID: QmSNEuSAN6nUNbT7TEGiETkoRhJRq5upPkQLzd11wvNYiT (took 2.26s)
+2024-12-28 16:07:43,713 - INFO - Progress: 9/9 images uploaded
+2024-12-28 16:07:43,713 - INFO - 📤 Uploading metadata files...
+2024-12-28 16:07:43,717 - INFO - Starting JSON upload for tile_1_metadata
+2024-12-28 16:07:46,605 - INFO - ✅ JSON upload successful for tile_1_metadata - CID: QmU8ixxoWt7LYrASWZ3AdNsTFR5ez7RDVRRZWzfBxPiTop (took 2.89s)
+2024-12-28 16:07:46,606 - INFO - Progress: 1/9 metadata files uploaded
+2024-12-28 16:07:46,607 - INFO - Starting JSON upload for tile_2_metadata
+2024-12-28 16:07:48,687 - INFO - ✅ JSON upload successful for tile_2_metadata - CID: QmV3p1gcjHDvTuXtH3o8KgGdf8TqpmKruPvRZyLBnhDrSJ (took 2.08s)
+2024-12-28 16:07:48,687 - INFO - Progress: 2/9 metadata files uploaded
+2024-12-28 16:07:48,689 - INFO - Starting JSON upload for tile_3_metadata
+2024-12-28 16:07:51,946 - INFO - ✅ JSON upload successful for tile_3_metadata - CID: QmNPiCL9zm4YW1svuTFC7FVqNuGQiwX6qLRiUPCwii9Ucq (took 3.26s)
+2024-12-28 16:07:51,946 - INFO - Progress: 3/9 metadata files uploaded
+2024-12-28 16:07:51,948 - INFO - Starting JSON upload for tile_4_metadata
+2024-12-28 16:07:55,166 - INFO - ✅ JSON upload successful for tile_4_metadata - CID: QmNjxscTXobxeTSbTo1L7azHKsk8dS2eHc8jkLqhhjTjMo (took 3.22s)
+2024-12-28 16:07:55,166 - INFO - Progress: 4/9 metadata files uploaded
+2024-12-28 16:07:55,168 - INFO - Starting JSON upload for tile_5_metadata
+2024-12-28 16:07:57,331 - INFO - ✅ JSON upload successful for tile_5_metadata - CID: QmSJaokz4oVwxpriPMKnVDcP8Q1K8zggQbPWwnr8YJQ2Qf (took 2.16s)
+2024-12-28 16:07:57,332 - INFO - Progress: 5/9 metadata files uploaded
+2024-12-28 16:07:57,334 - INFO - Starting JSON upload for tile_6_metadata
+2024-12-28 16:07:59,805 - INFO - ✅ JSON upload successful for tile_6_metadata - CID: QmZLGMj4Ekkp2BGyHcg1C1wwUvjMMr8bd9CDi5DarmQxNZ (took 2.47s)
+2024-12-28 16:07:59,805 - INFO - Progress: 6/9 metadata files uploaded
+2024-12-28 16:07:59,806 - INFO - Starting JSON upload for tile_7_metadata
+2024-12-28 16:08:02,387 - INFO - ✅ JSON upload successful for tile_7_metadata - CID: QmUE4F8rHBScBEySE1nZVKfTSt4k292gPfiWeNuUDmkkny (took 2.58s)
+2024-12-28 16:08:02,387 - INFO - Progress: 7/9 metadata files uploaded
+2024-12-28 16:08:02,388 - INFO - Starting JSON upload for tile_8_metadata
+2024-12-28 16:08:04,474 - INFO - ✅ JSON upload successful for tile_8_metadata - CID: QmbrG96RAvQbMyuD9yzVhYUspRBdcmpSH41hHRAMBt1kuv (took 2.09s)
+2024-12-28 16:08:04,474 - INFO - Progress: 8/9 metadata files uploaded
+2024-12-28 16:08:04,475 - INFO - Starting JSON upload for tile_9_metadata
+2024-12-28 16:08:06,655 - INFO - ✅ JSON upload successful for tile_9_metadata - CID: Qmc7JCXeinCgdrbNQGDFsiEpKbtpPJdSzQTZm4Hgc6rATp (took 2.18s)
+2024-12-28 16:08:06,656 - INFO - Progress: 9/9 metadata files uploaded
+2024-12-28 16:08:06,656 - INFO - 
+🔍 Verifying Stargaze compatibility...
+2024-12-28 16:08:06,656 - INFO - 
+Verifying file structure:
+2024-12-28 16:08:06,656 - INFO - ✓ Images named numerically (1.png, 2.png, ...)
+2024-12-28 16:08:06,656 - INFO - ✓ Metadata named numerically (1.json, 2.json, ...)
+2024-12-28 16:08:06,657 - INFO - ✓ Image and metadata files match
+2024-12-28 16:08:06,657 - INFO - 
+📝 Stargaze Configuration:
+2024-12-28 16:08:06,657 - INFO - Collection URI: ipfs://QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuXdjNkjZw
+2024-12-28 16:08:06,657 - INFO - Base Token URI: ipfs://QmU8ixxoWt7LYrASWZ3AdNsTFR5ez7RDVRRZWzfBxPiTop/
+2024-12-28 16:08:06,657 - INFO - 
+To verify on Stargaze:
+2024-12-28 16:08:06,657 - INFO - 1. Collection Image: https://ipfs.io/ipfs/QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuXdjNkjZw
+2024-12-28 16:08:06,657 - INFO - 2. Sample Metadata: https://ipfs.io/ipfs/QmU8ixxoWt7LYrASWZ3AdNsTFR5ez7RDVRRZWzfBxPiTop
+2024-12-28 16:08:06,657 - INFO - 3. Sample Image: https://ipfs.io/ipfs/Qmcf3tV4fnCzccMmcBZ8DdYd9gbxj1Cab6xEbrSx7brKnM
+2024-12-28 16:09:59,934 - DEBUG - Using selector: KqueueSelector
+2024-12-28 16:09:59,934 - INFO - 🗂️ Preparing directory structure...
+2024-12-28 16:09:59,934 - INFO - Found logo file, keeping it in place
+2024-12-28 16:09:59,935 - INFO - ✅ Directory structure prepared!
+2024-12-28 16:09:59,935 - INFO - 📤 Uploading entire directory...
+2024-12-28 16:10:06,190 - ERROR - ❌ Directory upload failed: {"error":"More than one file and/or directory was provided for pinning."}
+2024-12-28 16:10:06,192 - ERROR - ❌ Upload failed: Failed to pin directory: {"error":"More than one file and/or directory was provided for pinning."}
+2024-12-28 16:11:34,654 - DEBUG - Using selector: KqueueSelector
+2024-12-28 16:11:34,654 - INFO - ��️ Preparing directory structure...
+2024-12-28 16:11:34,654 - INFO - Found logo file, keeping it in place
+2024-12-28 16:11:34,655 - INFO - ✅ Directory structure prepared!
+2024-12-28 16:11:34,655 - INFO - 📤 Uploading metadata directory...
+2024-12-28 16:11:38,808 - INFO - ✅ File upload successful - 6.json - CID: QmRD9VBa3ytDMvCkpHLB6RYFXwifMfX3CPGPUApKauWsrd
+2024-12-28 16:11:41,055 - INFO - ✅ File upload successful - 7.json - CID: QmacvxpCApfSV4kRpRvRhu5pav6dxFi5BTnsF5DDZGj8QT
+2024-12-28 16:11:43,323 - INFO - ✅ File upload successful - 1.json - CID: QmZCWjEuH92mnJb6tFBcPps9nP2ijBDmKMkG1EzTZ6cWwR
+2024-12-28 16:11:46,087 - INFO - ✅ File upload successful - 2.json - CID: QmPczbw7G8rUDMLAcCPPNddAaq7yN591pnf5SX2qTJFyrP
+2024-12-28 16:11:48,384 - INFO - ✅ File upload successful - 3.json - CID: QmP5XTkcHY1MpYmCKJ7dHf9EfrVW1BjoJBVmuHwrTFnvap
+2024-12-28 16:11:50,894 - INFO - ✅ File upload successful - 8.json - CID: QmV1xCxTBEdtWNNtjPQfGna3SV96uHfMSi1Fg7j41UnoyJ
+2024-12-28 16:11:53,357 - INFO - ✅ File upload successful - 4.json - CID: QmaJbEMyAZMjJb5xseMnWgq14kxSi2rQHDNK85DRSsnjUo
+2024-12-28 16:11:55,765 - INFO - ✅ File upload successful - 5.json - CID: QmV1eiVZwptq5Tdh2izvqz3Crf2jaj5KuWy6sUPRmaUAVP
+2024-12-28 16:11:58,097 - INFO - ✅ File upload successful - 9.json - CID: QmTmohE2gxBUTe9fbALoanwoGKv4YeeY5Dq7PXfnMhJpxB
+2024-12-28 16:11:58,098 - INFO - 📤 Uploading images directory...
+2024-12-28 16:12:00,775 - INFO - ✅ File upload successful - 8.png - CID: QmWQsajWmazNx19MPwQWMMfP27k4onQzBZVTT8H8nsRuwx
+2024-12-28 16:12:03,147 - INFO - ✅ File upload successful - 9.png - CID: QmSNEuSAN6nUNbT7TEGiETkoRhJRq5upPkQLzd11wvNYiT
+2024-12-28 16:12:05,550 - INFO - ✅ File upload successful - 4.png - CID: Qmc2oXgtaGBYayn3nuZr36Bs1VM1oHxPNuCdmPvzvqK1hG
+2024-12-28 16:12:08,547 - INFO - ✅ File upload successful - 5.png - CID: QmQUro2Etk2r3CKS7FJ1LTFztk54t3R817G1FFNZ4XXbTk
+2024-12-28 16:12:11,219 - INFO - ✅ File upload successful - 7.png - CID: QmUc8HSi5AEDyTQqS51qtqKj6L9Ghv7MgngNw9pvWLsMGm
+2024-12-28 16:12:13,677 - INFO - ✅ File upload successful - 6.png - CID: Qme3aZNGBarbBsHXSPNHtaANe5NWNwvB1rjG1YbXkUrRmT
+2024-12-28 16:12:15,952 - INFO - ✅ File upload successful - 2.png - CID: QmUyGHt4uKTVX7QdvDssRgSniSZVoKNkoeivhCfPe9sNNf
+2024-12-28 16:12:18,350 - INFO - ✅ File upload successful - 3.png - CID: QmPy3Fk8S3w3zW7RzQohZ588Q7amL7nBwkwi16pQwpQ3Zg
+2024-12-28 16:12:20,743 - INFO - ✅ File upload successful - 1.png - CID: Qmcf3tV4fnCzccMmcBZ8DdYd9gbxj1Cab6xEbrSx7brKnM
+2024-12-28 16:12:20,744 - INFO - 📤 Uploading logo...
+2024-12-28 16:12:23,837 - INFO - ✅ Logo upload successful - CID: QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuXdjNkjZw
+2024-12-28 16:12:23,838 - INFO - 
+📝 Stargaze Configuration:
+2024-12-28 16:12:23,838 - INFO - Collection URI: ipfs://QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuXdjNkjZw
+2024-12-28 16:12:23,838 - INFO - Base Token URI: ipfs://QmTmohE2gxBUTe9fbALoanwoGKv4YeeY5Dq7PXfnMhJpxB/
+2024-12-28 16:12:23,838 - INFO - 
+To verify on Stargaze:
+2024-12-28 16:12:23,838 - INFO - 1. Collection Image: https://ipfs.io/ipfs/QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuXdjNkjZw
+2024-12-28 16:12:23,838 - INFO - 2. Sample Metadata: https://ipfs.io/ipfs/QmTmohE2gxBUTe9fbALoanwoGKv4YeeY5Dq7PXfnMhJpxB/1.json
+2024-12-28 16:12:23,838 - INFO - 3. Sample Image: https://ipfs.io/ipfs/Qmcf3tV4fnCzccMmcBZ8DdYd9gbxj1Cab6xEbrSx7brKnM/1.png
+2024-12-28 16:14:08,942 - DEBUG - Using selector: KqueueSelector
+2024-12-28 16:14:08,942 - INFO - 🗂️ Preparing directory structure...
+2024-12-28 16:14:08,942 - INFO - Found logo file, keeping it in place
+2024-12-28 16:14:08,942 - INFO - ✅ Directory structure prepared!
+2024-12-28 16:14:08,942 - INFO - 📤 Uploading entire directory...
+2024-12-28 16:14:13,449 - ERROR - ❌ Directory upload failed: {"error":"More than one file and/or directory was provided for pinning."}
+2024-12-28 16:14:13,450 - ERROR - ❌ Upload failed: Failed to pin directory: {"error":"More than one file and/or directory was provided for pinning."}
