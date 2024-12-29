@@ -1,8 +1,8 @@
 use crate::common::TestOrchestrator;
 use anyhow::Result;
+use tiles::core::pricing::PriceScaling;
 use tiles::core::tile::metadata::{PixelUpdate, TileMetadata};
 use tiles::defaults::constants::DEFAULT_ROYALTY_SHARE;
-use tiles::core::pricing::PriceScaling;
 
 #[test]
 fn hash_changes_after_pixel_update() -> Result<()> {
@@ -21,7 +21,9 @@ fn hash_changes_after_pixel_update() -> Result<()> {
 
     // Calculate total price using PriceScaling
     let price_scaling = PriceScaling::default();
-    let total_price = price_scaling.calculate_total_price(std::iter::once(&update.expiration_duration)).u128();
+    let total_price = price_scaling
+        .calculate_total_price(std::iter::once(&update.expiration_duration))
+        .u128();
     let royalty_amount = total_price * DEFAULT_ROYALTY_SHARE as u128 / 100;
     let owner_amount = total_price - royalty_amount;
 
@@ -58,7 +60,9 @@ fn hash_changes_after_each_pixel_update() -> Result<()> {
 
     // Calculate total price using PriceScaling for first update
     let price_scaling = PriceScaling::default();
-    let total_price1 = price_scaling.calculate_total_price(std::iter::once(&update1.expiration_duration)).u128();
+    let total_price1 = price_scaling
+        .calculate_total_price(std::iter::once(&update1.expiration_duration))
+        .u128();
     let royalty_amount1 = total_price1 * DEFAULT_ROYALTY_SHARE as u128 / 100;
     let owner_amount1 = total_price1 - royalty_amount1;
 
@@ -84,7 +88,9 @@ fn hash_changes_after_each_pixel_update() -> Result<()> {
     let result2 = test.update_pixels(token_id, vec![update2.clone()], &owner)?;
 
     // Calculate total price using PriceScaling for second update
-    let total_price2 = price_scaling.calculate_total_price(std::iter::once(&update2.expiration_duration)).u128();
+    let total_price2 = price_scaling
+        .calculate_total_price(std::iter::once(&update2.expiration_duration))
+        .u128();
     let royalty_amount2 = total_price2 * DEFAULT_ROYALTY_SHARE as u128 / 100;
     let owner_amount2 = total_price2 - royalty_amount2;
 

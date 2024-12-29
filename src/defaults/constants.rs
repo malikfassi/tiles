@@ -30,7 +30,7 @@ pub const CREATION_FEE: u128 = 1_000_000; // 1 STARS
 
 // Vending minter constants
 pub const MINT_FEE_BPS: u64 = 1000; // 10%
-pub const MAX_TOKEN_LIMIT: u32 = 9;
+pub const MAX_TOKEN_LIMIT: u32 = 10000;
 pub const MAX_PER_ADDRESS_LIMIT: u32 = 3;
 pub const MAX_TRADING_OFFSET_SECS: u64 = 60 * 60 * 24 * 7; // 1 week
 pub const MIN_MINT_PRICE: u128 = 0;
@@ -49,7 +49,8 @@ pub const BROADCAST_MODE: &str = "sync";
 pub const COLLECTION_NAME: &str = "Tiles";
 pub const COLLECTION_SYMBOL: &str = "TILE";
 pub const COLLECTION_DESCRIPTION: &str = "A collaborative pixel art canvas on Stargaze";
-pub const BASE_TOKEN_URI: &str = "ipfs://bafybeidrmkt5uzfpz66esvhk3qflp47reztskaijxlsfu4fysujxicw7mu";
+pub const BASE_TOKEN_URI: &str =
+    "ipfs://bafybeidrmkt5uzfpz66esvhk3qflp47reztskaijxlsfu4fysujxicw7mu";
 pub const COLLECTION_URI: &str = "ipfs://QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuXdjNkjZw";
 
 // Start time configuration
@@ -59,4 +60,5 @@ pub const DEPLOYER_ADDRESS: &str = "stars1pnet2e7tz7klwy48r7h3wl0n97td0haqjvs7mx
 pub const TILE_CODE_ID: u64 = 4999;
 pub const MINTER_CODE_ID: u64 = 4997;
 pub const FACTORY_CODE_ID: u64 = 4998;
-pub const FACTORY_CONTRACT_ADDRESS: &str = "stars1fag5lyn46cu5cz8l920saxh89gmk5mfthxntedln2z3l3zgcu0aqwx6s92";
+pub const FACTORY_CONTRACT_ADDRESS: &str =
+    "stars1fag5lyn46cu5cz8l920saxh89gmk5mfthxntedln2z3l3zgcu0aqwx6s92";

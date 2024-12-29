@@ -1,8 +1,8 @@
 use crate::common::TestOrchestrator;
 use anyhow::Result;
+use tiles::core::pricing::PriceScaling;
 use tiles::core::tile::metadata::PixelUpdate;
 use tiles::defaults::constants::DEFAULT_ROYALTY_SHARE;
-use tiles::core::pricing::PriceScaling;
 
 #[test]
 fn can_set_pixel_color() -> Result<()> {
@@ -19,7 +19,9 @@ fn can_set_pixel_color() -> Result<()> {
 
     // Calculate total price using PriceScaling
     let price_scaling = PriceScaling::default();
-    let total_price = price_scaling.calculate_total_price(std::iter::once(&update.expiration_duration)).u128();
+    let total_price = price_scaling
+        .calculate_total_price(std::iter::once(&update.expiration_duration))
+        .u128();
     let royalty_amount = total_price * DEFAULT_ROYALTY_SHARE as u128 / 100;
     let owner_amount = total_price - royalty_amount;
 
@@ -63,7 +65,9 @@ fn all_valid_updates_succeed() -> Result<()> {
 
     // Calculate total price using PriceScaling
     let price_scaling = PriceScaling::default();
-    let total_price = price_scaling.calculate_total_price(updates.iter().map(|u| &u.expiration_duration)).u128();
+    let total_price = price_scaling
+        .calculate_total_price(updates.iter().map(|u| &u.expiration_duration))
+        .u128();
     let royalty_amount = total_price * DEFAULT_ROYALTY_SHARE as u128 / 100;
     let owner_amount = total_price - royalty_amount;
 
@@ -109,7 +113,9 @@ fn can_update_multiple_pixels() -> Result<()> {
 
     // Calculate total price using PriceScaling
     let price_scaling = PriceScaling::default();
-    let total_price = price_scaling.calculate_total_price(updates.iter().map(|u| &u.expiration_duration)).u128();
+    let total_price = price_scaling
+        .calculate_total_price(updates.iter().map(|u| &u.expiration_duration))
+        .u128();
     let royalty_amount = total_price * DEFAULT_ROYALTY_SHARE as u128 / 100;
     let owner_amount = total_price - royalty_amount;
 

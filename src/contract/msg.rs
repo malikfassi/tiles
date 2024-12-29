@@ -1,11 +1,11 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Binary, Empty};
-use cw721_base::Extension;
-use sg721::InstantiateMsg as Sg721InstantiateMsg;
 use cw721::{
     AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, ContractInfoResponse, NftInfoResponse,
     NumTokensResponse, OperatorsResponse, OwnerOfResponse, TokensResponse,
 };
+use cw721_base::Extension;
+use sg721::InstantiateMsg as Sg721InstantiateMsg;
 use sg721_base::msg::CollectionInfoResponse;
 
 use crate::core::{
@@ -65,9 +65,7 @@ pub enum QueryMsg {
     #[returns(ContractInfoResponse)]
     ContractInfo {},
     #[returns(NftInfoResponse<Extension>)]
-    NftInfo {
-        token_id: String,
-    },
+    NftInfo { token_id: String },
     #[returns(AllNftInfoResponse<Extension>)]
     AllNftInfo {
         token_id: String,

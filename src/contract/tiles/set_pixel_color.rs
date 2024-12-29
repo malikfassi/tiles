@@ -36,10 +36,9 @@ pub fn set_pixel_color(
         token_id: token_id.clone(),
         include_expired: None,
     };
-    let owner: OwnerOfResponse = deps.querier.query_wasm_smart(
-        env.contract.address.clone(),
-        &owner_query,
-    )?;
+    let owner: OwnerOfResponse = deps
+        .querier
+        .query_wasm_smart(env.contract.address.clone(), &owner_query)?;
 
     let price_scaling = PRICE_SCALING.load(deps.storage)?;
     let current_time = env.block.time.seconds();

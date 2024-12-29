@@ -320,9 +320,9 @@ impl TilesContract {
         &self,
         app: &TestApp,
     ) -> Result<CollectionInfo<RoyaltyInfoResponse>> {
-        Ok(app.inner().wrap().query_wasm_smart(
-            self.contract_addr.clone(),
-            &QueryMsg::CollectionInfo {},
-        )?)
+        Ok(app
+            .inner()
+            .wrap()
+            .query_wasm_smart(self.contract_addr.clone(), &QueryMsg::CollectionInfo {})?)
     }
 }

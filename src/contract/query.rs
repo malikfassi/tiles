@@ -1,28 +1,58 @@
-use cosmwasm_std::{Binary, Deps, Env, StdResult, to_json_binary};
-use cw721_base::Extension;
-use sg721_base::{msg::QueryMsg as Sg721QueryMsg, Sg721Contract};
-use serde::{Deserialize, Serialize};
 use crate::core::tile::Tile;
+use cosmwasm_std::{to_json_binary, Binary, Deps, Env, StdResult};
+use cw721_base::Extension;
+use serde::{Deserialize, Serialize};
+use sg721_base::{msg::QueryMsg as Sg721QueryMsg, Sg721Contract};
 
 use crate::contract::{msg::QueryMsg, state::PRICE_SCALING};
 
 pub fn query_handler(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::PriceScaling {} => to_json_binary(&PRICE_SCALING.load(deps.storage)?),
-        QueryMsg::OwnerOf { token_id, include_expired } => {
-            let base_msg = Sg721QueryMsg::OwnerOf { token_id, include_expired };
+        QueryMsg::OwnerOf {
+            token_id,
+            include_expired,
+        } => {
+            let base_msg = Sg721QueryMsg::OwnerOf {
+                token_id,
+                include_expired,
+            };
             query_base::<Extension>(deps, env, base_msg)
         }
-        QueryMsg::Approval { token_id, spender, include_expired } => {
-            let base_msg = Sg721QueryMsg::Approval { token_id, spender, include_expired };
+        QueryMsg::Approval {
+            token_id,
+            spender,
+            include_expired,
+        } => {
+            let base_msg = Sg721QueryMsg::Approval {
+                token_id,
+                spender,
+                include_expired,
+            };
             query_base::<Extension>(deps, env, base_msg)
         }
-        QueryMsg::Approvals { token_id, include_expired } => {
-            let base_msg = Sg721QueryMsg::Approvals { token_id, include_expired };
+        QueryMsg::Approvals {
+            token_id,
+            include_expired,
+        } => {
+            let base_msg = Sg721QueryMsg::Approvals {
+                token_id,
+                include_expired,
+            };
             query_base::<Extension>(deps, env, base_msg)
         }
-        QueryMsg::AllOperators { owner, include_expired, start_after, limit } => {
-            let base_msg = Sg721QueryMsg::AllOperators { owner, include_expired, start_after, limit };
+        QueryMsg::AllOperators {
+            owner,
+            include_expired,
+            start_after,
+            limit,
+        } => {
+            let base_msg = Sg721QueryMsg::AllOperators {
+                owner,
+                include_expired,
+                start_after,
+                limit,
+            };
             query_base::<Extension>(deps, env, base_msg)
         }
         QueryMsg::NumTokens {} => {
@@ -37,12 +67,26 @@ pub fn query_handler(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             let base_msg = Sg721QueryMsg::NftInfo { token_id };
             query_base::<Tile>(deps, env, base_msg)
         }
-        QueryMsg::AllNftInfo { token_id, include_expired } => {
-            let base_msg = Sg721QueryMsg::AllNftInfo { token_id, include_expired };
+        QueryMsg::AllNftInfo {
+            token_id,
+            include_expired,
+        } => {
+            let base_msg = Sg721QueryMsg::AllNftInfo {
+                token_id,
+                include_expired,
+            };
             query_base::<Tile>(deps, env, base_msg)
         }
-        QueryMsg::Tokens { owner, start_after, limit } => {
-            let base_msg = Sg721QueryMsg::Tokens { owner, start_after, limit };
+        QueryMsg::Tokens {
+            owner,
+            start_after,
+            limit,
+        } => {
+            let base_msg = Sg721QueryMsg::Tokens {
+                owner,
+                start_after,
+                limit,
+            };
             query_base::<Extension>(deps, env, base_msg)
         }
         QueryMsg::AllTokens { start_after, limit } => {
@@ -60,7 +104,7 @@ pub fn query_handler(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
-fn query_base<T>(deps: Deps, env: Env, msg: Sg721QueryMsg) -> StdResult<Binary> 
+fn query_base<T>(deps: Deps, env: Env, msg: Sg721QueryMsg) -> StdResult<Binary>
 where
     T: Serialize + for<'de> Deserialize<'de> + Clone,
 {

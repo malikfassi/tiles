@@ -1,7 +1,7 @@
 use serde_json::json;
+use sg_std::NATIVE_DENOM;
 use std::fs;
 use std::path::Path;
-use sg_std::NATIVE_DENOM;
 
 // Import constants from the project
 include!("src/defaults/constants.rs");
@@ -15,7 +15,7 @@ fn main() {
     let constants = json!({
         // Contract Info
         "CONTRACT_NAME": CONTRACT_NAME,
-        
+
         // Chain Configuration
         "CHAIN_ID": CHAIN_ID,
         "NODE_URL": NODE_URL,
@@ -24,12 +24,12 @@ fn main() {
         "BROADCAST_MODE": BROADCAST_MODE,
         "BASE_TOKEN_URI": BASE_TOKEN_URI,
         "COLLECTION_URI": COLLECTION_URI,
-        
+
         // Collection Configuration
         "COLLECTION_NAME": COLLECTION_NAME,
         "COLLECTION_SYMBOL": COLLECTION_SYMBOL,
         "COLLECTION_DESCRIPTION": COLLECTION_DESCRIPTION,
-        
+
         // Token Configuration
         "TOKEN_DENOM": NATIVE_DENOM,
         "START_TIME": START_TIME,
@@ -41,7 +41,7 @@ fn main() {
         "PIXELS_PER_TILE": PIXELS_PER_TILE,
         "PIXEL_MIN_EXPIRATION": PIXEL_MIN_EXPIRATION,
         "PIXEL_MAX_EXPIRATION": PIXEL_MAX_EXPIRATION,
-        
+
         // Financial Configuration
         "MINT_PRICE": MINT_PRICE,
         "CREATION_FEE": CREATION_FEE,
@@ -51,19 +51,16 @@ fn main() {
         "AIRDROP_MINT_PRICE": AIRDROP_MINT_PRICE,
         "AIRDROP_MINT_FEE_BPS": AIRDROP_MINT_FEE_BPS,
         "SHUFFLE_FEE": SHUFFLE_FEE,
-        
-        // Deployer Configuration
-        "DEPLOYER_ADDRESS": DEPLOYER_ADDRESS,
-        "TILE_CODE_ID": TILE_CODE_ID,
-        "MINTER_CODE_ID": MINTER_CODE_ID,
-        "FACTORY_CODE_ID": FACTORY_CODE_ID,
-        "FACTORY_CONTRACT_ADDRESS": FACTORY_CONTRACT_ADDRESS
     });
 
     // Write constants to JSON file
     let constants_file = messages_dir.join("constants.json");
-    fs::write(constants_file, serde_json::to_string_pretty(&constants).unwrap()).unwrap();
+    fs::write(
+        constants_file,
+        serde_json::to_string_pretty(&constants).unwrap(),
+    )
+    .unwrap();
 
     // Tell Cargo to rerun this script if constants.rs changes
     println!("cargo:rerun-if-changed=src/defaults/constants.rs");
-} 
+}

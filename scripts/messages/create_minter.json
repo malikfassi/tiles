@@ -1,31 +1,31 @@
 {
   "collection_params": {
-    "code_id": "$TILE_CODE_ID",
+    "code_id": 4999,
     "info": {
-      "creator": "$DEPLOYER_ADDRESS",
-      "description": "$COLLECTION_DESCRIPTION",
+      "creator": "stars1pnet2e7tz7klwy48r7h3wl0n97td0haqjvs7mx",
+      "description": "A collaborative pixel art canvas on Stargaze",
       "explicit_content": false,
       "external_link": null,
-      "image": "$COLLECTION_URI",
+      "image": "ipfs://QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuXdjNkjZw",
       "royalty_info": {
-        "payment_address": "$DEPLOYER_ADDRESS",
-        "share": "0.$DEFAULT_ROYALTY_SHARE"
+        "payment_address": "stars1pnet2e7tz7klwy48r7h3wl0n97td0haqjvs7mx",
+        "share": "0.10"
       },
       "start_trading_time": null
     },
-    "name": "$COLLECTION_NAME",
-    "symbol": "$COLLECTION_SYMBOL"
+    "name": "Tiles",
+    "symbol": "TILE"
   },
   "init_msg": {
-    "base_token_uri": "$BASE_TOKEN_URI",
+    "base_token_uri": "ipfs://bafybeidrmkt5uzfpz66esvhk3qflp47reztskaijxlsfu4fysujxicw7mu",
     "mint_price": {
-      "amount": "$MINT_PRICE",
-      "denom": "$TOKEN_DENOM"
+      "amount": "100000000",
+      "denom": "ustars"
     },
-    "num_tokens": "$MAX_TOKEN_LIMIT",
-    "payment_address": "$DEPLOYER_ADDRESS",
-    "per_address_limit": "$MAX_PER_ADDRESS_LIMIT",
-    "start_time": "$START_TIME",
+    "num_tokens": 9,
+    "payment_address": "stars1pnet2e7tz7klwy48r7h3wl0n97td0haqjvs7mx",
+    "per_address_limit": 3,
+    "start_time": "1625097600",
     "whitelist": null
   }
 }
