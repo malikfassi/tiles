@@ -3,7 +3,7 @@ use cosmwasm_std::{coins, Addr};
 use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 use sg_std::NATIVE_DENOM;
 use tiles::defaults::constants::MINT_PRICE;
-use vending_minter::msg::{ExecuteMsg, InstantiateMsg};
+use vending_minter::msg::ExecuteMsg;
 
 use crate::utils::core::app::TestApp;
 

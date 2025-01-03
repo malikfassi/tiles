@@ -1,7 +1,7 @@
 use anyhow::Result;
 use tiles::core::pricing::PriceScaling;
 
-use crate::utils::{ContractAssertions, EventAssertions, Launchpad, TestSetup};
+use crate::utils::{ContractAssertions, EventAssertions, Launchpad};
 
 #[test]
 fn can_instantiate_contracts() -> Result<()> {

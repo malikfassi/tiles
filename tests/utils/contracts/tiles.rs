@@ -2,11 +2,11 @@ use anyhow::Result;
 use cosmwasm_std::{coins, Addr, Binary, Coin};
 use cw721::{NftInfoResponse, OwnerOfResponse};
 use cw721_base::Action;
-use cw_multi_test::{AppResponse, ContractWrapper, Executor};
+use cw_multi_test::{ContractWrapper, Executor};
 use sg721::{CollectionInfo, RoyaltyInfoResponse, UpdateCollectionInfoMsg};
 use sg_std::NATIVE_DENOM;
 use tiles::{
-    contract::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, TileExecuteMsg},
+    contract::msg::{ExecuteMsg, QueryMsg, TileExecuteMsg},
     core::{
         pricing::PriceScaling,
         tile::{

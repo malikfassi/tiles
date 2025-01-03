@@ -1,9 +1,6 @@
-use anyhow::Result;
 use cosmwasm_std::{Addr, Coin, Uint128};
-use cw_multi_test::Executor;
 use sg_std::NATIVE_DENOM;
 
-use super::roles::User as UserRole;
 use crate::utils::core::app::TestApp;
 use tiles::defaults::constants::{CREATION_FEE, MINT_PRICE};
 

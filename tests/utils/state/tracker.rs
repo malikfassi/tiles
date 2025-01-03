@@ -1,5 +1,4 @@
 use anyhow::Result;
-use cosmwasm_std::Addr;
 use cw_multi_test::AppResponse;
 use tiles::core::{
     pricing::PriceScaling,
@@ -11,6 +10,12 @@ use super::events::EventParser;
 pub struct StateTracker {
     price_scaling: Option<PriceScaling>,
     token_metadata: std::collections::HashMap<u32, TileMetadata>,
+}
+
+impl Default for StateTracker {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StateTracker {

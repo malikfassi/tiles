@@ -1,5 +1,5 @@
 use anyhow::Result;
-use cosmwasm_std::{to_json_binary, Addr, Coin, Decimal};
+use cosmwasm_std::{Addr, Coin, Decimal};
 use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 use sg2::msg::{CollectionParams, CreateMinterMsg};
 use sg721::{CollectionInfo, RoyaltyInfoResponse};

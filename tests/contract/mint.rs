@@ -1,5 +1,4 @@
 use anyhow::Result;
-use cosmwasm_std::Addr;
 use tiles::defaults::constants::MINT_PRICE;
 
 use crate::utils::{ContractAssertions, EventAssertions, EventParser, TestSetup};
