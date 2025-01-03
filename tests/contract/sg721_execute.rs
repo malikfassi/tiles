@@ -2,7 +2,7 @@ use anyhow::Result;
 use cosmwasm_std::to_json_binary;
 use sg721::UpdateCollectionInfoMsg;
 
-use crate::utils::{events::EventParser, TestSetup};
+use crate::utils::{EventParser, TestSetup};
 
 #[test]
 fn test_transfer_nft() -> Result<()> {

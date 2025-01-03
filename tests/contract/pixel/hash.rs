@@ -1,7 +1,7 @@
 use anyhow::Result;
 use tiles::core::tile::metadata::PixelUpdate;
 
-use crate::utils::{ResponseAssertions, TestSetup};
+use crate::utils::{EventAssertions, TestSetup};
 
 #[test]
 fn hash_changes_after_pixel_update() -> Result<()> {
@@ -19,8 +19,8 @@ fn hash_changes_after_pixel_update() -> Result<()> {
     let result = setup.update_pixel(&buyer.address, token_id, vec![update.clone()])?;
 
     // Assert all events
-    ResponseAssertions::assert_pixel_update(&result, token_id, &[&update], &buyer.address);
-    ResponseAssertions::assert_payment_distribution(
+    EventAssertions::assert_pixel_update(&result, token_id, &[&update], &buyer.address);
+    EventAssertions::assert_payment_distribution(
         &result,
         token_id,
         &buyer.address,
@@ -50,8 +50,8 @@ fn hash_changes_after_each_pixel_update() -> Result<()> {
     let result1 = setup.update_pixel(&buyer.address, token_id, vec![update1.clone()])?;
 
     // Assert events for first update
-    ResponseAssertions::assert_pixel_update(&result1, token_id, &[&update1], &buyer.address);
-    ResponseAssertions::assert_payment_distribution(
+    EventAssertions::assert_pixel_update(&result1, token_id, &[&update1], &buyer.address);
+    EventAssertions::assert_payment_distribution(
         &result1,
         token_id,
         &buyer.address,
@@ -71,8 +71,8 @@ fn hash_changes_after_each_pixel_update() -> Result<()> {
     let result2 = setup.update_pixel(&buyer.address, token_id, vec![update2.clone()])?;
 
     // Assert events for second update
-    ResponseAssertions::assert_pixel_update(&result2, token_id, &[&update2], &buyer.address);
-    ResponseAssertions::assert_payment_distribution(
+    EventAssertions::assert_pixel_update(&result2, token_id, &[&update2], &buyer.address);
+    EventAssertions::assert_payment_distribution(
         &result2,
         token_id,
         &buyer.address,

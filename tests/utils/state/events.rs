@@ -1,7 +1,10 @@
 use anyhow::Result;
 use cosmwasm_std::Event;
 use cw_multi_test::AppResponse;
-use tiles::events::EventData;
+use tiles::events::{
+    EventData, InstantiatePriceScalingEventData, MintMetadataEventData,
+    PaymentDistributionEventData, PixelUpdateEventData, PriceScalingUpdateEventData,
+};
 
 pub struct EventParser {}
 
@@ -36,6 +39,37 @@ impl EventParser {
                     .ok_or_else(|| anyhow::anyhow!("Failed to parse event of type {}", event.ty))
             })
             .collect()
+    }
+
+    // Specific event parsing methods
+    pub fn parse_instantiate_event(
+        response: &AppResponse,
+    ) -> Result<InstantiatePriceScalingEventData> {
+        Self::find_and_parse::<InstantiatePriceScalingEventData>(response)
+    }
+
+    pub fn parse_mint_metadata(response: &AppResponse) -> Result<MintMetadataEventData> {
+        Self::find_and_parse::<MintMetadataEventData>(response)
+    }
+
+    pub fn parse_pixel_update(response: &AppResponse) -> Result<PixelUpdateEventData> {
+        Self::find_and_parse::<PixelUpdateEventData>(response)
+    }
+
+    pub fn parse_pixel_updates(response: &AppResponse) -> Result<Vec<PixelUpdateEventData>> {
+        Self::find_and_parse_many::<PixelUpdateEventData>(response)
+    }
+
+    pub fn parse_payment_distribution(
+        response: &AppResponse,
+    ) -> Result<PaymentDistributionEventData> {
+        Self::find_and_parse::<PaymentDistributionEventData>(response)
+    }
+
+    pub fn parse_price_scaling_update(
+        response: &AppResponse,
+    ) -> Result<PriceScalingUpdateEventData> {
+        Self::find_and_parse::<PriceScalingUpdateEventData>(response)
     }
 
     pub fn extract_token_id(response: &AppResponse) -> Result<u32> {

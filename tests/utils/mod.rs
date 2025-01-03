@@ -1,13 +1,13 @@
-pub mod app;
-pub mod assertions;
 pub mod contracts;
-pub mod events;
-pub mod launchpad;
-pub mod setup;
+pub mod core;
 pub mod state;
-pub mod users;
+pub mod test;
 
-pub use assertions::{ResponseAssertions, StateAssertions};
-pub use events::EventParser;
-pub use setup::TestSetup;
-pub use state::StateTracker;
+// Re-export test components
+pub use test::{ContractAssertions, EventAssertions, TestUsers};
+
+// Re-export core components
+pub use core::{app::TestApp, launchpad::Launchpad, setup::TestSetup};
+
+// Re-export state components
+pub use state::EventParser;

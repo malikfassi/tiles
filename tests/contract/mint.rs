@@ -1,7 +1,8 @@
 use anyhow::Result;
+use cosmwasm_std::Addr;
 use tiles::defaults::constants::MINT_PRICE;
 
-use crate::utils::{events::EventParser, ResponseAssertions, StateAssertions, TestSetup};
+use crate::utils::{ContractAssertions, EventAssertions, EventParser, TestSetup};
 
 #[test]
 fn test_successful_mint() -> Result<()> {
@@ -14,10 +15,10 @@ fn test_successful_mint() -> Result<()> {
 
     let response = setup.minter.mint(&mut setup.app, &buyer.address)?;
     let token_id = EventParser::extract_token_id(&response)?;
-    ResponseAssertions::assert_mint_metadata(&response, token_id, &buyer.address, None);
+    EventAssertions::assert_mint_metadata(&response, token_id, &buyer.address, None);
 
-    StateAssertions::assert_balance(&setup.app, &buyer.address, initial_balance - MINT_PRICE);
-    StateAssertions::assert_token_owner(&setup.app, &setup.tiles, token_id, &buyer.address);
+    ContractAssertions::assert_balance(&setup.app, &buyer.address, initial_balance - MINT_PRICE);
+    ContractAssertions::assert_token_owner(&setup.app, &setup.tiles, token_id, &buyer.address);
 
     Ok(())
 }

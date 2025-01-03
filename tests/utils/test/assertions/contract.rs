@@ -1,13 +1,13 @@
 use cosmwasm_std::Addr;
 use tiles::core::pricing::PriceScaling;
 
-use crate::utils::{app::TestApp, contracts::tiles::TilesContract};
+use crate::utils::{contracts::tiles::TilesContract, core::app::TestApp};
 
-pub struct StateAssertions {}
+pub struct ContractAssertions {}
 
-impl StateAssertions {
-    pub fn assert_balance(env: &TestApp, addr: &Addr, expected: u128) {
-        let balance = env
+impl ContractAssertions {
+    pub fn assert_balance(app: &TestApp, addr: &Addr, expected: u128) {
+        let balance = app
             .get_balance(addr, "ustars")
             .expect("Failed to get balance");
         assert_eq!(balance, expected, "Balance mismatch");
@@ -41,22 +41,10 @@ impl StateAssertions {
         assert_eq!(hash, expected_hash, "Token hash mismatch");
     }
 
-    pub fn assert_price_scaling(actual: &PriceScaling, expected: &PriceScaling) {
-        assert_eq!(
-            actual.hour_1_price, expected.hour_1_price,
-            "1 hour price mismatch"
-        );
-        assert_eq!(
-            actual.hour_12_price, expected.hour_12_price,
-            "12 hour price mismatch"
-        );
-        assert_eq!(
-            actual.hour_24_price, expected.hour_24_price,
-            "24 hour price mismatch"
-        );
-        assert_eq!(
-            actual.quadratic_base, expected.quadratic_base,
-            "Quadratic base mismatch"
-        );
+    pub fn assert_price_scaling(app: &TestApp, contract: &TilesContract, expected: &PriceScaling) {
+        let actual = contract
+            .query_price_scaling(app)
+            .expect("Failed to query price scaling");
+        assert_eq!(actual, *expected, "Price scaling mismatch");
     }
 }

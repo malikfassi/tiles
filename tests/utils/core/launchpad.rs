@@ -1,13 +1,19 @@
+/// Contract deployment and initialization orchestrator.
+/// Handles the setup of all contracts needed for testing, including:
+/// - Factory contract
+/// - Minter contract
+/// - Tiles (SG721) contract
 use anyhow::Result;
 use cosmwasm_std::Addr;
 use cw_multi_test::AppResponse;
 
 use crate::utils::{
-    app::TestApp,
     contracts::{factory::FactoryContract, minter::MinterContract, tiles::TilesContract},
-    users::TestUsers,
+    core::app::TestApp,
+    TestUsers,
 };
 
+/// Main launchpad structure that handles contract deployment and setup
 pub struct Launchpad {
     pub app: TestApp,
     pub users: TestUsers,
@@ -16,13 +22,8 @@ pub struct Launchpad {
     pub minter: MinterContract,
 }
 
-impl Default for Launchpad {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl Launchpad {
+    /// Creates a new empty launchpad instance with default configuration
     pub fn new_empty() -> Self {
         let mut app = TestApp::new();
         let users = TestUsers::new();
@@ -39,6 +40,10 @@ impl Launchpad {
         }
     }
 
+    /// Stores all contract code in the test environment
+    ///
+    /// # Returns
+    /// * `Result<(u64, u64, u64)>` - Code IDs for (factory, minter, collection)
     pub fn store_contracts(&mut self) -> Result<(u64, u64, u64)> {
         // Store contracts in the correct order to get expected code IDs:
         // factory = 1, sg721 = 2, minter = 3
@@ -46,29 +51,36 @@ impl Launchpad {
         let collection_code_id = TilesContract::store_code(&mut self.app)?;
         let minter_code_id = MinterContract::store_code(&mut self.app)?;
 
-        // Return in the order expected by setup_factory: (factory, minter, collection)
         Ok((factory_code_id, minter_code_id, collection_code_id))
     }
 
+    /// Sets up the factory contract with the provided code IDs
+    ///
+    /// # Arguments
+    /// * `factory_code_id` - Code ID for the factory contract
+    /// * `minter_code_id` - Code ID for the minter contract
+    /// * `collection_code_id` - Code ID for the collection contract
     pub fn setup_factory(
         &mut self,
         factory_code_id: u64,
         minter_code_id: u64,
         collection_code_id: u64,
     ) -> Result<(Addr, AppResponse)> {
-        let mut factory = FactoryContract::new(&mut self.app, "factory");
         let factory_creator = self.users.factory_contract_creator();
-        let (addr, response) = factory.instantiate(
+        let (addr, response) = self.factory.instantiate(
             &mut self.app,
             factory_code_id,
             minter_code_id,
             collection_code_id,
             &factory_creator.address,
         )?;
-        self.factory = factory;
         Ok((addr, response))
     }
 
+    /// Creates a new minter instance using the factory
+    ///
+    /// # Returns
+    /// * `Result<(Addr, Addr, AppResponse)>` - (minter address, sg721 address, response)
     pub fn create_minter(&mut self) -> Result<(Addr, Addr, AppResponse)> {
         let creator = self.users.tile_contract_creator();
         let (minter_addr, sg721_addr, response) = self
@@ -81,6 +93,10 @@ impl Launchpad {
         Ok((minter_addr, sg721_addr, response))
     }
 
+    /// Performs complete setup of all contracts
+    ///
+    /// # Returns
+    /// * `Result<(Self, AppResponse)>` - The configured launchpad and setup response
     pub fn setup() -> Result<(Self, AppResponse)> {
         let mut launchpad = Self::new_empty();
         let (factory_id, minter_id, collection_id) = launchpad.store_contracts()?;
@@ -89,10 +105,5 @@ impl Launchpad {
 
         launchpad.app.advance_time(2 * 86400); // Advance 2 days
         Ok((launchpad, response))
-    }
-
-    // Backward compatibility
-    pub fn new() -> Self {
-        Self::setup().unwrap().0
     }
 }

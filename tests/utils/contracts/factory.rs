@@ -1,5 +1,5 @@
 use anyhow::Result;
-use cosmwasm_std::{Addr, Coin, Decimal};
+use cosmwasm_std::{to_json_binary, Addr, Coin, Decimal};
 use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 use sg2::msg::{CollectionParams, CreateMinterMsg};
 use sg721::{CollectionInfo, RoyaltyInfoResponse};
@@ -7,10 +7,8 @@ use sg_std::NATIVE_DENOM;
 use tiles::defaults::constants::{
     AIRDROP_MINT_FEE_BPS, AIRDROP_MINT_PRICE, BASE_TOKEN_URI, COLLECTION_DESCRIPTION,
     COLLECTION_NAME, COLLECTION_SYMBOL, COLLECTION_URI, CREATION_FEE, DEFAULT_ROYALTY_SHARE,
-    MAX_PER_ADDRESS_LIMIT, MAX_TOKEN_LIMIT, MINT_FEE_BPS, MINT_PRICE,
-    MIN_MINT_PRICE, SHUFFLE_FEE,
+    MAX_PER_ADDRESS_LIMIT, MAX_TOKEN_LIMIT, MINT_FEE_BPS, MINT_PRICE, MIN_MINT_PRICE, SHUFFLE_FEE,
 };
-
 use vending_factory::{
     msg::{
         ExecuteMsg as FactoryExecuteMsg, InstantiateMsg as FactoryInstantiateMsg,
@@ -19,7 +17,7 @@ use vending_factory::{
     state::{ParamsExtension, VendingMinterParams},
 };
 
-use crate::utils::app::TestApp;
+use crate::utils::core::app::TestApp;
 
 #[derive(Clone)]
 pub struct FactoryContract {
@@ -40,12 +38,12 @@ impl FactoryContract {
     }
 
     pub fn store_code(app: &mut TestApp) -> Result<u64> {
-        let contract = Box::new(ContractWrapper::new(
+        let contract = ContractWrapper::new(
             vending_factory::contract::execute,
             vending_factory::contract::instantiate,
             vending_factory::contract::query,
-        ));
-        Ok(app.store_code(contract))
+        );
+        Ok(app.store_code(Box::new(contract)))
     }
 
     pub fn instantiate(

@@ -1,17 +1,22 @@
-use crate::utils::app::TestApp;
 use anyhow::Result;
 use cosmwasm_std::{coins, Addr, Binary, Coin};
 use cw721::{NftInfoResponse, OwnerOfResponse};
 use cw721_base::Action;
-use cw_multi_test::{ContractWrapper, Executor};
+use cw_multi_test::{AppResponse, ContractWrapper, Executor};
 use sg721::{CollectionInfo, RoyaltyInfoResponse, UpdateCollectionInfoMsg};
 use sg_std::NATIVE_DENOM;
-use tiles::contract::msg::{ExecuteMsg, QueryMsg, TileExecuteMsg};
-use tiles::core::pricing::PriceScaling;
-use tiles::core::tile::{
-    metadata::{PixelUpdate, TileMetadata},
-    Tile,
+use tiles::{
+    contract::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, TileExecuteMsg},
+    core::{
+        pricing::PriceScaling,
+        tile::{
+            metadata::{PixelUpdate, TileMetadata},
+            Tile,
+        },
+    },
 };
+
+use crate::utils::core::app::TestApp;
 
 pub struct TilesContract {
     pub contract_addr: Addr,
@@ -23,12 +28,12 @@ impl TilesContract {
     }
 
     pub fn store_code(app: &mut TestApp) -> Result<u64> {
-        let contract = Box::new(ContractWrapper::new(
+        let contract = ContractWrapper::new(
             tiles::contract::execute,
             tiles::contract::instantiate,
             tiles::contract::query,
-        ));
-        Ok(app.store_code(contract))
+        );
+        Ok(app.store_code(Box::new(contract)))
     }
 
     pub fn update_price_scaling(

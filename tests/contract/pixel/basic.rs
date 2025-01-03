@@ -1,7 +1,7 @@
 use anyhow::Result;
 use tiles::core::tile::metadata::PixelUpdate;
 
-use crate::utils::{ResponseAssertions, TestSetup};
+use crate::utils::{EventAssertions, TestSetup};
 
 #[test]
 fn can_set_pixel_color() -> Result<()> {
@@ -16,7 +16,8 @@ fn can_set_pixel_color() -> Result<()> {
 
     let result = setup.update_pixel(&buyer.address, token_id, vec![update.clone()])?;
 
-    ResponseAssertions::assert_payment_distribution(
+    EventAssertions::assert_pixel_update(&result, token_id, &[&update], &buyer.address);
+    EventAssertions::assert_payment_distribution(
         &result,
         token_id,
         &buyer.address,
@@ -52,7 +53,13 @@ fn all_valid_updates_succeed() -> Result<()> {
 
     let result = setup.update_pixel(&buyer.address, token_id, updates.clone())?;
 
-    ResponseAssertions::assert_payment_distribution(
+    EventAssertions::assert_pixel_update(
+        &result,
+        token_id,
+        &updates.iter().collect::<Vec<_>>(),
+        &buyer.address,
+    );
+    EventAssertions::assert_payment_distribution(
         &result,
         token_id,
         &buyer.address,
@@ -88,7 +95,13 @@ fn can_update_multiple_pixels() -> Result<()> {
 
     let result = setup.update_pixel(&buyer.address, token_id, updates.clone())?;
 
-    ResponseAssertions::assert_payment_distribution(
+    EventAssertions::assert_pixel_update(
+        &result,
+        token_id,
+        &updates.iter().collect::<Vec<_>>(),
+        &buyer.address,
+    );
+    EventAssertions::assert_payment_distribution(
         &result,
         token_id,
         &buyer.address,

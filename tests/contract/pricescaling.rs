@@ -5,7 +5,7 @@ use tiles::{
     defaults::constants::{DEFAULT_PRICE_12_HOURS, DEFAULT_PRICE_1_HOUR, DEFAULT_PRICE_24_HOURS},
 };
 
-use crate::utils::{ResponseAssertions, TestSetup};
+use crate::utils::{EventAssertions, TestSetup};
 
 #[test]
 fn creator_can_update_price_scaling() -> Result<()> {
@@ -142,7 +142,7 @@ fn price_scaling_update_emits_correct_event() -> Result<()> {
             .update_price_scaling(&mut setup.app, &creator.address, new_scaling.clone())?;
 
     // Assert the event
-    ResponseAssertions::assert_price_scaling_update(&response, &new_scaling);
+    EventAssertions::assert_price_scaling_update(&response, &new_scaling);
 
     Ok(())
 }

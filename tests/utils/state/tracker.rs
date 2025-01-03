@@ -1,43 +1,24 @@
 use anyhow::Result;
+use cosmwasm_std::Addr;
 use cw_multi_test::AppResponse;
-use std::collections::HashMap;
-use tiles::{
-    core::{
-        pricing::PriceScaling,
-        tile::metadata::{PixelUpdate, TileMetadata},
-    },
-    events::{
-        InstantiatePriceScalingEventData, MintMetadataEventData,
-        PixelUpdateEventData, PriceScalingUpdateEventData,
-    },
+use tiles::core::{
+    pricing::PriceScaling,
+    tile::metadata::{PixelUpdate, TileMetadata},
 };
 
-use crate::utils::events::EventParser;
+use super::events::EventParser;
 
 pub struct StateTracker {
-    pub tiles: HashMap<u32, TileMetadata>,
-    pub price_scaling: Option<PriceScaling>,
-}
-
-impl Default for StateTracker {
-    fn default() -> Self {
-        Self::new()
-    }
+    price_scaling: Option<PriceScaling>,
+    token_metadata: std::collections::HashMap<u32, TileMetadata>,
 }
 
 impl StateTracker {
     pub fn new() -> Self {
         Self {
-            tiles: HashMap::new(),
-            price_scaling: Some(PriceScaling::default()),
+            price_scaling: None,
+            token_metadata: std::collections::HashMap::new(),
         }
-    }
-
-    pub fn get_metadata(&self, token_id: u32) -> Result<TileMetadata> {
-        self.tiles
-            .get(&token_id)
-            .cloned()
-            .ok_or_else(|| anyhow::anyhow!("No metadata found for token {}", token_id))
     }
 
     pub fn get_price_scaling(&self) -> Result<PriceScaling> {
@@ -46,72 +27,42 @@ impl StateTracker {
             .ok_or_else(|| anyhow::anyhow!("No price scaling found"))
     }
 
+    pub fn get_token_metadata(&self, token_id: u32) -> Result<TileMetadata> {
+        self.token_metadata
+            .get(&token_id)
+            .cloned()
+            .ok_or_else(|| anyhow::anyhow!("No metadata found for token {}", token_id))
+    }
+
     pub fn track_instantiate(&mut self, response: &AppResponse) -> Result<()> {
-        // Parse the instantiate price scaling event
-        let config = EventParser::find_and_parse::<InstantiatePriceScalingEventData>(response)?;
-
-        // Parse price scaling from JSON string
-        let price_scaling: PriceScaling = serde_json::from_str(&config.price_scaling)
-            .map_err(|e| anyhow::anyhow!("Failed to parse price scaling JSON: {}", e))?;
-
+        let event = EventParser::parse_instantiate_event(response)?;
+        let price_scaling: PriceScaling = serde_json::from_str(&event.price_scaling)?;
         self.price_scaling = Some(price_scaling);
         Ok(())
     }
 
-    pub fn track_price_scaling_update(&mut self, response: &AppResponse) -> Result<()> {
-        // Parse the price scaling update event
-        let update = EventParser::find_and_parse::<PriceScalingUpdateEventData>(response)?;
-
-        // Update price scaling
-        self.price_scaling = Some(PriceScaling {
-            hour_1_price: update.hour_1_price.into(),
-            hour_12_price: update.hour_12_price.into(),
-            hour_24_price: update.hour_24_price.into(),
-            quadratic_base: update.quadratic_base.into(),
-        });
-
+    pub fn track_mint(&mut self, response: &AppResponse) -> Result<()> {
+        let event = EventParser::parse_mint_metadata(response)?;
+        let token_id = event.token_id.parse::<u32>()?;
+        self.token_metadata
+            .insert(token_id, TileMetadata::default());
         Ok(())
-    }
-
-    pub fn track_mint(&mut self, response: &AppResponse) -> Result<u32> {
-        let token_id = EventParser::extract_token_id(response)?;
-
-        // Parse the mint metadata event
-        let metadata = EventParser::find_and_parse::<MintMetadataEventData>(response)?;
-
-        // Create initial metadata with default pixels
-        let mut tile_metadata = TileMetadata::default();
-
-        // Update the pixels that were modified
-        for pixel in metadata.new_pixels.iter() {
-            tile_metadata.pixels[pixel.id as usize] = pixel.clone();
-        }
-
-        self.tiles.insert(token_id, tile_metadata);
-        Ok(token_id)
     }
 
     pub fn track_pixel_update(
         &mut self,
         token_id: u32,
-        _updates: &[PixelUpdate],
+        updates: &[PixelUpdate],
         response: &AppResponse,
     ) -> Result<()> {
-        let metadata = self
-            .tiles
-            .get_mut(&token_id)
-            .ok_or_else(|| anyhow::anyhow!("No metadata found for token {}", token_id))?;
+        let event = EventParser::parse_pixel_update(response)?;
+        let metadata = self.token_metadata.entry(token_id).or_default();
 
-        // Parse all pixel update events
-        let events = EventParser::find_and_parse_many::<PixelUpdateEventData>(response)?;
-
-        for parsed in events {
-            // Update the pixels that were modified
-            for pixel in parsed.new_pixels.iter() {
-                metadata.pixels[pixel.id as usize] = pixel.clone();
-            }
+        for update in updates {
+            metadata
+                .pixels
+                .insert(update.id as usize, event.new_pixels[0].clone());
         }
-
         Ok(())
     }
 }

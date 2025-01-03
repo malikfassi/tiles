@@ -1,26 +1,20 @@
 use cosmwasm_std::{Addr, Uint128};
 use cw_multi_test::AppResponse;
+use tiles::core::{pricing::PriceScaling, tile::metadata::PixelUpdate};
+use anyhow::Result;
 
-use tiles::{
-    core::{pricing::PriceScaling, tile::metadata::PixelUpdate},
-    events::{
-        InstantiatePriceScalingEventData, MintMetadataEventData,
-        PaymentDistributionEventData, PixelUpdateEventData, PriceScalingUpdateEventData,
-    },
-};
+use crate::utils::state::{events::EventParser, tracker::StateTracker};
 
-use crate::utils::{events::EventParser, state::StateTracker};
+pub struct EventAssertions {}
 
-pub struct ResponseAssertions {}
-
-impl ResponseAssertions {
-    pub fn assert_pixel_update(
+impl EventAssertions {
+    pub fn assert_pixel_update_event(
         response: &AppResponse,
         token_id: u32,
         updates: &[&PixelUpdate],
         sender: &Addr,
     ) {
-        let parsed_event = EventParser::find_and_parse::<PixelUpdateEventData>(response)
+        let parsed_event = EventParser::parse_pixel_update(response)
             .expect("Failed to parse pixel update event");
 
         // Verify token ID matches
@@ -66,17 +60,14 @@ impl ResponseAssertions {
         }
     }
 
-    pub fn assert_mint_metadata(
+    pub fn assert_mint_metadata_event(
         response: &AppResponse,
         token_id: u32,
         owner: &Addr,
         expected_hash: Option<&str>,
     ) {
-        let events = EventParser::find_and_parse_many::<MintMetadataEventData>(response)
-            .expect("Failed to parse mint metadata events");
-        assert!(!events.is_empty(), "No mint metadata event found");
-
-        let parsed = events.first().unwrap();
+        let parsed = EventParser::parse_mint_metadata(response)
+            .expect("Failed to parse mint metadata event");
 
         assert_eq!(
             parsed.token_id.parse::<u32>().unwrap(),
@@ -89,34 +80,33 @@ impl ResponseAssertions {
         }
     }
 
-    pub fn assert_instantiate_price_scaling(response: &AppResponse, expected_minter: &str) {
-        let parsed_event =
-            EventParser::find_and_parse::<InstantiatePriceScalingEventData>(response)
-                .expect("Failed to parse instantiate price scaling event");
+    pub fn assert_instantiate_price_scaling_event(response: &AppResponse, expected_minter: &str) {
+        let parsed = EventParser::parse_instantiate_event(response)
+            .expect("Failed to parse instantiate price scaling event");
 
         assert!(
-            !parsed_event.collection_info.is_empty(),
+            !parsed.collection_info.is_empty(),
             "Collection info should not be empty"
         );
         assert_eq!(
-            parsed_event.minter, expected_minter,
+            parsed.minter, expected_minter,
             "Minter address mismatch"
         );
         assert!(
-            !parsed_event.price_scaling.is_empty(),
+            !parsed.price_scaling.is_empty(),
             "Price scaling should not be empty"
         );
-        assert!(!parsed_event.time.is_empty(), "Time should not be empty");
+        assert!(!parsed.time.is_empty(), "Time should not be empty");
     }
 
-    pub fn assert_payment_distribution(
+    pub fn assert_payment_distribution_event(
         response: &AppResponse,
         token_id: u32,
         sender: &Addr,
         state: &StateTracker,
         updates: &[&PixelUpdate],
     ) {
-        let parsed_event = EventParser::find_and_parse::<PaymentDistributionEventData>(response)
+        let parsed = EventParser::parse_payment_distribution(response)
             .expect("Failed to parse payment distribution event");
 
         // Calculate expected amounts using state tracker's price scaling
@@ -129,46 +119,53 @@ impl ResponseAssertions {
             price_scaling.calculate_royalty_amounts(total_price);
 
         assert_eq!(
-            parsed_event.token_id,
+            parsed.token_id,
             token_id.to_string(),
             "Token ID mismatch"
         );
-        assert_eq!(parsed_event.sender, sender.to_string(), "Sender mismatch");
+        assert_eq!(parsed.sender, sender.to_string(), "Sender mismatch");
         assert_eq!(
-            parsed_event.royalty_amount,
+            parsed.royalty_amount,
             expected_royalty_amount.u128(),
             "Royalty amount mismatch"
         );
         assert_eq!(
-            parsed_event.owner_amount,
+            parsed.owner_amount,
             expected_owner_amount.u128(),
             "Owner amount mismatch"
         );
     }
 
-    pub fn assert_price_scaling_update(response: &AppResponse, scaling: &PriceScaling) {
-        let parsed_event = EventParser::find_and_parse::<PriceScalingUpdateEventData>(response)
+    pub fn assert_price_scaling_update_event(response: &AppResponse, scaling: &PriceScaling) {
+        let parsed = EventParser::parse_price_scaling_update(response)
             .expect("Failed to parse price scaling update event");
 
         assert_eq!(
-            Uint128::from(parsed_event.hour_1_price),
+            Uint128::from(parsed.hour_1_price),
             scaling.hour_1_price,
             "Hour 1 price mismatch"
         );
         assert_eq!(
-            Uint128::from(parsed_event.hour_12_price),
+            Uint128::from(parsed.hour_12_price),
             scaling.hour_12_price,
             "Hour 12 price mismatch"
         );
         assert_eq!(
-            Uint128::from(parsed_event.hour_24_price),
+            Uint128::from(parsed.hour_24_price),
             scaling.hour_24_price,
             "Hour 24 price mismatch"
         );
         assert_eq!(
-            Uint128::from(parsed_event.quadratic_base),
+            Uint128::from(parsed.quadratic_base),
             scaling.quadratic_base,
             "Quadratic base mismatch"
         );
+    }
+
+    pub fn assert_instantiate_event(response: &AppResponse) -> Result<()> {
+        let event = EventParser::find_event(response, "instantiate")?;
+        assert!(event.attributes.iter().any(|attr| attr.key == "_contract_address"), 
+            "Instantiate event missing _contract_address attribute");
+        Ok(())
     }
 }

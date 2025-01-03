@@ -2,7 +2,7 @@ use anyhow::Result;
 use sg_std::NATIVE_DENOM;
 use tiles::core::tile::metadata::PixelUpdate;
 
-use crate::utils::{ResponseAssertions, StateAssertions, TestSetup};
+use crate::utils::{ContractAssertions, EventAssertions, TestSetup};
 
 #[test]
 fn payment_is_distributed_correctly() -> Result<()> {
@@ -45,7 +45,7 @@ fn payment_is_distributed_correctly() -> Result<()> {
         .app
         .get_balance(&setup.users.tile_contract_creator().address, NATIVE_DENOM)?;
     println!("Final creator balance: {}", final_creator_balance);
-    StateAssertions::assert_balance(
+    ContractAssertions::assert_balance(
         &setup.app,
         &setup.users.tile_contract_creator().address,
         initial_creator_balance + royalty_payment.u128(),
@@ -54,15 +54,15 @@ fn payment_is_distributed_correctly() -> Result<()> {
     // Verify owner received remaining payment
     let final_owner_balance = setup.app.get_balance(&buyer.address, NATIVE_DENOM)?;
     println!("Final owner balance: {}", final_owner_balance);
-    StateAssertions::assert_balance(
+    ContractAssertions::assert_balance(
         &setup.app,
         &buyer.address,
         initial_owner_balance - expected_payment.u128() + owner_payment.u128(),
     );
 
     // Verify events
-    ResponseAssertions::assert_pixel_update(&response, token_id, &[&update], &buyer.address);
-    ResponseAssertions::assert_payment_distribution(
+    EventAssertions::assert_pixel_update(&response, token_id, &[&update], &buyer.address);
+    EventAssertions::assert_payment_distribution(
         &response,
         token_id,
         &buyer.address,
