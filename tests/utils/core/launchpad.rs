@@ -6,7 +6,6 @@
 use anyhow::Result;
 use cosmwasm_std::Addr;
 use cw_multi_test::AppResponse;
-use sg_std::{GENESIS_MINT_START_TIME, NATIVE_DENOM};
 
 use crate::utils::{
     contracts::{factory::FactoryContract, minter::MinterContract, tiles::TilesContract},

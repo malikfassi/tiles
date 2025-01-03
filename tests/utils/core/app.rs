@@ -3,11 +3,10 @@
 /// operations and state management.
 use anyhow::Result;
 use cosmwasm_std::Addr;
+use cosmwasm_std::Timestamp;
 use cw_multi_test::Contract;
 use sg_multi_test::StargazeApp;
-use sg_std::{GENESIS_MINT_START_TIME, StargazeMsgWrapper};
-use cosmwasm_std::Timestamp;
-
+use sg_std::{StargazeMsgWrapper, GENESIS_MINT_START_TIME};
 
 pub struct TestApp {
     app: StargazeApp,
