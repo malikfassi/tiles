@@ -6,6 +6,7 @@
 use anyhow::Result;
 use cosmwasm_std::Addr;
 use cw_multi_test::AppResponse;
+use sg_std::{GENESIS_MINT_START_TIME, NATIVE_DENOM};
 
 use crate::utils::{
     contracts::{factory::FactoryContract, minter::MinterContract, tiles::TilesContract},
@@ -101,8 +102,11 @@ impl Launchpad {
         let mut launchpad = Self::new_empty();
         let (factory_id, minter_id, collection_id) = launchpad.store_contracts()?;
         let (_, _) = launchpad.setup_factory(factory_id, minter_id, collection_id)?;
-        let (_, _, response) = launchpad.create_minter()?;
 
+        // Set block time to after genesis mint start time
+        launchpad.app.set_genesis_time();
+
+        let (_, _, response) = launchpad.create_minter()?;
         launchpad.app.advance_time(2 * 86400); // Advance 2 days
         Ok((launchpad, response))
     }

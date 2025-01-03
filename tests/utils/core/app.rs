@@ -5,7 +5,9 @@ use anyhow::Result;
 use cosmwasm_std::Addr;
 use cw_multi_test::Contract;
 use sg_multi_test::StargazeApp;
-use sg_std::StargazeMsgWrapper;
+use sg_std::{GENESIS_MINT_START_TIME, StargazeMsgWrapper};
+use cosmwasm_std::Timestamp;
+
 
 pub struct TestApp {
     app: StargazeApp,
@@ -63,6 +65,13 @@ impl TestApp {
     /// Provides mutable access to the underlying App instance.
     pub fn inner_mut(&mut self) -> &mut StargazeApp {
         &mut self.app
+    }
+
+    /// Sets the block time to just after genesis mint start time
+    pub fn set_genesis_time(&mut self) {
+        self.app.update_block(|block| {
+            block.time = Timestamp::from_nanos(GENESIS_MINT_START_TIME + 1);
+        });
     }
 }
 

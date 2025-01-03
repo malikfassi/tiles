@@ -99,8 +99,13 @@ impl TestSetup {
         updates: Vec<PixelUpdate>,
     ) -> Result<AppResponse> {
         let current_metadata = self.state.get_token_metadata(token_id)?;
-        self.tiles
-            .update_pixel(&mut self.app, sender, token_id, updates, current_metadata)
+        let response = self.tiles
+            .update_pixel(&mut self.app, sender, token_id, updates.clone(), current_metadata)?;
+        
+        // Track the update in our state
+        self.state.track_pixel_update(token_id, &updates, &response)?;
+        
+        Ok(response)
     }
 
     /// Gets the current state tracker

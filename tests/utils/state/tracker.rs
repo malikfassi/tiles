@@ -57,16 +57,16 @@ impl StateTracker {
     pub fn track_pixel_update(
         &mut self,
         token_id: u32,
-        updates: &[PixelUpdate],
+        _updates: &[PixelUpdate],
         response: &AppResponse,
     ) -> Result<()> {
         let event = EventParser::parse_pixel_update(response)?;
         let metadata = self.token_metadata.entry(token_id).or_default();
-
-        for update in updates {
-            metadata
-                .pixels
-                .insert(update.id as usize, event.new_pixels[0].clone());
+        println!("event: {:?}", event);
+        // Update pixels from event data
+        for pixel_data in event.new_pixels {
+            println!("pixel_data: {:?}", pixel_data);
+            metadata.pixels[pixel_data.id as usize] = pixel_data.clone();
         }
         Ok(())
     }
