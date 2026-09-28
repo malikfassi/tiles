@@ -17,18 +17,23 @@ Ces deux questions décident de la nature du produit : canvas collaboratif ouver
    le propriétaire de la tuile. À expiration, le pixel redevient libre et coloriable par le premier payeur.
 
 ## Conséquences
-- Aucun contrôle d'ownership sur l'appelant de `SetPixelColor` : seul le paiement est vérifié. Un utilisateur peut
-  donc colorier une tuile qu'il ne possède pas, ce qui est le comportement voulu.
+- Aucun contrôle d'ownership sur l'appelant de `SetPixelColor` : seuls le paiement et l'état du bail sont vérifiés.
+  Un utilisateur peut donc colorier une tuile qu'il ne possède pas, ce qui est le comportement voulu.
 - La durée d'achat devient un achat de visibilité : payer plus longtemps = rester affiché plus longtemps.
-- L'erreur `PixelLeaseActive` est levée quand le pixel visé a un bail encore valide (c'était le bug de T-002).
-- La protection du bail implique qu'aucun mécanisme de modération/correction on-chain n'est possible : une fois
-  payée, une couleur reste jusqu'au terme. C'est assumé (décentralisation).
-- Point ouvert, à trancher en T-008 : le titulaire d'un bail peut-il renouveler ou étendre son **propre** pixel avant
-  expiration ? Par défaut non (application littérale du bail) ; recommandation de l'architecte : l'autoriser pour son
-  propre bail, sinon l'expérience « je prolonge ma couleur » est impossible.
+- L'erreur `PixelLeaseActive` est levée quand le pixel visé a un bail encore valide détenu par quelqu'un d'autre.
+- **Le titulaire du bail peut prolonger son propre pixel** avant expiration (amendement du 2026-09-28, décision de Malik) :
+  il peut changer la couleur et/ou la durée, au tarif normal, l'expiration étant recomptée depuis `env.block.time`.
+  Il s'identifie par `PixelData.last_updated_by`, déjà présent dans l'état. Pas de premium pour la prolongation.
+- Effet de bord assumé : un titulaire qui prolonge plusieurs fois peut garder un pixel indéfiniment. C'est le prix
+  de la liberté de renouvellement ; les autres pixels de la tuile restent ouverts.
+- La protection du bail implique qu'aucune modération on-chain n'est possible : une fois payée, une couleur reste
+  jusqu'au terme (décentralisation assumée).
 
 ## Alternatives écartées
 - Colorier réservé au propriétaire de la tuile : supprime le canvas collaboratif, qui est l'intérêt du produit.
 - Écrasement libre même pendant un bail actif : rendrait l'achat de durée trompeur (on paierait sans garantie).
 - Écrasement avec premium (×2) sur un bail actif : protège l'acheteur sans figer le canvas, mais ajoute une règle de
   prix, des arrondis et des tests pour un bénéfice incertain ; écarté pour rester simple, révisable si besoin.
+- Prolongation interdite au titulaire (relecture stricte du bail) : l'expérience « je prolonge ma couleur » devient
+  impossible et le titulaire doit attendre l'expiration pour rafraîchir son propre pixel ; écarté.
+

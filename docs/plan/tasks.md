@@ -42,11 +42,11 @@ voyons si un utilisateur peut y uploader un code ID sans proposition. Si non, le
 Critères : la note conclut par oui/non avec la source officielle.
 
 **T-008 — Règle de coloriage (ADR 0004).** Aucun contrôle d'ownership sur l'appelant : `SetPixelColor` est ouvert à tous,
-seul le paiement est vérifié. Un pixel dont le bail est encore valide (`expiration_timestamp > env.block.time`) ne peut pas
-être écrasé : erreur dédiée `PixelLeaseActive { token_id, pixel_id, expires_at }`. À expiration, le pixel redevient libre.
-Point à trancher en début de tâche : autoriser ou non le titulaire du bail à prolonger son propre pixel avant expiration
-(recommandation : oui).
-Critères : un test par cas (pixel libre, bail actif par un tiers, bail actif par son titulaire, bail expiré, bail expirant exactement à l'instant du bloc).
+seuls le paiement et l'état du bail sont vérifiés. Un pixel dont le bail est encore valide (`expiration_timestamp > env.block.time`)
+et détenu par quelqu'un d'autre ne peut pas être écrasé : erreur dédiée `PixelLeaseActive { token_id, pixel_id, expires_at }`.
+**Le titulaire du bail (`last_updated_by`) peut prolonger son propre pixel** avant expiration : nouvelle couleur et/ou durée,
+tarif normal, expiration recomptée depuis `env.block.time`, sans premium (amendement ADR 0004). À expiration, le pixel redevient libre.
+Critères : un test par cas (pixel libre, bail actif par un tiers, bail actif par son titulaire, bail expiré, bail expirant exactement à l'instant du bloc, prolongation qui recompte depuis le bloc courant).
 
 **T-009 — Répartition des paiements.** Somme des parts == montant reçu, reliquat d'arrondi attribué explicitement au propriétaire,
 part de royalties bornée (≤ 10 %). Le paiement provient d'une seule dénomination, vérifiée.

@@ -20,8 +20,9 @@ Reprise du projet après abandon (dernier commit : 2025-01-03). Objectif de sess
 `/next-task T-003` — portage CosmWasm 2.x (dépendances, entry points, helpers). Vérification en Plan recommandée avant de coder.
 
 ## Décisions en attente de Malik
-1. Point ouvert d'ADR 0004, à trancher en début de T-008 : le titulaire d'un bail peut-il **prolonger son propre pixel** avant expiration ? Recommandation de l'architecte : oui (sinon « je prolonge ma couleur » est impossible). Par défaut strict : non.
-2. **Mode de production** (à trancher plus tard, quand le contrat sera complet) : Studio 2.0 + logique hors chaîne vs proposition de gouvernance — ADR à ouvrir.
+1. **Mode de production** (à trancher plus tard, quand le contrat sera complet) : Studio 2.0 + logique hors chaîne vs proposition de gouvernance — ADR à ouvrir.
+
+(Toutes les règles de coloriage sont tranchées : ADR 0004, y compris la prolongation d'un bail par son titulaire.)
 
 
 ## Pièges connus (ne pas refaire)
