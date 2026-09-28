@@ -8,11 +8,13 @@ Reprise du projet après abandon (dernier commit : 2025-01-03). Objectif de sess
 - Décision de cible : **Stargaze 2.0 sur le Cosmos Hub** (ADR 0001), standard **CW721** (ADR 0002), portage **CosmWasm 2.x** (ADR 0003).
 - Pilotage installé : `.clinerules/` (rôles, workflows, conventions) + miroir `.claude/skills/`, `docs/` (product, architecture, ADR, plan, notes).
 - Note d'écosystème sourcée : `docs/notes/ecosysteme-cosmos-2026.md` (Stargaze L1 morte, Hub permissionné, précédents de gouvernance).
+- **T-001 fait** : workspace réparé (membres `vendor/*` fantômes retirés, dépendance `sg_std` retirée de `build.rs`, denom `uatom` en constante locale).
 
-**Ce qui marche vraiment :** rien de neuf à ce stade — le workspace est cassé (dossier `vendor/` référencé mais absent du `Cargo.toml`), le README était vide, les scripts et `.state` visent `elgafar-1` (testnet disparu).
+**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo build` OK, `cargo test` **48/48 verts**, `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur (7 warnings mineurs). Le projet recompile et ses tests passent de nouveau, tel quel, avant tout portage.
 
 ## Prochaine étape
-`/next-task T-001` — réparer le workspace et obtenir un `cargo test` vert (voir `docs/plan/tasks.md`).
+`/next-task T-002` — documenter l'état réel du contrat dans `docs/architecture.md` (aucun code modifié), avant d'attaquer le portage en T-003/T-004.
+
 
 ## Décisions en attente de Malik
 - Aucune bloquante pour avancer : les choix déjà tranchés (cible, CW721, CosmWasm 2.x) suffisent jusqu'à T-010.

@@ -9,7 +9,7 @@
 
 | ID | Titre | Type | Statut | Dépend de | Vérif. Plan |
 |---|---|---|---|---|---|
-| T-001 | Réparer le workspace (`vendor/*` fantôme) et obtenir `cargo test` vert sur l'existant | Agent | à faire | — | non |
+| T-001 | Réparer le workspace (`vendor/*` fantôme) et obtenir `cargo test` vert sur l'existant | Agent | fait | — | non |
 | T-002 | Inventaire et documenter l'état réel du contrat (module par module) dans `docs/architecture.md` | Agent | à faire | T-001 | non |
 | T-003 | Portage CosmWasm 2.x : dépendances, entry points, helpers (`to_json_binary`, `Response`, `Uint128`) | Agent | à faire | T-002 | **oui** |
 | T-004 | Remplacer `sg721-base` par `cw721-base` + extension de collection (`royalty_info`, share ≤ 0.10) | Agent | à faire | T-003 | **oui** |
@@ -20,7 +20,7 @@
 | T-009 | Répartition des paiements : somme exacte, reste d'arrondi explicite, points de base | Agent | à faire | T-008 | **oui** |
 | T-010 | Suite de tests `cw-multi-test` : un test par règle et par variante d'erreur | Agent | à faire | T-008 | non |
 | T-011 | Migration d'état documentée et testée (schéma versionné) | Agent | à faire | T-006 | **oui** |
-| T-012 | Scripts de déploiement testnet Cosmos Hub (`gaiad`), remplaçant les scripts `starsd` | Agent | à faire | T-010 | non |
+| T-012 | Scripts de déploiement testnet Cosmos Hub (`gaiad`) + constantes (`CHAIN_ID`, `NODE_URL`, denom ATOM) | Agent | à faire | T-010 | non |
 | T-013 | Vérifier que le wasm du testnet du Hub est déployable librement (note `docs/notes/`) | Agent | à faire | — | non |
 | T-014 | Déployer le contrat sur le testnet du Hub et minter une tuile | Manuel | à faire | T-012, T-013 | — |
 | T-015 | ADR production : Studio 2.0 + logique hors chaîne vs proposition de gouvernance | Décision | à faire | T-014 | — |

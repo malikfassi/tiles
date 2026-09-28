@@ -1705,8 +1705,8 @@ dependencies = [
  "sg721-base",
  "sha2 0.10.9",
  "thiserror",
- "vending-factory 3.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "vending-minter 3.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "vending-factory",
+ "vending-minter",
 ]
 
 [[package]]
@@ -1793,26 +1793,6 @@ dependencies = [
 [[package]]
 name = "vending-factory"
 version = "3.15.0"
-dependencies = [
- "base-factory",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw-utils 1.0.3",
- "cw2 1.1.2",
- "schemars",
- "semver",
- "serde",
- "sg-std",
- "sg1",
- "sg2",
- "sg721",
- "thiserror",
-]
-
-[[package]]
-name = "vending-factory"
-version = "3.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d22b4a0b3d24b5dd8767a30bf4d3729bb5fcee2a613f0236e78299c283b72456"
 dependencies = [
@@ -1830,35 +1810,6 @@ dependencies = [
  "sg2",
  "sg721",
  "thiserror",
-]
-
-[[package]]
-name = "vending-minter"
-version = "3.15.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw-utils 1.0.3",
- "cw2 1.1.2",
- "cw721 0.18.0",
- "cw721-base 0.18.0",
- "rand_core 0.6.4",
- "rand_xoshiro",
- "schemars",
- "semver",
- "serde",
- "sg-std",
- "sg-whitelist",
- "sg1",
- "sg2",
- "sg4",
- "sg721",
- "sha2 0.10.9",
- "shuffle",
- "thiserror",
- "url",
- "vending-factory 3.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1889,7 +1840,7 @@ dependencies = [
  "shuffle",
  "thiserror",
  "url",
- "vending-factory 3.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "vending-factory",
 ]
 
 [[package]]

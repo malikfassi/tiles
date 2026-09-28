@@ -1,5 +1,4 @@
 use serde_json::json;
-use sg_std::NATIVE_DENOM;
 use std::fs;
 use std::path::Path;
 

@@ -24,6 +24,11 @@ pub const DEFAULT_PRICE_QUADRATIC_BASE: u128 = 400_000; // 0.4 STARS
 pub const CONTRACT_NAME: &str = "crates.io:tiles";
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
+// Native denomination of the target chain (Cosmos Hub: ATOM).
+// Stargaze 2.0 runs on the Cosmos Hub, where gas, mint and pixel payments are in ATOM.
+// Kept as "uatom" (micro ATOM) instead of the former Stargaze "ustars".
+pub const NATIVE_DENOM: &str = "uatom";
+
 // Minting price values (in uSTARS)
 pub const MINT_PRICE: u128 = 100_000_000; // 100 STARS
 pub const CREATION_FEE: u128 = 1_000_000; // 1 STARS

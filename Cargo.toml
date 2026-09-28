@@ -1,9 +1,5 @@
 [workspace]
 resolver = "2"
-members = [
-    "vendor/vending-minter",
-    "vendor/vending-factory"
-]
 
 [package]
 name = "tiles"

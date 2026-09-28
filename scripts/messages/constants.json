@@ -28,5 +28,5 @@
   "SHUFFLE_FEE": 0,
   "START_TIME": "1625097600",
   "TILE_SIZE": 10,
-  "TOKEN_DENOM": "ustars"
+  "TOKEN_DENOM": "uatom"
 }
