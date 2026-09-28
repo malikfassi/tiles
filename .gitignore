@@ -1,6 +1,4 @@
 /target
-/Cargo.lock
-vendor/
 /.history
 .DS_Store
 /.vscode
@@ -12,6 +10,8 @@ vendor/
 /scripts/assets/
 /launchpad/
 /ipfs/
-/docs/
 /artifacts/
 .env
+
+# docs/ contient le pilotage du projet (STATUS, ADR, plan, notes) : il est versionné.
+# Cargo.lock et vendor/ ne sont plus ignorés : le workspace est cassé à cause de vendor/ (voir T-001).
