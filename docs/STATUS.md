@@ -10,21 +10,19 @@ Reprise du projet après abandon (dernier commit : 2025-01-03). Objectif de sess
 - Note d'écosystème sourcée : `docs/notes/ecosysteme-cosmos-2026.md` (Stargaze L1 morte, Hub permissionné, précédents de gouvernance).
 - **T-001 fait** : workspace réparé (membres `vendor/*` fantômes retirés, dépendance `sg_std` retirée de `build.rs`, denom `uatom` en constante locale).
 - **T-002 fait** : inventaire complet du contrat dans `docs/architecture.md` (structure, messages, problèmes identifiés et classés par gravité).
+- **ADR 0004 accepté** : coloriage ouvert à tous (canvas collaboratif) et bail de couleur protégé jusqu'à expiration. Pitch, architecture et critères de T-008 mis à jour en conséquence.
 
 **Ce qui marche vraiment (testé le 2026-09-28) :** `cargo build` OK, `cargo test` **48/48 verts**, `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur (7 warnings mineurs). Le projet recompile et ses tests passent de nouveau, tel quel, avant tout portage.
 
-**Découverte importante de T-002 :** `validate_for_tile` (`src/core/tile/metadata.rs:116`) retourne toujours `Ok(())` — **l'expiration des pixels n'est jamais appliquée**. Un pixel encore valide peut être réécrit par n'importe qui, au prix d'un pixel libre. C'est la règle économique centrale du produit : à corriger avant toute mise en ligne (T-008).
+**Découverte importante de T-002 :** `validate_for_tile` (`src/core/tile/metadata.rs:116`) retourne toujours `Ok(())` — **l'expiration des pixels n'est jamais appliquée**. Avec l'ADR 0004, c'est désormais une règle explicite à implémenter : erreur `PixelLeaseActive` quand le pixel visé a un bail encore valide (T-008).
 
 ## Prochaine étape
 `/next-task T-003` — portage CosmWasm 2.x (dépendances, entry points, helpers). Vérification en Plan recommandée avant de coder.
 
 ## Décisions en attente de Malik
-1. **Qui peut colorier un pixel ?** Aujourd'hui `SetPixelColor` n'exige pas d'être le propriétaire de la tuile : n'importe qui peut payer pour colorier la tuile d'un autre (le paiement va bien au propriétaire).
-   - (a) **Tout le monde peut colorier** en payant : c'est le canvas collaboratif, le propriétaire encaisse.
-   - (b) **Seul le propriétaire** (ou ses approbations) colorie : la tuile est une œuvre privée, personne ne peut la modifier de l'extérieur.
-   - (c) **Le propriétaire choisit à l'instanciation/l'achat** : plus riche mais plus de code et de tests.
-   Impacte T-008 (règle de couleur) et T-009 (répartition).
+1. Point ouvert d'ADR 0004, à trancher en début de T-008 : le titulaire d'un bail peut-il **prolonger son propre pixel** avant expiration ? Recommandation de l'architecte : oui (sinon « je prolonge ma couleur » est impossible). Par défaut strict : non.
 2. **Mode de production** (à trancher plus tard, quand le contrat sera complet) : Studio 2.0 + logique hors chaîne vs proposition de gouvernance — ADR à ouvrir.
+
 
 ## Pièges connus (ne pas refaire)
 - **Ne plus chercher Stargaze L1** : `elgafar-1` est mort, `starsd` n'est plus la CLI, le repo `public-awesome/stargaze` est archivé. Tout le dossier `launchpad/` est une copie morte du projet Stargaze.

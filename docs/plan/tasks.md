@@ -16,7 +16,7 @@
 | T-005 | Supprimer le mint de type vending factory/minter et le remplacer par un mint direct du propriétaire | Agent | à faire | T-004 | **oui** |
 | T-006 | Refonte de l'état : pixels par tuile interrogeables, prix par tuile, timestamps cosmwasm | Agent | à faire | T-004 | **oui** |
 | T-007 | Validation et erreurs : variantes dédiées, bornes vérifiées dans les handlers (TODO.md §2, §3) | Agent | à faire | T-006 | non |
-| T-008 | `set_pixel_color` : ownership, expiration, paiement exact, événement indexable | Agent | à faire | T-006 | **oui** |
+| T-008 | `set_pixel_color` : coloriage ouvert à tous, bail protégé (`PixelLeaseActive`), paiement exact, événement indexable | Agent | à faire | T-006 | **oui** |
 | T-009 | Répartition des paiements : somme exacte, reste d'arrondi explicite, points de base | Agent | à faire | T-008 | **oui** |
 | T-010 | Suite de tests `cw-multi-test` : un test par règle et par variante d'erreur | Agent | à faire | T-008 | non |
 | T-011 | Migration d'état documentée et testée (schéma versionné) | Agent | à faire | T-006 | **oui** |
@@ -40,3 +40,14 @@ Critères : `docs/architecture.md` couvre chaque module de `src/` ; la liste des
 **T-013 — Vérifier le statut permissionless du testnet du Hub.** Note `docs/notes/testnet-cosmos-hub.md` :
 voyons si un utilisateur peut y uploader un code ID sans proposition. Si non, le repli est un nœud `wasmd` local en Docker.
 Critères : la note conclut par oui/non avec la source officielle.
+
+**T-008 — Règle de coloriage (ADR 0004).** Aucun contrôle d'ownership sur l'appelant : `SetPixelColor` est ouvert à tous,
+seul le paiement est vérifié. Un pixel dont le bail est encore valide (`expiration_timestamp > env.block.time`) ne peut pas
+être écrasé : erreur dédiée `PixelLeaseActive { token_id, pixel_id, expires_at }`. À expiration, le pixel redevient libre.
+Point à trancher en début de tâche : autoriser ou non le titulaire du bail à prolonger son propre pixel avant expiration
+(recommandation : oui).
+Critères : un test par cas (pixel libre, bail actif par un tiers, bail actif par son titulaire, bail expiré, bail expirant exactement à l'instant du bloc).
+
+**T-009 — Répartition des paiements.** Somme des parts == montant reçu, reliquat d'arrondi attribué explicitement au propriétaire,
+part de royalties bornée (≤ 10 %). Le paiement provient d'une seule dénomination, vérifiée.
+Critères : test avec des montants provoquant des arrondis non nuls ; test d'un envoi multi-denom rejeté ; test d'un montant insuffisant et excédentaire.

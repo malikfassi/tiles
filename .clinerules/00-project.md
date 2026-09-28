@@ -1,8 +1,9 @@
 # Tiles — instructions Cline
 
-Plateforme de pixel art collaborative en NFT. Chaque **tuile** est un NFT (CW721) contenant 100 pixels ;
-son propriétaire peut changer la couleur d'un pixel pendant une durée limitée, contre paiement
-(prix qui évolue avec le remplissage de la tuile, revenus répartis entre propriétaire, royalties et plateforme).
+Plateforme de pixel art collaborative en NFT. Chaque **tuile** est un NFT (CW721) contenant 100 pixels.
+N'importe qui peut payer pour colorier un pixel pendant une durée limitée ; le prix suit la durée demandée,
+le propriétaire de la tuile encaisse sa part et les royalties de collection sont versées.
+Une couleur payée est **protégée jusqu'à son expiration** : personne ne peut l'écraser avant le terme (ADR 0004).
 
 Cible : **Stargaze 2.0 sur le Cosmos Hub** (`cosmoshub-4`, gas en ATOM, standard CW721). Voir `docs/notes/ecosysteme-cosmos-2026.md`
 et l'ADR 0001 pour le pourquoi (l'ancienne chaîne Stargaze L1 et son testnet `elgafar-1` sont morts en 2026).

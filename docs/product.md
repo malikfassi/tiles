@@ -7,6 +7,8 @@
 
 - 2026-09-28 — Malik : « on repart sur le nouveau Stargaze » (Cosmos Hub). Reprise du projet après abandon (dernier commit : janvier 2025).
 - 2026-09-28 — Malik : le smart contract existe déjà et doit être porté ; l'interface web et l'orchestration restent à construire.
+- 2026-09-28 — Malik : **tout le monde peut payer pour colorier** un pixel (canvas collaboratif ouvert, sans autorisation du propriétaire — ADR 0004).
+- 2026-09-28 — Malik : **l'écrasement est interdit tant que le bail de couleur est valide** ; à expiration le pixel redevient libre (ADR 0004).
 
 ## Vision
 

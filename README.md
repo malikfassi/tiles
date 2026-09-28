@@ -1,8 +1,10 @@
 # tiles
 
-Plateforme de **pixel art collaborative en NFT**. Chaque tuile est un NFT contenant 100 pixels ; son propriétaire
-peut en changer la couleur pendant un temps limité, contre paiement. Le prix d'un pixel évolue avec le remplissage
-de la tuile et les revenus sont répartis entre le propriétaire, les royalties de la collection et la plateforme.
+Plateforme de **pixel art collaborative en NFT**. Chaque tuile est un NFT contenant 100 pixels.
+**N'importe qui** peut payer pour colorier un pixel pendant une durée limitée : le prix dépend de la durée demandée,
+le propriétaire de la tuile encaisse sa part, et les royalties de collection sont versées.
+Une couleur payée est **protégée jusqu'à son expiration** — personne, pas même le propriétaire, ne peut l'écraser avant le terme.
+Le canvas est ainsi un espace partagé où la visibilité se paie et se renouvelle.
 
 Cible : **Stargaze 2.0 sur le Cosmos Hub** (`cosmoshub-4`, gas en ATOM, standard CW721) — voir `docs/adr/0001`.
 

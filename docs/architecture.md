@@ -7,8 +7,9 @@
 ## Vue d'ensemble
 
 Un seul contrat CosmWasm. Une **tuile** (`Tile`) est un NFT qui contient l'état de 100 pixels ; un pixel a une couleur
-et une date d'expiration. Le propriétaire d'une tuile paie pour écrire la couleur d'un pixel ; le prix dépend de la
-durée d'expiration demandée ; les fonds reçus sont répartis entre le propriétaire et l'adresse de royalties.
+et une date d'expiration. **N'importe qui** peut payer pour écrire la couleur d'un pixel pendant une durée choisie ;
+le prix suit cette durée via `PriceScaling` ; les fonds reçus vont au propriétaire de la tuile et à l'adresse de royalties.
+Une couleur payée est protégée jusqu'à son expiration (ADR 0004).
 
 ## Décisions de fond
 
@@ -17,6 +18,7 @@ durée d'expiration demandée ; les fonds reçus sont répartis entre le propri�
 | 0001 | Cible : Stargaze 2.0 sur le Cosmos Hub |
 | 0002 | Standard CW721 + extension de collection (royalties ≤ 10 %) |
 | 0003 | Portage CosmWasm 2.x avant toute nouvelle fonctionnalité |
+| 0004 | Coloriage ouvert à tous, bail de couleur protégé jusqu'à expiration |
 
 ## Structure du code
 
