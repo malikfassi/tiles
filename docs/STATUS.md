@@ -9,16 +9,22 @@ Reprise du projet après abandon (dernier commit : 2025-01-03). Objectif de sess
 - Pilotage installé : `.clinerules/` (rôles, workflows, conventions) + miroir `.claude/skills/`, `docs/` (product, architecture, ADR, plan, notes).
 - Note d'écosystème sourcée : `docs/notes/ecosysteme-cosmos-2026.md` (Stargaze L1 morte, Hub permissionné, précédents de gouvernance).
 - **T-001 fait** : workspace réparé (membres `vendor/*` fantômes retirés, dépendance `sg_std` retirée de `build.rs`, denom `uatom` en constante locale).
+- **T-002 fait** : inventaire complet du contrat dans `docs/architecture.md` (structure, messages, problèmes identifiés et classés par gravité).
 
 **Ce qui marche vraiment (testé le 2026-09-28) :** `cargo build` OK, `cargo test` **48/48 verts**, `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur (7 warnings mineurs). Le projet recompile et ses tests passent de nouveau, tel quel, avant tout portage.
 
-## Prochaine étape
-`/next-task T-002` — documenter l'état réel du contrat dans `docs/architecture.md` (aucun code modifié), avant d'attaquer le portage en T-003/T-004.
+**Découverte importante de T-002 :** `validate_for_tile` (`src/core/tile/metadata.rs:116`) retourne toujours `Ok(())` — **l'expiration des pixels n'est jamais appliquée**. Un pixel encore valide peut être réécrit par n'importe qui, au prix d'un pixel libre. C'est la règle économique centrale du produit : à corriger avant toute mise en ligne (T-008).
 
+## Prochaine étape
+`/next-task T-003` — portage CosmWasm 2.x (dépendances, entry points, helpers). Vérification en Plan recommandée avant de coder.
 
 ## Décisions en attente de Malik
-- Aucune bloquante pour avancer : les choix déjà tranchés (cible, CW721, CosmWasm 2.x) suffisent jusqu'à T-010.
-- À venir plus tard : mode de production (Studio 2.0 + logique hors chaîne vs proposition de gouvernance) — ADR à ouvrir quand le contrat sera complet.
+1. **Qui peut colorier un pixel ?** Aujourd'hui `SetPixelColor` n'exige pas d'être le propriétaire de la tuile : n'importe qui peut payer pour colorier la tuile d'un autre (le paiement va bien au propriétaire).
+   - (a) **Tout le monde peut colorier** en payant : c'est le canvas collaboratif, le propriétaire encaisse.
+   - (b) **Seul le propriétaire** (ou ses approbations) colorie : la tuile est une œuvre privée, personne ne peut la modifier de l'extérieur.
+   - (c) **Le propriétaire choisit à l'instanciation/l'achat** : plus riche mais plus de code et de tests.
+   Impacte T-008 (règle de couleur) et T-009 (répartition).
+2. **Mode de production** (à trancher plus tard, quand le contrat sera complet) : Studio 2.0 + logique hors chaîne vs proposition de gouvernance — ADR à ouvrir.
 
 ## Pièges connus (ne pas refaire)
 - **Ne plus chercher Stargaze L1** : `elgafar-1` est mort, `starsd` n'est plus la CLI, le repo `public-awesome/stargaze` est archivé. Tout le dossier `launchpad/` est une copie morte du projet Stargaze.
