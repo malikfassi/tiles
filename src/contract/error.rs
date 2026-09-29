@@ -63,6 +63,10 @@ pub enum ContractError {
         collection: String,
         platform: String,
     },
+
+    // ---- Migration ----
+    #[error("Migration from contract version {from} is not supported")]
+    UnsupportedMigration { from: String },
 }
 
 impl From<OverflowError> for ContractError {

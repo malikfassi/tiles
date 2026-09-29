@@ -2,6 +2,7 @@ use cosmwasm_std::Event;
 
 mod instantiate_price_scaling;
 mod metadata_update;
+mod migration;
 mod mint_metadata;
 mod payment_distribution;
 mod pixel_update;
@@ -9,6 +10,7 @@ mod price_scaling;
 
 pub use instantiate_price_scaling::InstantiatePriceScalingEventData;
 pub use metadata_update::MetadataUpdateEventData;
+pub use migration::MigrationEventData;
 pub use mint_metadata::MintMetadataEventData;
 pub use payment_distribution::PaymentDistributionEventData;
 pub use pixel_update::PixelUpdateEventData;
@@ -22,6 +24,7 @@ pub enum EventType {
     PriceScalingUpdateEvent,
     InstantiatePriceScalingEvent,
     MintMetadataEvent,
+    MigrationEvent,
 }
 
 impl EventType {
@@ -33,6 +36,7 @@ impl EventType {
             EventType::PriceScalingUpdateEvent => "price_scaling_update",
             EventType::InstantiatePriceScalingEvent => "instantiate_price_scaling",
             EventType::MintMetadataEvent => "mint_metadata",
+            EventType::MigrationEvent => "migration",
         }
     }
 

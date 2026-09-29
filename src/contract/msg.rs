@@ -38,6 +38,14 @@ pub type ExecuteMsg =
 /// Query message of the contract: the CW721 base queries plus our own.
 pub type QueryMsg = cw721::msg::Cw721QueryMsg<Tile, TilesCollectionExtensionRes, TileQueryMsg>;
 
+/// Migrate message of the contract.
+///
+/// Empty on purpose: the storage layout is versioned with `cw2` and the contract reads
+/// the installed version itself, so no migration input is needed from the caller. Anything
+/// that did need input would have to be authorised, which this contract deliberately avoids.
+#[cosmwasm_schema::cw_serde]
+pub struct MigrateMsg {}
+
 /// Custom queries added by the tiles contract.
 #[cw_serde]
 pub enum TileQueryMsg {

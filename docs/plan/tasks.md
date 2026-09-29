@@ -19,7 +19,7 @@
 | T-008 | `set_pixel_color` : coloriage ouvert à tous, bail protégé (`PixelLeaseActive`), paiement exact, événement indexable | Agent | fait | T-006 | **oui** |
 | T-009 | Répartition des paiements : somme exacte, reste d'arrondi explicite, points de base | Agent | fait | T-008 | **oui** |
 | T-010 | Suite de tests `cw-multi-test` : un test par règle et par variante d'erreur | Agent | fait | T-008 | non |
-| T-011 | Migration d'état documentée et testée (schéma versionné) | Agent | à faire | T-006 | **oui** |
+| T-011 | Migration d'état documentée et testée (schéma versionné) | Agent | fait | T-006 | **oui** |
 | T-012 | Scripts de déploiement testnet Cosmos Hub (`gaiad`) + constantes (`CHAIN_ID`, `NODE_URL`, denom ATOM) | Agent | à faire | T-010 | non |
 | T-013 | Vérifier que le wasm du testnet du Hub est déployable librement (note `docs/notes/`) | Agent | à faire | — | non |
 | T-014 | Déployer le contrat sur le testnet du Hub et minter une tuile | Manuel | à faire | T-012, T-013 | — |
@@ -60,3 +60,22 @@ avec un test d'équivalence sur 6 montants dont `u128::MAX`.
 Tests : `tests/core/validation_money.rs` (unitaire) et `tests/contract/pixel/split.rs` (bout en bout : soldes
 réels mouvementés, reliquat non nul vérifié, sous-paiement/sur-paiement/multi-denom/absence de paiement refusés,
 prix revérifié après changement de grille, part collection tronquée et jamais arrondie au supérieur).
+
+**T-011 — Migration d'état.** Fait le 2026-09-28. Le contrat n'avait **aucun** entry point `migrate` : il n'était
+pas migrable du tout. `cw2` enregistrait déjà la version à l'instantiation, mais rien ne la relisait.
+- `src/contract/migrate.rs` : `migrate_handler` applique trois règles strictes. Le nom de contrat stocké doit être
+  celui du code (sinon `UnsupportedMigration` : on refuse de toucher le stockage d'un autre contrat) ; migrer depuis
+  la version courante est un no-op ; **toute autre version est refusée** plutôt que devinée.
+- `MigrateMsg` est vide : la migration ne lit aucun champ de l'appelant, donc rien à authentifier. Une migration
+  future qui prendrait des paramètres devrait être protégée (noté dans le doc-comment).
+- Événement `migration` (`from_version`, `to_version`) pour qu'un indexeur suive les changements de schéma.
+- 7 tests dans `tests/contract/migrate.rs` : version enregistrée à l'instantiation, migration courante acceptée avec
+  l'événement, version inconnue refusée, contrat étranger refusé, version intacte après refus, état préservé, et
+  **le contrat reste utilisable après migration** (un pixel se colore encore).
+
+**Conséquence à retenir** : le passage des parts en points de base (T-009) a changé le schéma de `Config`
+(`collection_share_percent: Decimal` → `collection_share_bps: u64`). Migrer depuis cet ancien format est
+**refusé** aujourd'hui, faute de branche de conversion. Aucun contrat n'étant déployé (T-014 à faire), il n'y a
+rien à convertir ; le jour où un déploiement pré-T-009 existerait, la conversion s'écrit dans le `match` de
+`migrate_handler`, avec son test.
+
