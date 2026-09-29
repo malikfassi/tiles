@@ -2,6 +2,7 @@ use crate::core::pricing::PriceScaling;
 use crate::core::tile::metadata::{PixelUpdate, TileMetadata};
 use crate::core::tile::Tile;
 use cosmwasm_schema::cw_serde;
+use cosmwasm_std::{Timestamp, Uint128};
 use cw721::{DefaultOptionalCollectionExtension, DefaultOptionalCollectionExtensionMsg};
 
 /// Collection extension message, used at instantiation and for `UpdateCollectionInfo`.
@@ -46,7 +47,27 @@ pub enum TileQueryMsg {
     Config {},
     /// The 100 pixels of a tile, without loading the whole token.
     TilePixels { token_id: String },
+    /// What a set of pixel writes would cost on a given tile, before paying.
+    QuotePixelUpdates {
+        token_id: String,
+        updates: Vec<PixelUpdate>,
+    },
 }
 
 impl cw721::traits::Cw721CustomMsg for TileQueryMsg {}
 impl cw721::traits::Cw721CustomMsg for TileExecuteMsg {}
+
+/// Answer to `QuotePixelUpdates`: what the writes would cost right now.
+#[cw_serde]
+pub struct QuoteResponse {
+    /// Total price to send with the transaction.
+    pub total: Uint128,
+    /// Amount that would go to the collection.
+    pub collection_amount: Uint128,
+    /// Amount that would go to the platform.
+    pub platform_amount: Uint128,
+    /// Amount that would go to the tile owner.
+    pub owner_amount: Uint128,
+    /// Expiration each pixel would receive, per update, in the order of the request.
+    pub expirations: Vec<Timestamp>,
+}

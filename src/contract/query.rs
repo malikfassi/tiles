@@ -10,7 +10,7 @@ use cw721::traits::Cw721Query;
 pub fn query_handler(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     // Custom queries travel through the extension slot of the CW721 query enum.
     if let QueryMsg::Extension { msg } = msg {
-        return query_custom(deps, msg);
+        return query_custom(deps, env, msg);
     }
 
     let contract: TilesContract = TilesContract::default();
@@ -19,7 +19,7 @@ pub fn query_handler(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         .map_err(|e| StdError::generic_err(e.to_string()))
 }
 
-fn query_custom(deps: Deps, msg: TileQueryMsg) -> StdResult<Binary> {
+fn query_custom(deps: Deps, env: Env, msg: TileQueryMsg) -> StdResult<Binary> {
     match msg {
         TileQueryMsg::PriceScaling {} => to_json_binary(&PRICE_SCALING.load(deps.storage)?),
         TileQueryMsg::Config {} => to_json_binary(&CONFIG.load(deps.storage)?),
@@ -31,6 +31,28 @@ fn query_custom(deps: Deps, msg: TileQueryMsg) -> StdResult<Binary> {
                 .may_load(deps.storage, &token_id)?
                 .ok_or_else(|| StdError::not_found(format!("tile {}", token_id)))?;
             to_json_binary(&token.extension.metadata)
+        }
+        TileQueryMsg::QuotePixelUpdates { token_id, updates } => {
+            let contract: TilesContract = TilesContract::default();
+            // The tile must exist: quoting a colour on a non-existent token is a mistake.
+            let exists = contract
+                .config
+                .nft_info
+                .may_load(deps.storage, &token_id)?
+                .is_some();
+            if !exists {
+                return Err(StdError::not_found(format!("tile {}", token_id)));
+            }
+
+            to_json_binary(
+                &crate::core::quote::quote(
+                    &updates,
+                    &PRICE_SCALING.load(deps.storage)?,
+                    &CONFIG.load(deps.storage)?,
+                    env.block.time,
+                )
+                .map_err(|e| StdError::generic_err(e.to_string()))?,
+            )
         }
     }
 }

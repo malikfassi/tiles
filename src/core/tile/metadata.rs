@@ -1,22 +1,22 @@
 use crate::defaults::constants::{DEFAULT_COLOR, PIXELS_PER_TILE};
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Timestamp};
 use sha2::{Digest, Sha256};
 
 /// A single pixel of a tile.
 ///
-/// `lease_expires_at` is the block time (seconds) until which the colour is protected:
-/// while it is in the future, only `leased_by` may write this pixel (ADR 0004).
+/// `lease_expires_at` is the block time until which the colour is protected: while it
+/// is in the future, only `leased_by` may write this pixel (ADR 0004).
 #[cw_serde]
 pub struct PixelData {
     pub id: u8,
     pub color: String,
-    /// Block time in seconds at which the lease ends. 0 means the pixel has never been painted.
-    pub lease_expires_at: u64,
+    /// Block time at which the lease ends. The epoch means the pixel was never painted.
+    pub lease_expires_at: Timestamp,
     /// Address that holds the lease. `None` when the pixel has never been painted.
     pub leased_by: Option<Addr>,
-    /// Block time in seconds of the last write.
-    pub last_updated_at: u64,
+    /// Block time of the last write. The epoch means it was never written.
+    pub last_updated_at: Timestamp,
 }
 
 impl Default for PixelData {
@@ -24,16 +24,16 @@ impl Default for PixelData {
         Self {
             id: 0,
             color: DEFAULT_COLOR.to_string(),
-            lease_expires_at: 0,
+            lease_expires_at: Timestamp::default(),
             leased_by: None,
-            last_updated_at: 0,
+            last_updated_at: Timestamp::default(),
         }
     }
 }
 
 impl PixelData {
     /// Whether the pixel is currently protected by a lease.
-    pub fn has_active_lease(&self, now: u64) -> bool {
+    pub fn has_active_lease(&self, now: Timestamp) -> bool {
         self.lease_expires_at > now
     }
 
@@ -68,12 +68,20 @@ impl Default for TileMetadata {
 
 impl TileMetadata {
     /// Applies one update. Validation is the caller's responsibility.
-    pub fn apply_update(&mut self, update: &PixelUpdate, sender: &Addr, now: u64) {
+    pub fn apply_update(&mut self, update: &PixelUpdate, sender: &Addr, now: Timestamp) {
         let pixel = &mut self.pixels[update.id as usize];
         pixel.color = update.color.clone();
         pixel.lease_expires_at = update.expiration_timestamp(now);
         pixel.leased_by = Some(sender.clone());
         pixel.last_updated_at = now;
+    }
+
+    /// Number of pixels currently under an active lease.
+    pub fn leased_pixel_count(&self, now: Timestamp) -> usize {
+        self.pixels
+            .iter()
+            .filter(|pixel| pixel.has_active_lease(now))
+            .count()
     }
 
     /// Canonical hash of the tile state.
@@ -108,7 +116,7 @@ pub struct PixelUpdate {
 
 impl PixelUpdate {
     /// Block time at which the lease bought by this update would end.
-    pub fn expiration_timestamp(&self, now: u64) -> u64 {
-        now.saturating_add(self.expiration_duration)
+    pub fn expiration_timestamp(&self, now: Timestamp) -> Timestamp {
+        now.plus_seconds(self.expiration_duration)
     }
 }

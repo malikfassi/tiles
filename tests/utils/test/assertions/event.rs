@@ -49,7 +49,9 @@ impl EventAssertions {
             );
             assert_eq!(
                 matching_pixel.lease_expires_at,
-                matching_pixel.last_updated_at + update.expiration_duration,
+                matching_pixel
+                    .last_updated_at
+                    .plus_seconds(update.expiration_duration),
                 "Lease must end at last_updated_at + duration"
             );
         }

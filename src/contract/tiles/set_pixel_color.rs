@@ -6,9 +6,7 @@ use crate::{
     },
     core::{
         tile::metadata::{PixelUpdate, TileMetadata},
-        validation::{
-            is_valid_hex_color, split_payment, validate_updates, validate_updates_for_tile,
-        },
+        validation::{is_valid_hex_color, validate_updates, validate_updates_for_tile},
     },
     events::{
         EventData, MetadataUpdateEventData, PaymentDistributionEventData, PixelUpdateEventData,
@@ -47,19 +45,14 @@ pub fn set_pixel_color(
     }
 
     // 3. Business rules: is any target pixel still under someone else's lease?
-    let now = env.block.time.seconds();
+    let now = env.block.time;
     validate_updates_for_tile(&token_id, &metadata, &updates, &info.sender, now)?;
 
-    // 4. Price: duration grid, floored by the configured minimum.
+    // 4. Price: computed by the shared quote so that what was advertised is what is charged.
     let config = CONFIG.load(deps.storage)?;
     let price_scaling = PRICE_SCALING.load(deps.storage)?;
-    let mut total = Uint128::zero();
-    for update in &updates {
-        total += price_scaling.calculate_price(update.expiration_duration);
-    }
-    if total < config.minimum_price {
-        total = config.minimum_price;
-    }
+    let quote = crate::core::quote::quote(&updates, &price_scaling, &config, now)?;
+    let total = quote.total;
 
     // 5. Payment: exactly one coin, of the expected amount, sent to the contract.
     let denom = crate::defaults::constants::NATIVE_DENOM;
@@ -72,11 +65,9 @@ pub fn set_pixel_color(
 
     // 6. Split: collection, platform, then the owner receives the remainder,
     //    so the three amounts always add up to the exact total.
-    let (collection_amount, platform_amount, owner_amount) = split_payment(
-        total,
-        config.collection_share_percent,
-        config.platform_share_percent,
-    );
+    let collection_amount = quote.collection_amount;
+    let platform_amount = quote.platform_amount;
+    let owner_amount = quote.owner_amount;
 
     let mut messages: Vec<CosmosMsg> = Vec::with_capacity(3);
     if !collection_amount.is_zero() {
@@ -117,6 +108,7 @@ pub fn set_pixel_color(
         token_id: token_id.clone(),
         new_pixels: written,
         tile_hash: tile_hash.clone(),
+        leased_pixels: metadata.leased_pixel_count(now) as u32,
     }
     .into_event();
 

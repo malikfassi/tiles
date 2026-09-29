@@ -1,4 +1,4 @@
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Timestamp};
 use tiles::core::tile::metadata::{PixelData, TileMetadata};
 use tiles::core::tile::Tile;
 use tiles::defaults::constants::DEFAULT_COLOR;
@@ -11,9 +11,17 @@ fn test_default_tile_metadata() {
     for (index, pixel) in metadata.pixels.iter().enumerate() {
         assert_eq!(pixel.id, index as u8, "pixels are numbered in order");
         assert_eq!(pixel.color, DEFAULT_COLOR, "blank pixels are white");
-        assert_eq!(pixel.lease_expires_at, 0, "a blank pixel has no lease");
+        assert_eq!(
+            pixel.lease_expires_at,
+            Timestamp::default(),
+            "a blank pixel has no lease"
+        );
         assert!(pixel.leased_by.is_none(), "a blank pixel has no holder");
-        assert_eq!(pixel.last_updated_at, 0, "a blank pixel was never written");
+        assert_eq!(
+            pixel.last_updated_at,
+            Timestamp::default(),
+            "a blank pixel was never written"
+        );
     }
 }
 
@@ -22,20 +30,23 @@ fn test_pixel_lease_helpers() {
     let pixel = PixelData {
         id: 7,
         color: "#FF0000".to_string(),
-        lease_expires_at: 1000,
+        lease_expires_at: Timestamp::from_seconds(1000),
         leased_by: Some(Addr::unchecked("buyer")),
-        last_updated_at: 500,
+        last_updated_at: Timestamp::from_seconds(500),
     };
 
     assert!(
-        pixel.has_active_lease(999),
+        pixel.has_active_lease(Timestamp::from_seconds(999)),
         "still leased just before expiry"
     );
     assert!(
-        !pixel.has_active_lease(1000),
+        !pixel.has_active_lease(Timestamp::from_seconds(1000)),
         "the lease ends at its timestamp"
     );
-    assert!(!pixel.has_active_lease(1001), "expired lease");
+    assert!(
+        !pixel.has_active_lease(Timestamp::from_seconds(1001)),
+        "expired lease"
+    );
     assert!(
         pixel.is_leased_by(&Addr::unchecked("buyer")),
         "the holder is recognised"
@@ -57,13 +68,23 @@ fn test_apply_update_writes_colour_and_lease() {
         expiration_duration: 3600,
     };
 
-    metadata.apply_update(&update, &sender, 1000);
+    metadata.apply_update(&update, &sender, Timestamp::from_seconds(1000));
 
     let pixel = &metadata.pixels[42];
     assert_eq!(pixel.color, "#0000FF");
-    assert_eq!(pixel.lease_expires_at, 4600, "now + duration");
+    assert_eq!(
+        pixel.lease_expires_at,
+        Timestamp::from_seconds(4600),
+        "now + duration"
+    );
     assert_eq!(pixel.leased_by.as_ref(), Some(&sender));
-    assert_eq!(pixel.last_updated_at, 1000);
+    assert_eq!(pixel.last_updated_at, Timestamp::from_seconds(1000));
+
+    // Only that one pixel counts as leased.
+    assert_eq!(
+        metadata.leased_pixel_count(Timestamp::from_seconds(1000)),
+        1
+    );
 
     // Other pixels are untouched.
     assert_eq!(metadata.pixels[41].color, DEFAULT_COLOR);
@@ -97,7 +118,7 @@ fn test_hash_is_canonical_and_deterministic() {
 
     let mut leased = metadata.clone();
     leased.pixels[99].leased_by = Some(Addr::unchecked("someone"));
-    leased.pixels[99].lease_expires_at = 7200;
+    leased.pixels[99].lease_expires_at = Timestamp::from_seconds(7200);
     assert_ne!(
         leased.hash(),
         metadata.hash(),
@@ -124,10 +145,10 @@ fn test_hash_does_not_depend_on_write_order() {
 
     let updates = [red, green];
     for update in &updates {
-        first.apply_update(update, &sender, 1000);
+        first.apply_update(update, &sender, Timestamp::from_seconds(1000));
     }
     for update in updates.iter().rev() {
-        second.apply_update(update, &sender, 1000);
+        second.apply_update(update, &sender, Timestamp::from_seconds(1000));
     }
 
     assert_eq!(

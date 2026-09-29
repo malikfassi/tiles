@@ -1,7 +1,7 @@
 use crate::contract::error::ContractError;
 use crate::core::tile::metadata::{PixelData, PixelUpdate, TileMetadata};
 use crate::defaults::constants::{PIXELS_PER_TILE, PIXEL_MAX_EXPIRATION, PIXEL_MIN_EXPIRATION};
-use cosmwasm_std::{Addr, Decimal, Uint128};
+use cosmwasm_std::{Addr, Decimal, Timestamp, Uint128};
 use std::collections::HashSet;
 
 /// Maximum share (percent) the collection may take from a pixel sale.
@@ -71,7 +71,7 @@ pub fn validate_lease(
     current: &PixelData,
     update: &PixelUpdate,
     sender: &Addr,
-    now: u64,
+    now: Timestamp,
 ) -> Result<(), ContractError> {
     if !current.has_active_lease(now) {
         return Ok(());
@@ -84,7 +84,7 @@ pub fn validate_lease(
     Err(ContractError::PixelLeaseActive {
         token_id: token_id.to_string(),
         pixel_id: update.id,
-        expires_at: current.lease_expires_at,
+        expires_at: current.lease_expires_at.seconds(),
     })
 }
 
@@ -94,7 +94,7 @@ pub fn validate_updates_for_tile(
     metadata: &TileMetadata,
     updates: &[PixelUpdate],
     sender: &Addr,
-    now: u64,
+    now: Timestamp,
 ) -> Result<(), ContractError> {
     for update in updates {
         let current = &metadata.pixels[update.id as usize];

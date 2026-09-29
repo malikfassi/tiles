@@ -12,18 +12,14 @@ Reprise du projet après abandon (dernier commit : 2025-01-03). Objectif de sess
 - **T-002 fait** : inventaire complet du contrat dans `docs/architecture.md` (structure, messages, problèmes identifiés et classés par gravité).
 - **ADR 0004 accepté** : coloriage ouvert à tous (canvas collaboratif) et bail de couleur protégé jusqu'à expiration. Pitch, architecture et critères de T-008 mis à jour en conséquence.
 - **T-003 + T-004 + T-005 faits** : portage complet en CW721 0.22 / CosmWasm 2.x. `sg721`, `sg-std`, `vending-*`, `sg-multi-test` **entièrement retirés** du projet.
+- **T-006 fait** : état et temps revus. `Timestamp` de cosmwasm partout (plus de `u64` en secondes), prix calculé par une **source unique** (`core/quote.rs`) partagée entre l'exécution et la nouvelle query `QuotePixelUpdates`, `interpolate()` sans `unwrap()`, événement enrichi (`leased_pixels`).
 
-**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **46/46 verts**, `cargo build` OK, `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur (2 warnings de nommage mineurs). Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
+**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **48/48 verts**, `cargo build` OK, `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur (2 warnings de nommage mineurs). Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
 
-**Portage — ce qui a changé dans le contrat :**
-- Base NFT : `Sg721Contract<Tile>` → `Cw721Extensions` (CW721 0.22) avec extension de collection native (`description`, `image`, `royalty_info`), exactement le modèle documenté par Stargaze 2.0.
-- Entry points sans `StargazeMsgWrapper` ; le dispatch manuel de 12 variantes sg721 a disparu (la base route via `UpdateExtension`).
-- Nouveaux : `Config` (part collection / plateforme / prix plancher), `core/validation.rs` (règles métier pures), query `TilePixels` (pixels lisibles sans charger le NFT).
-- `execute` : **règles du bail appliquées** (erreur `PixelLeaseActive`), paiement mono-denom vérifié, répartition en trois parts dont la somme égale exactement le montant reçu.
-- Hash des pixels : sérialisation serde canonique au lieu de `format!` concaténé.
+**Point clé de T-006 — le devis :** la query `QuotePixelUpdates { token_id, updates }` renvoie ce que les écritures coûteront (`total`, les trois parts, les expirations). Elle passe par **le même `quote()`** que `SetPixelColor`, donc ce qui est affiché est exactement ce qui est facturé. C'est indispensable pour le frontend et ça élimine toute divergence prix annoncé / prix payé.
 
 ## Prochaine étape
-`/next-task T-006` — faire évoluer l'état des pixels (prix par tuile, timestamps cosmwasm), puis T-008 (finalisation du bail) et T-009 (répartition avancée).
+`/next-task T-007` — validation et erreurs : finir de déplacer les règles dans les handlers et couvrir chaque variante d'erreur. Puis T-008 (finalisation du bail) et T-009 (répartition avancée).
 
 ## Décisions en attente de Malik
 1. **Mode de production** (à trancher plus tard, quand le contrat sera complet) : Studio 2.0 + logique hors chaîne vs proposition de gouvernance — ADR à ouvrir.

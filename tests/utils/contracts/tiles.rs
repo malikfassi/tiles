@@ -167,6 +167,25 @@ impl TilesContract {
         Ok(value)
     }
 
+    /// Asks the contract what a set of writes would cost, without paying.
+    pub fn query_quote(
+        &self,
+        app: &TestApp,
+        token_id: u32,
+        updates: Vec<PixelUpdate>,
+    ) -> Result<tiles::contract::msg::QuoteResponse> {
+        let value = app.inner().wrap().query_wasm_smart(
+            self.contract_addr.clone(),
+            &QueryMsg::Extension {
+                msg: TileQueryMsg::QuotePixelUpdates {
+                    token_id: token_id.to_string(),
+                    updates,
+                },
+            },
+        )?;
+        Ok(value)
+    }
+
     /// Reads the pixels of a tile through the dedicated query.
     pub fn query_tile_pixels(&self, app: &TestApp, token_id: u32) -> Result<TileMetadata> {
         let value = app.inner().wrap().query_wasm_smart(

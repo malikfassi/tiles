@@ -63,37 +63,26 @@ impl PriceScaling {
         if duration_seconds <= ONE_HOUR {
             self.hour_1_price
         } else if duration_seconds <= TWELVE_HOURS {
-            // Linear interpolation between 1 hour and 12 hour prices
-            let progress = Uint128::from((duration_seconds - ONE_HOUR) as u128)
-                .checked_mul(Uint128::from(1_000_000u128))
-                .unwrap()
-                .checked_div(Uint128::from((TWELVE_HOURS - ONE_HOUR) as u128))
-                .unwrap();
-            let price_diff = self.hour_12_price.saturating_sub(self.hour_1_price);
-            self.hour_1_price
-                + price_diff
-                    .checked_mul(progress)
-                    .unwrap()
-                    .checked_div(Uint128::from(1_000_000u128))
-                    .unwrap()
+            interpolate(
+                self.hour_1_price,
+                self.hour_12_price,
+                duration_seconds - ONE_HOUR,
+                TWELVE_HOURS - ONE_HOUR,
+            )
         } else if duration_seconds <= TWENTY_FOUR_HOURS {
-            // Linear interpolation between 12 hour and 24 hour prices
-            let progress = Uint128::from((duration_seconds - TWELVE_HOURS) as u128)
-                .checked_mul(Uint128::from(1_000_000u128))
-                .unwrap()
-                .checked_div(Uint128::from((TWENTY_FOUR_HOURS - TWELVE_HOURS) as u128))
-                .unwrap();
-            let price_diff = self.hour_24_price.saturating_sub(self.hour_12_price);
-            self.hour_12_price
-                + price_diff
-                    .checked_mul(progress)
-                    .unwrap()
-                    .checked_div(Uint128::from(1_000_000u128))
-                    .unwrap()
+            interpolate(
+                self.hour_12_price,
+                self.hour_24_price,
+                duration_seconds - TWELVE_HOURS,
+                TWENTY_FOUR_HOURS - TWELVE_HOURS,
+            )
         } else {
-            // Calculate quadratic price based on seconds beyond 24 hours
-            let extra_seconds = duration_seconds.saturating_sub(TWENTY_FOUR_HOURS);
-            self.quadratic_base + Uint128::from(extra_seconds * extra_seconds)
+            // Beyond 24 hours the price grows quadratically with the extra seconds.
+            let extra_seconds = Uint128::from(duration_seconds - TWENTY_FOUR_HOURS);
+            let extra = extra_seconds
+                .checked_mul(extra_seconds)
+                .unwrap_or(Uint128::MAX);
+            self.quadratic_base.saturating_add(extra)
         }
     }
 
@@ -102,4 +91,31 @@ impl PriceScaling {
             .map(|duration| self.calculate_price(*duration))
             .sum()
     }
+}
+
+/// Linear interpolation between two price points.
+///
+/// `elapsed` and `span` are in seconds; the result is computed with integer arithmetic
+/// in parts per million, so no float and no `unwrap` is involved.
+fn interpolate(from: Uint128, to: Uint128, elapsed: u64, span: u64) -> Uint128 {
+    if span == 0 {
+        return to;
+    }
+
+    const PRECISION: u128 = 1_000_000;
+
+    let progress = Uint128::from(elapsed as u128)
+        .checked_mul(Uint128::from(PRECISION))
+        .unwrap_or(Uint128::MAX)
+        .checked_div(Uint128::from(span as u128))
+        .unwrap_or(Uint128::MAX);
+
+    let delta = to.saturating_sub(from);
+    let increment = delta
+        .checked_mul(progress)
+        .unwrap_or(Uint128::MAX)
+        .checked_div(Uint128::from(PRECISION))
+        .unwrap_or(Uint128::MAX);
+
+    from.saturating_add(increment)
 }
