@@ -1,6 +1,3 @@
-[workspace]
-resolver = "2"
-
 [package]
 name = "tiles"
 version = "0.1.0"
@@ -14,8 +11,16 @@ library = []
 
 [dependencies]
 cosmwasm-schema = "2.2"
-cosmwasm-std = { version = "2.2", default-features = false }
-cw-storage-plus = { version = "2.0", default-features = false }
+# `default-features = false` drops `std`, which is what a wasm contract wants, but the
+# `iterator` feature and the host-API version must be requested explicitly: without
+# `iterator` the linker cannot resolve `db_scan`/`db_next` for `cw721-base`'s indexed
+# storage, and without `cosmwasm_2_2` the contract does not declare which host API it
+# targets. Both are required for a wasm build that actually uploads.
+cosmwasm-std = { version = "2.2", default-features = false, features = [
+    "iterator",
+    "cosmwasm_2_2",
+] }
+cw-storage-plus = { version = "2.0", default-features = false, features = ["iterator"] }
 cw2 = "2.0"
 cw721 = "0.22.0"
 cw721-base = "0.22.0"
@@ -43,5 +48,9 @@ debug = false
 debug-assertions = false
 codegen-units = 1
 panic = "abort"
-strip = true
+# `strip = true` removes the symbol table, and wasm contracts must keep it: the VM reads
+# custom sections (contract name, version, and the exports it calls by name) and a stripped
+# module fails to deserialise at upload with
+# `Wasm bytecode could not be deserialized: zero byte expected`.
+strip = false
 

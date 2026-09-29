@@ -1,0 +1,9 @@
+# Build configuration for the deployable wasm artifact.
+#
+# `--allow-undefined` is required and not optional: cosmwasm-std declares its host
+# functions (`db_read`, `addr_canonicalize`, `ed25519_batch_verify`, ...) as `extern "C"`
+# and the VM provides them at instantiation. Since Rust 1.87 the wasm linker refuses
+# undefined symbols by default, so a contract built without this flag fails to link with
+# `undefined symbol: db_read`. The flag keeps them as imports, which is correct.
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "link-arg=--allow-undefined"]

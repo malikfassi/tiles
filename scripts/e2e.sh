@@ -81,11 +81,19 @@ gaia_smart() {
 }
 
 # Sends a message and waits for it to be included, returns the tx result as JSON.
+#
+# A transaction the chain rejects never produces a hash: `gaiad` exits non-zero and prints
+# the reason. That is the normal outcome for the "must be refused" steps, so the failure is
+# captured and returned as a synthetic result with a non-zero code, which `tx_rejected`
+# recognises.
 gaia_exec() {
     local msg=$1
     shift
-    local txhash
-    txhash=$(gaiad tx wasm execute "$TILE_CONTRACT" "$msg" \
+    local output txhash rc
+    # `|| rc=$?` keeps `set -e` from aborting on a refused transaction, which is an
+    # expected outcome in the steps that assert a rule is enforced.
+    rc=0
+    output=$(gaiad tx wasm execute "$TILE_CONTRACT" "$msg" \
         --from "$DEPLOYER_ADDRESS" \
         --keyring-backend "$KEYRING_BACKEND" \
         --gas-prices "${GAS_PRICE}${NATIVE_DENOM}" \
@@ -94,10 +102,27 @@ gaia_exec() {
         --chain-id "$CHAIN_ID" \
         --node "$NODE_URL" \
         --broadcast-mode "$BROADCAST_MODE" \
-        -y --output json "$@" | jq -r '.txhash')
+        -y --output json "$@" 2>&1) || rc=$?
+
+    if [ "$rc" -ne 0 ]; then
+        printf '{"code":1,"raw_log":%s}' "$(printf '%s' "$output" | jq -Rs .)"
+        return 0
+    fi
+
+    # `gaiad` prints a `gas estimate: N` line before the JSON document, so only the last
+    # line is parsed. Reading the whole output as JSON fails with an invalid literal.
+    txhash=$(printf '%s' "$output" | tail -1 | jq -r '.txhash // empty' 2>/dev/null)
+    if [ -z "$txhash" ]; then
+        printf '{"code":1,"raw_log":%s}' "$(printf '%s' "$output" | jq -Rs .)"
+        return 0
+    fi
 
     sleep 6
-    gaiad query tx "$txhash" --node "$NODE_URL" --output json
+    rc=0
+    gaiad query tx "$txhash" --node "$NODE_URL" --output json 2>/dev/null || rc=$?
+    if [ "$rc" -ne 0 ]; then
+        printf '{"code":1,"raw_log":%s}' "$(printf '%s' "$output" | jq -Rs .)"
+    fi
 }
 
 # True when a transaction failed, which is what a refused rule looks like on chain.
@@ -158,7 +183,7 @@ assert_eq "$(echo "$CONFIG" | jq -r '.platform_share_bps')" "$PLATFORM_SHARE_BPS
 assert_eq "$(echo "$CONFIG" | jq -r '.collection_payment_address')" "$DEPLOYER_ADDRESS" \
     "the collection address is the deployer"
 
-COLLECTION_INFO=$(gaia_smart '{"collection_info":{}}')
+COLLECTION_INFO=$(gaia_smart '{"get_collection_info_and_extension":{}}')
 ROYALTY=$(echo "$COLLECTION_INFO" | jq -r '.extension.royalty_info.share // .royalty_info.share // "absent"')
 assert_eq "$ROYALTY" "$ROYALTY_SHARE" "the CW721 collection declares $ROYALTY_SHARE royalties"
 
@@ -274,7 +299,7 @@ assert_true "the payer spent something (colouring is not free)" \
     test "$BALANCE" -gt "$BALANCE_AFTER"
 
 # The payment_distribution event is the contract's own report of the split.
-DIST=$(echo "$EXTEND_TX" | jq -r '[.events[] | select(.type=="wasm-payment_distribution") | .attributes[] | select(.key=="total") | .value] | last // "absent"')
+DIST=$(echo "$EXTEND_TX" | jq -r '[.events[]? | select(.type=="wasm-payment_distribution") | .attributes[] | select(.key=="total") | .value] | last // "absent"' 2>/dev/null)
 PAID=$(echo "$EXTEND_QUOTE" | jq -r '.total')
 assert_eq "$DIST" "$PAID" "the payment_distribution event reports the exact total paid"
 

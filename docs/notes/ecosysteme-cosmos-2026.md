@@ -37,11 +37,12 @@ Date : 2026-09-28. Sources vérifiées dans la session de reprise du projet. **N
   - ⚠️ Numéros de propositions exacts et dates à confirmer un jour sur Mintscan : les explorateurs web étaient inaccessibles
     pendant la rédaction de cette note.
 - Osmosis fonctionne sur le même modèle (whitelist par gouvernance), donc ce n'est pas une spécificité du Hub.
-- ⚠️ **Correction (T-013)** : le Hub **embarque bien le module wasm** (Gaia v29 importe `github.com/CosmWasm/wasmd/x/wasm`),
-  et l'upload de code y est **réservé à la gouvernance** (`NewKeeper(..., govtypes.ModuleName, ...)`).
-  Le testnet `provider` utilise la même application `gaiad`, donc **l'upload n'y est pas libre non plus**.
-  Détail et sources : `docs/notes/testnet-cosmos-hub.md`. Le repli sans dépendre de personne est une chaîne
-  locale `gaiad` en Docker.
+- ⚠️ **Correction (T-013 puis T-014)** : Gaia embarque le module wasm. J'avais d'abord conclu du
+  code source que l'upload était **réservé à la gouvernance, y compris sur testnet** — c'était faux.
+  La chaîne dit : `gaiad query wasm params` → `code_upload_access: Everybody` sur le testnet `provider`.
+  Un contrat custom s'y déploie **sans gouvernance** (fait le 2026-09-29 : code ID 738, contrat
+  `cosmos15t68c2h8qkvwkmkvksy9yn3fg2pyj6ec8cenad9svgjc2q96cjcq538m53`). Le mainnet reste à vérifier.
+  Détail et contraintes : `docs/notes/testnet-cosmos-hub.md`.
 - Binaire : `gaiad`. Testnet : `provider` (denom `uatom`, faucet `faucet.polypore.xyz`).
   Repo des testnets : `github.com/cosmos/testnets` (répertoire `provider`).
 

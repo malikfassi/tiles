@@ -1,0 +1,16 @@
+{
+  "name": "Tiles",
+  "symbol": "TILE",
+  "minter": null,
+  "creator": "cosmos1c3tw737na3620mpfms5ccazaj8wm9rgg5u3sy7",
+  "withdraw_address": null,
+  "collection_info_extension": {
+    "description": "A collaborative pixel art canvas",
+    "image": null,
+    "external_link": null,
+    "royalty_info": {
+      "payment_address": "cosmos1c3tw737na3620mpfms5ccazaj8wm9rgg5u3sy7",
+      "share": "0.05"
+    }
+  }
+}

@@ -22,7 +22,7 @@
 | T-011 | Migration d'état documentée et testée (schéma versionné) | Agent | fait | T-006 | **oui** |
 | T-012 | Scripts de déploiement testnet Cosmos Hub (`gaiad`) + constantes (`CHAIN_ID`, `NODE_URL`, denom ATOM) | Agent | fait | T-010 | non |
 | T-013 | Vérifier que le wasm du testnet du Hub est déployable librement (note `docs/notes/`) | Agent | fait | — | non |
-| T-014 | Déployer le contrat sur le testnet du Hub et minter une tuile | Manuel | à faire | T-012, T-013 | — |
+| T-014 | Déployer le contrat sur le testnet du Hub et minter une tuile | Manuel | fait | T-012, T-013 | — |
 | T-015 | ADR production : Studio 2.0 + logique hors chaîne vs proposition de gouvernance | Décision | à faire | T-014 | — |
 | T-018 | ADR 0005 : denom de paiement (frais vs royalties, multi-denom à terme) | Décision | fait | T-008 | non |
 | T-016 | Orchestration web : lecture des pixels et des événements du contrat | Agent | **attente-malik** | T-010 | non |

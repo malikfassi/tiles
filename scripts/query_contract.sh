@@ -29,7 +29,7 @@ echo -e "\n\033[0;34m--- Price grid ---\033[0m"
 query '{"extension":{"msg":{"price_scaling":{}}}}'
 
 echo -e "\n\033[0;34m--- Collection info (royalties) ---\033[0m"
-query '{"collection_info":{}}'
+query '{"get_collection_info_and_extension":{}}'
 
 if [ -n "$1" ]; then
     echo -e "\n\033[0;34m--- Pixels of tile $1 ---\033[0m"

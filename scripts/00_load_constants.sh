@@ -7,9 +7,9 @@
 # silently exported `A` and tried to run `collaborative` as a command.
 set -e
 
-CONSTANTS_FILE="scripts/messages/constants.json"
+CONSTANTS_FILE=${CONSTANTS_FILE:-"scripts/messages/constants.json"}
 if [ ! -f "$CONSTANTS_FILE" ]; then
-    echo "Constants file not found. Run 'cargo build' first to generate it." >&2
+    echo "Constants file not found: $CONSTANTS_FILE (run 'cargo build' first to generate the default one)" >&2
     exit 1
 fi
 

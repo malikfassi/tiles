@@ -33,9 +33,19 @@ Reprise du projet après abandon (dernier commit : 2025-01-03). Objectif de sess
 **11 tâches sur 19 sont faites** (T-001 à T-013, T-018, T-019). Aucune tâche d'agent n'est bloquée par une autre :
 les restantes sont soit manuelles (T-014), soit des décisions (T-015), soit en attente de Malik (T-016, T-017).
 
-**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **115/115 verts** (vérifié avec `-- --list`),
-`cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur nouvelle, tous les scripts passent `bash -n`.
-Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
+- **T-014 fait** : **le contrat est déployé et vivant sur le testnet**, et le **e2e complet passe : 22 assertions on-chain, 0 échec**. Code ID 738, contrat `cosmos15t68c2h8qkvwkmkvksy9yn3fg2pyj6ec8cenad9svgjc2q96cjcq538m53`. Preuve : pixel 42 = `#00FF00`, bail actif, expiration prolongée de 3600 s exactement.
+- ⚠️ **La conclusion de T-013 était fausse**, et c'est T-014 qui l'a démontré : j'avais déduit du code source de Gaia que l'upload était gouverné, y compris sur testnet. La chaîne dit `code_upload_access: Everybody`. **Un contrat custom se déploie sans gouvernance sur le testnet.** Leçon : sur une permission on-chain, seule la chaîne fait foi (`gaiad query wasm params`). Notes corrigées.
+- **Cinq blocages réels résolus** (documentés dans `docs/notes/testnet-cosmos-hub.md`) : pas de binaire Gaia arm64 → Docker ; wasm trop gros pour le RPC → rust-optimizer 0.17.0 (850 Ko) ; `[workspace]` vide qui faisait échouer l'optimiseur en silence ; `strip = true` qui produisait un wasm invalide ; linker wasm qui refuse les symboles d'hôte depuis Rust 1.87.
+
+**Ce qui marche vraiment (testé le 2026-09-29) :** `cargo test` **115/115 verts**, `fmt` et `clippy` propres, **e2e `22/22` sur le testnet `provider`**, tous les scripts passent `bash -n`.
+
+## Sur la chaîne (testnet `provider`)
+| Élément | Valeur |
+|---|---|
+| Code ID | 738 |
+| Contrat | `cosmos15t68c2h8qkvwkmkvksy9yn3fg2pyj6ec8cenad9svgjc2q96cjcq538m53` |
+| Checksum du wasm | `424d77883143430d490763063b03f392fa02a028939d69596753a52af8a05f8c` |
+| Clé de test | `tiles-testnet` → `cosmos1c3tw737na3620mpfms5ccazaj8wm9rgg5u3sy7` |
 
 ## À traiter par la suite (non bloquant)
 - **`src/contract/contract.rs` porte le même nom que son module parent** : lint clippy `module_inception`, **préexistant** à T-009. Signale un vrai défaut de structure (conventions : pas de `contract/contract/`). À corriger dans une tâche dédiée — renommer touche `lib.rs` et les entry points.
