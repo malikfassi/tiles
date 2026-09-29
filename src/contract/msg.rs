@@ -1,91 +1,52 @@
-use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::Empty;
-use cw721::{
-    AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, ContractInfoResponse, NftInfoResponse,
-    NumTokensResponse, OperatorsResponse, OwnerOfResponse, TokensResponse,
-};
-use cw721_base::Extension;
-use sg721::InstantiateMsg as Sg721InstantiateMsg;
-use sg721_base::msg::CollectionInfoResponse;
+use crate::core::pricing::PriceScaling;
+use crate::core::tile::metadata::{PixelUpdate, TileMetadata};
+use crate::core::tile::Tile;
+use cosmwasm_schema::cw_serde;
+use cw721::{DefaultOptionalCollectionExtension, DefaultOptionalCollectionExtensionMsg};
 
-use crate::core::{
-    pricing::PriceScaling,
-    tile::{
-        metadata::{PixelUpdate, TileMetadata},
-        Tile,
-    },
-};
+/// Collection extension message, used at instantiation and for `UpdateCollectionInfo`.
+///
+/// Canonical CW721 0.22 form: an optional collection extension holding description,
+/// image, links and `royalty_info` (`payment_address` + `share`, capped at 0.10 by the
+/// standard). This is the model Stargaze 2.0 documents on the Cosmos Hub.
+pub type TilesCollectionExtensionMsg = DefaultOptionalCollectionExtensionMsg;
 
-pub type InstantiateMsg = Sg721InstantiateMsg;
+/// Collection extension read back through `GetCollectionInfo`.
+pub type TilesCollectionExtensionRes = DefaultOptionalCollectionExtension;
 
 #[cw_serde]
 pub enum TileExecuteMsg {
+    /// Pay to write the colour of one or more pixels on a tile.
+    ///
+    /// Anyone may call this: `sender` does not need to own the tile. A pixel with an
+    /// active lease can only be written by the address that holds that lease (ADR 0004).
     SetPixelColor {
         token_id: String,
+        /// The metadata the sender believes is current. Used as an optimistic lock.
         current_metadata: TileMetadata,
         updates: Vec<PixelUpdate>,
     },
-    UpdatePriceScaling(PriceScaling),
+    /// Update the duration-based price grid. Restricted to the collection payment address.
+    UpdatePriceScaling(Box<PriceScaling>),
 }
 
-// For incoming messages (from vending minter), use Extension (Option<Empty>)
-pub type ExecuteMsg = sg721::ExecuteMsg<Extension, TileExecuteMsg>;
+/// Execute message of the contract: the CW721 base messages plus our own extension messages.
+pub type ExecuteMsg =
+    cw721::msg::Cw721ExecuteMsg<Tile, TilesCollectionExtensionMsg, TileExecuteMsg>;
 
-// For outgoing messages (to sg721), use Tile
-pub type Sg721ExecuteMsg = sg721::ExecuteMsg<Tile, Empty>;
+/// Query message of the contract: the CW721 base queries plus our own.
+pub type QueryMsg = cw721::msg::Cw721QueryMsg<Tile, TilesCollectionExtensionRes, TileQueryMsg>;
 
+/// Custom queries added by the tiles contract.
 #[cw_serde]
-#[derive(QueryResponses)]
-pub enum QueryMsg {
-    #[returns(OwnerOfResponse)]
-    OwnerOf {
-        token_id: String,
-        include_expired: Option<bool>,
-    },
-    #[returns(ApprovalResponse)]
-    Approval {
-        token_id: String,
-        spender: String,
-        include_expired: Option<bool>,
-    },
-    #[returns(ApprovalsResponse)]
-    Approvals {
-        token_id: String,
-        include_expired: Option<bool>,
-    },
-    #[returns(OperatorsResponse)]
-    AllOperators {
-        owner: String,
-        include_expired: Option<bool>,
-        start_after: Option<String>,
-        limit: Option<u32>,
-    },
-    #[returns(NumTokensResponse)]
-    NumTokens {},
-    #[returns(ContractInfoResponse)]
-    ContractInfo {},
-    #[returns(NftInfoResponse<Extension>)]
-    NftInfo { token_id: String },
-    #[returns(AllNftInfoResponse<Extension>)]
-    AllNftInfo {
-        token_id: String,
-        include_expired: Option<bool>,
-    },
-    #[returns(TokensResponse)]
-    Tokens {
-        owner: String,
-        start_after: Option<String>,
-        limit: Option<u32>,
-    },
-    #[returns(TokensResponse)]
-    AllTokens {
-        start_after: Option<String>,
-        limit: Option<u32>,
-    },
-    #[returns(cw721_base::MinterResponse)]
-    Minter {},
-    #[returns(CollectionInfoResponse)]
-    CollectionInfo {},
-    #[returns(PriceScaling)]
+pub enum TileQueryMsg {
+    /// Current duration-based price grid.
     PriceScaling {},
+    /// Payment split and price floor configured at instantiation.
+    Config {},
+    /// The 100 pixels of a tile, without loading the whole token.
+    TilePixels { token_id: String },
 }
+
+impl cw721::traits::Cw721CustomMsg for TileQueryMsg {}
+impl cw721::traits::Cw721CustomMsg for TileExecuteMsg {}

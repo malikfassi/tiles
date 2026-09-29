@@ -1,30 +1,28 @@
-/// Test application wrapper that provides a simulated blockchain environment.
-/// This is the lowest level of the test infrastructure, providing basic blockchain
-/// operations and state management.
+/// Test application wrapper around the standard `cw_multi_test::App`.
+///
+/// The contract targets the Cosmos Hub and speaks plain CosmWasm: no custom chain
+/// message wrapper is needed any more, which is why this is `App` and not `StargazeApp`.
 use anyhow::Result;
-use cosmwasm_std::Addr;
-use cosmwasm_std::Timestamp;
-use cw_multi_test::Contract;
-use sg_multi_test::StargazeApp;
-use sg_std::{StargazeMsgWrapper, GENESIS_MINT_START_TIME};
+use cosmwasm_std::{Addr, Timestamp};
+use cw_multi_test::{App, AppBuilder, Contract};
+
+use tiles::defaults::constants::NATIVE_DENOM;
+
+/// Denomination used in tests, in micro units.
+pub const TEST_DENOM: &str = NATIVE_DENOM;
 
 pub struct TestApp {
-    app: StargazeApp,
+    app: App,
 }
 
 impl TestApp {
     /// Creates a new test application with default configuration.
     pub fn new() -> Self {
         Self {
-            app: StargazeApp::default(),
+            app: AppBuilder::new().build(|_, _, _| {}),
         }
     }
 
-    /// Gets the balance of a specific address in the given denomination.
-    ///
-    /// # Arguments
-    /// * `address` - The address to check the balance for
-    /// * `denom` - The denomination of the tokens to check
     pub fn get_balance(&self, address: &Addr, denom: &str) -> Result<u128> {
         Ok(self
             .app
@@ -35,9 +33,6 @@ impl TestApp {
     }
 
     /// Advances the blockchain time by the specified number of seconds.
-    ///
-    /// # Arguments
-    /// * `seconds` - Number of seconds to advance the time by
     pub fn advance_time(&mut self, seconds: u64) {
         self.app.update_block(|block| {
             block.time = block.time.plus_seconds(seconds);
@@ -45,31 +40,23 @@ impl TestApp {
         });
     }
 
-    /// Stores contract code in the test environment
-    ///
-    /// # Arguments
-    /// * `contract` - The contract code to store
-    ///
-    /// # Returns
-    /// * `u64` - The code ID of the stored contract
-    pub fn store_code(&mut self, contract: Box<dyn Contract<StargazeMsgWrapper>>) -> u64 {
+    pub fn store_code(&mut self, contract: Box<dyn Contract<cosmwasm_std::Empty>>) -> u64 {
         self.app.store_code(contract)
     }
 
-    /// Provides access to the underlying App instance.
-    pub fn inner(&self) -> &StargazeApp {
+    pub fn inner(&self) -> &App {
         &self.app
     }
 
-    /// Provides mutable access to the underlying App instance.
-    pub fn inner_mut(&mut self) -> &mut StargazeApp {
+    pub fn inner_mut(&mut self) -> &mut App {
         &mut self.app
     }
 
-    /// Sets the block time to just after genesis mint start time
-    pub fn set_genesis_time(&mut self) {
+    /// Moves the block time to a fixed, predictable timestamp.
+    pub fn set_time(&mut self, seconds: u64) {
         self.app.update_block(|block| {
-            block.time = Timestamp::from_nanos(GENESIS_MINT_START_TIME + 1);
+            block.time = Timestamp::from_seconds(seconds);
+            block.height += 1;
         });
     }
 }

@@ -1,5 +1,6 @@
 pub mod utils;
 pub mod contract {
+    pub mod cw721_execute;
     pub mod instantiate;
     pub mod mint;
     pub mod pixel {
@@ -9,7 +10,6 @@ pub mod contract {
         pub mod validation;
     }
     pub mod pricescaling;
-    pub mod sg721_execute;
 }
 
 mod core {
@@ -19,6 +19,5 @@ mod core {
     }
     pub mod tile {
         pub mod hash;
-        pub mod metadata;
     }
 }

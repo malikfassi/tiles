@@ -11,9 +11,9 @@
 |---|---|---|---|---|---|
 | T-001 | Réparer le workspace (`vendor/*` fantôme) et obtenir `cargo test` vert sur l'existant | Agent | fait | — | non |
 | T-002 | Inventaire et documenter l'état réel du contrat (module par module) dans `docs/architecture.md` | Agent | fait | T-001 | non |
-| T-003 | Portage CosmWasm 2.x : dépendances, entry points, helpers (`to_json_binary`, `Response`, `Uint128`) | Agent | à faire | T-002 | **oui** |
-| T-004 | Remplacer `sg721-base` par `cw721-base` + extension de collection (`royalty_info`, share ≤ 0.10) | Agent | à faire | T-003 | **oui** |
-| T-005 | Supprimer le mint de type vending factory/minter et le remplacer par un mint direct du propriétaire | Agent | à faire | T-004 | **oui** |
+| T-003 | Portage CosmWasm 2.x : dépendances, entry points, helpers (`to_json_binary`, `Response`, `Uint128`) | Agent | fait | T-002 | **oui** |
+| T-004 | Remplacer `sg721-base` par `cw721-base` + extension de collection (`royalty_info`, share ≤ 0.10) | Agent | fait | T-003 | **oui** |
+| T-005 | Supprimer le mint de type vending factory/minter et le remplacer par un mint direct du propriétaire | Agent | fait | T-004 | **oui** |
 | T-006 | Refonte de l'état : pixels par tuile interrogeables, prix par tuile, timestamps cosmwasm | Agent | à faire | T-004 | **oui** |
 | T-007 | Validation et erreurs : variantes dédiées, bornes vérifiées dans les handlers (TODO.md §2, §3) | Agent | à faire | T-006 | non |
 | T-008 | `set_pixel_color` : coloriage ouvert à tous, bail protégé (`PixelLeaseActive`), paiement exact, événement indexable | Agent | à faire | T-006 | **oui** |

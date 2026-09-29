@@ -1,51 +1,48 @@
+use cosmwasm_std::{Decimal, Uint128};
+
 // Protocol constants that should never change
-pub const PIXELS_PER_TILE: u32 = 100;
+pub const PIXELS_PER_TILE: usize = 100;
 pub const TILE_SIZE: u32 = 10; // 10x10 grid
 pub const DEFAULT_COLOR: &str = "#FFFFFF"; // Default white color
 pub const PIXEL_MIN_EXPIRATION: u64 = 3600; // 1 hour
 pub const PIXEL_MAX_EXPIRATION: u64 = 86400; // 24 hours
-pub const DEFAULT_ROYALTY_SHARE: u64 = 10; // 10% royalty share
+
+// Native denomination of the target chain (Cosmos Hub: ATOM).
+// Stargaze 2.0 runs on the Cosmos Hub, where gas, mint and pixel payments are in ATOM.
+pub const NATIVE_DENOM: &str = "uatom";
+
+// Payment split applied to every pixel sale, in percent of the total price.
+// The remainder goes to the tile owner. Collection share is capped at 10 %
+// by the CW721 collection extension (Stargaze 2.0 limit).
+pub const COLLECTION_SHARE_PERCENT: Decimal = Decimal::percent(5);
+pub const PLATFORM_SHARE_PERCENT: Decimal = Decimal::percent(2);
+
+// Price floor for a pixel sale, in micro ATOM.
+pub const MIN_PIXEL_PRICE: Uint128 = Uint128::new(100_000); // 0.1 ATOM
 
 // Time thresholds for pricing (in seconds)
 pub const ONE_HOUR: u64 = 3600;
 pub const TWELVE_HOURS: u64 = 43200;
 pub const TWENTY_FOUR_HOURS: u64 = 86400;
 
-// Conversion rate (do not modify)
-pub const USTARS_PER_STARS: u128 = 1_000_000; // 1 STARS = 1,000,000 uSTARS
-
-// Default price values in uSTARS (micro STARS)
-pub const DEFAULT_PRICE_1_HOUR: u128 = 100_000; // 0.1 STARS
-pub const DEFAULT_PRICE_12_HOURS: u128 = 200_000; // 0.2 STARS
-pub const DEFAULT_PRICE_24_HOURS: u128 = 300_000; // 0.3 STARS
-pub const DEFAULT_PRICE_QUADRATIC_BASE: u128 = 400_000; // 0.4 STARS
+// Default price values in micro ATOM (uatom)
+pub const DEFAULT_PRICE_1_HOUR: u128 = 100_000; // 0.1 ATOM
+pub const DEFAULT_PRICE_12_HOURS: u128 = 200_000; // 0.2 ATOM
+pub const DEFAULT_PRICE_24_HOURS: u128 = 300_000; // 0.3 ATOM
+pub const DEFAULT_PRICE_QUADRATIC_BASE: u128 = 400_000; // 0.4 ATOM
 
 // Contract info
 pub const CONTRACT_NAME: &str = "crates.io:tiles";
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-// Native denomination of the target chain (Cosmos Hub: ATOM).
-// Stargaze 2.0 runs on the Cosmos Hub, where gas, mint and pixel payments are in ATOM.
-// Kept as "uatom" (micro ATOM) instead of the former Stargaze "ustars".
-pub const NATIVE_DENOM: &str = "uatom";
+// Minting price for a tile, in micro ATOM. The mint itself is performed by the
+// contract minter, not by this contract, so this value is informational for clients.
+pub const MINT_PRICE: u128 = 1_000_000; // 1 ATOM
 
-// Minting price values (in uSTARS)
-pub const MINT_PRICE: u128 = 100_000_000; // 100 STARS
-pub const CREATION_FEE: u128 = 1_000_000; // 1 STARS
-
-// Vending minter constants
-pub const MINT_FEE_BPS: u64 = 1000; // 10%
-pub const MAX_TOKEN_LIMIT: u32 = 10000;
-pub const MAX_PER_ADDRESS_LIMIT: u32 = 3;
-pub const MAX_TRADING_OFFSET_SECS: u64 = 60 * 60 * 24 * 7; // 1 week
-pub const MIN_MINT_PRICE: u128 = 0;
-pub const AIRDROP_MINT_PRICE: u128 = 0;
-pub const AIRDROP_MINT_FEE_BPS: u64 = 0;
-pub const SHUFFLE_FEE: u128 = 0;
-
-// Chain configuration
-pub const CHAIN_ID: &str = "elgafar-1";
-pub const NODE_URL: &str = "https://rpc.elgafar-1.stargaze-apis.com:443";
+// Chain configuration, used by the deployment scripts (scripts/messages/constants.json).
+// Cosmos Hub mainnet. Override these values for a testnet deployment.
+pub const CHAIN_ID: &str = "cosmoshub-4";
+pub const NODE_URL: &str = "https://cosmos-rpc.polkachu.com:443";
 pub const GAS_PRICE: &str = "0.025";
 pub const GAS_ADJUSTMENT: f64 = 1.3;
 pub const BROADCAST_MODE: &str = "sync";
@@ -53,12 +50,11 @@ pub const BROADCAST_MODE: &str = "sync";
 // Collection configuration
 pub const COLLECTION_NAME: &str = "Tiles";
 pub const COLLECTION_SYMBOL: &str = "TILE";
-pub const COLLECTION_DESCRIPTION: &str = "A collaborative pixel art canvas on Stargaze";
-pub const BASE_TOKEN_URI: &str =
-    "ipfs://bafybeidrmkt5uzfpz66esvhk3qflp47reztskaijxlsfu4fysujxicw7mu";
-pub const COLLECTION_URI: &str = "ipfs://QmXzzVdLPNZCG1RnCSxDCSu9TfFd7fpnnwt8GuXdjNkjZw";
+pub const COLLECTION_DESCRIPTION: &str = "A collaborative pixel art canvas";
+pub const BASE_TOKEN_URI: &str = "";
+pub const COLLECTION_URI: &str = "";
 
 // Start time configuration
-pub const START_TIME: &str = "1625097600"; // Example timestamp, should be set appropriately
+pub const START_TIME: &str = "0";
 
-pub const DEPLOYER_ADDRESS: &str = "stars1pnet2e7tz7klwy48r7h3wl0n97td0haqjvs7mx";
+pub const DEPLOYER_ADDRESS: &str = "";

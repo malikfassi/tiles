@@ -1,2 +1,1 @@
-mod metadata;
-mod hash; 
+mod hash;

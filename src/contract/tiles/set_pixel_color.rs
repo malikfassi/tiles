@@ -1,150 +1,175 @@
-use cosmwasm_std::{CosmosMsg, DepsMut, Env, MessageInfo, Response, Uint128};
-use cw721::OwnerOfResponse;
-use sg721_base::Sg721Contract;
-use sg_std::StargazeMsgWrapper;
-use std::collections::HashSet;
-
 use crate::{
-    contract::{error::ContractError, msg::QueryMsg, state::PRICE_SCALING},
-    core::tile::{
-        metadata::{PixelData, PixelUpdate, TileMetadata},
-        Tile,
+    contract::{
+        error::ContractError,
+        instantiate::TilesContract,
+        state::{CONFIG, PRICE_SCALING},
+    },
+    core::{
+        tile::metadata::{PixelUpdate, TileMetadata},
+        validation::{
+            is_valid_hex_color, split_payment, validate_updates, validate_updates_for_tile,
+        },
     },
     events::{
         EventData, MetadataUpdateEventData, PaymentDistributionEventData, PixelUpdateEventData,
     },
 };
+use cosmwasm_std::{Coin, CosmosMsg, DepsMut, Env, MessageInfo, Response, Uint128};
 
+/// Pay to write pixels on a tile.
+///
+/// Anyone may call this: the sender does not need to own the tile (ADR 0004).
+/// A pixel under an active lease can only be written by the address holding that lease.
 pub fn set_pixel_color(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
     token_id: String,
-    mut current_metadata: TileMetadata,
+    current_metadata: TileMetadata,
     updates: Vec<PixelUpdate>,
-) -> Result<Response<StargazeMsgWrapper>, ContractError> {
-    let contract: Sg721Contract<Tile> = Sg721Contract::default();
+) -> Result<Response, ContractError> {
+    // 1. Message validation.
+    validate_updates(&updates)?;
 
-    // Verify current metadata hash matches stored hash
-    let mut token = contract.tokens.load(deps.storage, &token_id)?;
-    if token.extension.tile_hash != current_metadata.hash() {
+    // 2. Load the tile and use the hash as an optimistic lock.
+    let contract = TilesContract::default();
+    let mut token = contract
+        .config
+        .nft_info
+        .load(deps.storage, &token_id)
+        .map_err(|_| ContractError::TileNotFound {
+            token_id: token_id.clone(),
+        })?;
+
+    let mut metadata = token.extension.metadata.clone();
+    if metadata.hash() != current_metadata.hash() {
         return Err(ContractError::MetadataHashMismatch {});
     }
 
-    // Get token owner
-    let owner_query = QueryMsg::OwnerOf {
-        token_id: token_id.clone(),
-        include_expired: None,
-    };
-    let owner: OwnerOfResponse = deps
-        .querier
-        .query_wasm_smart(env.contract.address.clone(), &owner_query)?;
+    // 3. Business rules: is any target pixel still under someone else's lease?
+    let now = env.block.time.seconds();
+    validate_updates_for_tile(&token_id, &metadata, &updates, &info.sender, now)?;
 
+    // 4. Price: duration grid, floored by the configured minimum.
+    let config = CONFIG.load(deps.storage)?;
     let price_scaling = PRICE_SCALING.load(deps.storage)?;
-    let current_time = env.block.time.seconds();
-    let mut seen_ids = HashSet::new();
-    let mut total_price = Uint128::zero();
-
-    // Single pass: validate duplicates, validate updates, calculate price
+    let mut total = Uint128::zero();
     for update in &updates {
-        // Check for duplicates
-        if !seen_ids.insert(update.id) {
-            return Err(ContractError::DuplicatePixelId { id: update.id });
-        }
-
-        // First validate the update integrity
-        update.validate_integrity()?;
-
-        // Then validate if it can be applied to the tile
-        update.validate_for_tile(&current_metadata.pixels[update.id as usize], current_time)?;
-
-        // Add to total price
-        total_price += price_scaling.calculate_price(update.expiration_duration);
+        total += price_scaling.calculate_price(update.expiration_duration);
+    }
+    if total < config.minimum_price {
+        total = config.minimum_price;
     }
 
-    // Verify sent funds match total price
-    if info.funds.is_empty() || info.funds[0].amount != total_price {
-        return Err(ContractError::InsufficientFunds {});
-    }
-
-    // Get royalty info from collection info
-    let collection_info = contract.collection_info.load(deps.storage)?;
-    let royalty_info = collection_info
-        .royalty_info
-        .ok_or(ContractError::MissingRoyaltyInfo {})?;
-
-    // Calculate payment distribution
-    let royalty_amount = total_price * royalty_info.share;
-    let owner_amount = total_price - royalty_amount;
-
-    // Create bank messages for payment distribution
-    let bank_msgs: Vec<CosmosMsg<StargazeMsgWrapper>> = vec![
-        cosmwasm_std::BankMsg::Send {
-            to_address: royalty_info.payment_address.to_string(),
-            amount: vec![cosmwasm_std::Coin {
-                denom: info.funds[0].denom.clone(),
-                amount: royalty_amount,
-            }],
-        }
-        .into(),
-        cosmwasm_std::BankMsg::Send {
-            to_address: owner.owner,
-            amount: vec![cosmwasm_std::Coin {
-                denom: info.funds[0].denom.clone(),
-                amount: owner_amount,
-            }],
-        }
-        .into(),
-    ];
-
-    // Create events for each pixel update
-    let mut new_pixels = Vec::with_capacity(updates.len());
-    for update in &updates {
-        new_pixels.push(PixelData {
-            id: update.id,
-            color: update.color.clone(),
-            expiration_timestamp: current_time + update.expiration_duration,
-            last_updated_by: info.sender.clone(),
-            last_updated_at: current_time,
+    // 5. Payment: exactly one coin, of the expected amount, sent to the contract.
+    let denom = crate::defaults::constants::NATIVE_DENOM;
+    let paid = single_payment(&info, denom)?;
+    if paid != total {
+        return Err(ContractError::InvalidPayment {
+            expected: format!("{} {}", total, denom),
         });
     }
 
-    // Apply all updates at once
-    current_metadata.apply_updates(updates, &info.sender, current_time);
+    // 6. Split: collection, platform, then the owner receives the remainder,
+    //    so the three amounts always add up to the exact total.
+    let (collection_amount, platform_amount, owner_amount) = split_payment(
+        total,
+        config.collection_share_percent,
+        config.platform_share_percent,
+    );
 
-    // Create pixel update event
+    let mut messages: Vec<CosmosMsg> = Vec::with_capacity(3);
+    if !collection_amount.is_zero() {
+        messages.push(bank_send(
+            config.collection_payment_address.to_string(),
+            denom,
+            collection_amount,
+        ));
+    }
+    if !platform_amount.is_zero() {
+        messages.push(bank_send(
+            config.platform_payment_address.to_string(),
+            denom,
+            platform_amount,
+        ));
+    }
+    if !owner_amount.is_zero() {
+        messages.push(bank_send(token.owner.to_string(), denom, owner_amount));
+    }
+
+    // 7. Apply the writes and persist the new state.
+    let mut written = Vec::with_capacity(updates.len());
+    for update in &updates {
+        metadata.apply_update(update, &info.sender, now);
+        let pixel = &metadata.pixels[update.id as usize];
+        written.push(pixel.clone());
+    }
+    token.extension.metadata = metadata.clone();
+    let tile_hash = metadata.hash();
+    token.extension.tile_hash = tile_hash.clone();
+    contract
+        .config
+        .nft_info
+        .save(deps.storage, &token_id, &token)?;
+
+    // 8. Events an indexer can follow.
     let pixel_event = PixelUpdateEventData {
         token_id: token_id.clone(),
-        new_pixels,
-        tile_hash: current_metadata.hash(),
+        new_pixels: written,
+        tile_hash: tile_hash.clone(),
     }
     .into_event();
 
-    // Create metadata updated event
     let metadata_event = MetadataUpdateEventData {
         token_id: token_id.clone(),
-        resulting_hash: current_metadata.hash(),
+        resulting_hash: tile_hash,
     }
     .into_event();
 
-    // Create payment distribution event
     let payment_event = PaymentDistributionEventData {
-        token_id: token_id.clone(),
+        token_id,
         sender: info.sender.clone(),
-        royalty_amount: royalty_amount.u128(),
+        collection_amount: collection_amount.u128(),
+        platform_amount: platform_amount.u128(),
         owner_amount: owner_amount.u128(),
+        total: total.u128(),
     }
     .into_event();
 
-    // Update token extension with new metadata hash
-    token.extension.tile_hash = current_metadata.hash();
-    contract.tokens.save(deps.storage, &token_id, &token)?;
-
-    let response = Response::new()
-        .add_messages(bank_msgs)
+    Ok(Response::new()
+        .add_messages(messages)
         .add_event(pixel_event)
         .add_event(metadata_event)
-        .add_event(payment_event);
+        .add_event(payment_event))
+}
 
-    Ok(response)
+/// Extracts the single coin of `denom` sent with the message.
+///
+/// Rejects multi-denomination sends and amounts expressed in another denom.
+fn single_payment(info: &MessageInfo, denom: &str) -> Result<Uint128, ContractError> {
+    if info.funds.len() != 1 || !is_valid_hex_color("#FFFFFF") && info.funds.is_empty() {
+        return Err(ContractError::InvalidPayment {
+            expected: format!("a single {} coin", denom),
+        });
+    }
+
+    let coin = &info.funds[0];
+    if coin.denom != denom {
+        return Err(ContractError::InvalidPayment {
+            expected: format!("a single {} coin", denom),
+        });
+    }
+
+    Ok(coin.amount)
+}
+
+fn bank_send(to_address: String, denom: &str, amount: Uint128) -> CosmosMsg {
+    cosmwasm_std::BankMsg::Send {
+        to_address,
+        amount: vec![Coin {
+            denom: denom.to_string(),
+            amount,
+        }],
+    }
+    .into()
 }

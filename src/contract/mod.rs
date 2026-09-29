@@ -7,8 +7,5 @@ pub mod query;
 pub mod state;
 pub mod tiles;
 
-pub use crate::contract::{
-    contract::{execute, instantiate, query},
-    error::ContractError,
-    msg::InstantiateMsg,
-};
+pub use crate::contract::contract::{execute, instantiate, query};
+pub use crate::contract::{error::ContractError, instantiate::InstantiateMsg};

@@ -36,6 +36,10 @@ impl EventType {
         }
     }
 
+    /// Event name as it appears on chain.
+    ///
+    /// CosmWasm hosts prefix events emitted by a contract with `wasm-`, and
+    /// `cw-multi-test` reproduces that, so parsing must look for the prefixed name.
     pub fn as_wasm_str(&self) -> String {
         format!("wasm-{}", self.as_str())
     }

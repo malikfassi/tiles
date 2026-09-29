@@ -1,17 +1,21 @@
-use crate::contract::error::ContractError;
-use crate::defaults::constants::{
-    DEFAULT_COLOR, PIXELS_PER_TILE, PIXEL_MAX_EXPIRATION, PIXEL_MIN_EXPIRATION,
-};
+use crate::defaults::constants::{DEFAULT_COLOR, PIXELS_PER_TILE};
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
 use sha2::{Digest, Sha256};
 
+/// A single pixel of a tile.
+///
+/// `lease_expires_at` is the block time (seconds) until which the colour is protected:
+/// while it is in the future, only `leased_by` may write this pixel (ADR 0004).
 #[cw_serde]
 pub struct PixelData {
-    pub id: u32,
+    pub id: u8,
     pub color: String,
-    pub expiration_timestamp: u64,
-    pub last_updated_by: Addr,
+    /// Block time in seconds at which the lease ends. 0 means the pixel has never been painted.
+    pub lease_expires_at: u64,
+    /// Address that holds the lease. `None` when the pixel has never been painted.
+    pub leased_by: Option<Addr>,
+    /// Block time in seconds of the last write.
     pub last_updated_at: u64,
 }
 
@@ -20,13 +24,30 @@ impl Default for PixelData {
         Self {
             id: 0,
             color: DEFAULT_COLOR.to_string(),
-            expiration_timestamp: 0,
-            last_updated_by: Addr::unchecked(""),
+            lease_expires_at: 0,
+            leased_by: None,
             last_updated_at: 0,
         }
     }
 }
 
+impl PixelData {
+    /// Whether the pixel is currently protected by a lease.
+    pub fn has_active_lease(&self, now: u64) -> bool {
+        self.lease_expires_at > now
+    }
+
+    /// Whether `sender` holds the active lease on this pixel.
+    pub fn is_leased_by(&self, sender: &Addr) -> bool {
+        self.leased_by.as_ref() == Some(sender)
+    }
+}
+
+/// The 100 pixels of a tile.
+///
+/// Stored in the NFT extension, so it travels with the token. Held as a `Vec` because
+/// serde does not implement `Serialize` for arrays longer than 32 elements, but the
+/// length is enforced to `PIXELS_PER_TILE` at construction time.
 #[cw_serde]
 pub struct TileMetadata {
     pub pixels: Vec<PixelData>,
@@ -35,98 +56,59 @@ pub struct TileMetadata {
 impl Default for TileMetadata {
     fn default() -> Self {
         Self {
-            pixels: (0..PIXELS_PER_TILE).map(|_| PixelData::default()).collect(),
+            pixels: (0..PIXELS_PER_TILE)
+                .map(|i| PixelData {
+                    id: i as u8,
+                    ..PixelData::default()
+                })
+                .collect(),
         }
     }
 }
 
 impl TileMetadata {
-    pub fn apply_updates(&mut self, updates: Vec<PixelUpdate>, sender: &Addr, current_time: u64) {
-        // All updates are just modifications of existing pixels
-        for update in updates {
-            let pixel = &mut self.pixels[update.id as usize];
-            pixel.color = update.color.clone();
-            pixel.expiration_timestamp = update.get_expiration_timestamp(current_time);
-            pixel.last_updated_by = sender.clone();
-            pixel.last_updated_at = current_time;
-        }
+    /// Applies one update. Validation is the caller's responsibility.
+    pub fn apply_update(&mut self, update: &PixelUpdate, sender: &Addr, now: u64) {
+        let pixel = &mut self.pixels[update.id as usize];
+        pixel.color = update.color.clone();
+        pixel.lease_expires_at = update.expiration_timestamp(now);
+        pixel.leased_by = Some(sender.clone());
+        pixel.last_updated_at = now;
     }
 
+    /// Canonical hash of the tile state.
+    ///
+    /// Serialises with serde rather than string concatenation, so that two different
+    /// states can never produce the same digest.
     pub fn hash(&self) -> String {
-        let mut hasher = Sha256::new();
-        for pixel in &self.pixels {
-            hasher.update(format!(
-                "{}:{}:{}:{}:{}",
-                pixel.id,
-                pixel.color,
-                pixel.expiration_timestamp,
-                pixel.last_updated_by,
-                pixel.last_updated_at
-            ));
-        }
-        format!("{:x}", hasher.finalize())
+        let bytes = serde_json::to_vec(&self.pixels).expect("tile metadata is always serialisable");
+        let digest = Sha256::digest(bytes);
+        hex_encode(&digest)
     }
 }
 
+fn hex_encode(bytes: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        out.push(HEX[(byte >> 4) as usize] as char);
+        out.push(HEX[(byte & 0x0f) as usize] as char);
+    }
+    out
+}
+
+/// A requested write on a pixel: the new colour and how long the lease should last.
 #[cw_serde]
 pub struct PixelUpdate {
-    pub id: u32,
+    pub id: u8,
     pub color: String,
-    pub expiration_duration: u64, // Duration in seconds
+    /// Lease duration in seconds.
+    pub expiration_duration: u64,
 }
 
 impl PixelUpdate {
-    pub fn validate_integrity(&self) -> Result<(), ContractError> {
-        // Validate pixel id is within bounds
-        if self.id >= PIXELS_PER_TILE {
-            return Err(ContractError::InvalidPixelId { id: self.id });
-        }
-
-        // Validate color format (#RRGGBB)
-        if !self.color.starts_with('#')
-            || self.color.len() != 7
-            || !self.color[1..].chars().all(|c| c.is_ascii_hexdigit())
-        {
-            return Err(ContractError::InvalidPixelUpdate {
-                reason: format!("Invalid color format: {}", self.color),
-            });
-        }
-
-        // Validate duration is within bounds
-        if self.expiration_duration < PIXEL_MIN_EXPIRATION {
-            return Err(ContractError::InvalidPixelUpdate {
-                reason: format!(
-                    "Expiration duration {} is less than minimum {}",
-                    self.expiration_duration, PIXEL_MIN_EXPIRATION
-                ),
-            });
-        }
-        if self.expiration_duration > PIXEL_MAX_EXPIRATION {
-            return Err(ContractError::InvalidPixelUpdate {
-                reason: format!(
-                    "Expiration duration {} is greater than maximum {}",
-                    self.expiration_duration, PIXEL_MAX_EXPIRATION
-                ),
-            });
-        }
-
-        Ok(())
-    }
-
-    pub fn validate_for_tile(
-        &self,
-        current_pixel: &PixelData,
-        current_time: u64,
-    ) -> Result<(), ContractError> {
-        // If pixel is expired or never set, anyone can update it
-        if current_pixel.expiration_timestamp <= current_time {
-            return Ok(());
-        }
-        Ok(())
-    }
-
-    // Helper to get expiration timestamp from duration
-    pub fn get_expiration_timestamp(&self, current_time: u64) -> u64 {
-        current_time.saturating_add(self.expiration_duration)
+    /// Block time at which the lease bought by this update would end.
+    pub fn expiration_timestamp(&self, now: u64) -> u64 {
+        now.saturating_add(self.expiration_duration)
     }
 }

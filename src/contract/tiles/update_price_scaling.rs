@@ -1,48 +1,34 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use sg721_base::Sg721Contract;
-use sg_std::StargazeMsgWrapper;
-
 use crate::{
-    contract::{error::ContractError, state::PRICE_SCALING},
-    core::{pricing::PriceScaling, tile::Tile},
+    contract::{
+        error::ContractError,
+        state::{CONFIG, PRICE_SCALING},
+    },
+    core::pricing::PriceScaling,
     events::{EventData, PriceScalingUpdateEventData},
 };
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
+/// Replaces the duration-based price grid.
+///
+/// Restricted to the collection payment address configured at instantiation, which is
+/// the address that also holds the CW721 collection royalties.
 pub fn update_price_scaling(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    new_scaling: PriceScaling,
-) -> Result<Response<StargazeMsgWrapper>, ContractError> {
-    // Get collection info from contract
-    let contract = Sg721Contract::<Tile>::default();
-    let collection_info = contract.collection_info.load(deps.storage)?;
-
-    // Only royalty payment address can update prices
-    if let Some(royalty_info) = collection_info.royalty_info {
-        if info.sender != royalty_info.payment_address {
-            return Err(ContractError::Unauthorized {
-                sender: info.sender.to_string(),
-            });
-        }
-    } else {
-        return Err(ContractError::MissingRoyaltyInfo {});
+    new_scaling: Box<PriceScaling>,
+) -> Result<Response, ContractError> {
+    let config = CONFIG.load(deps.storage)?;
+    if info.sender != config.collection_payment_address {
+        return Err(ContractError::Unauthorized {});
     }
 
-    // Validate new price scaling
-    match new_scaling.validate() {
-        Ok(_) => (),
-        Err(e) => {
-            return Err(ContractError::InvalidPixelUpdate {
-                reason: e.to_string(),
-            });
-        }
-    }
+    new_scaling
+        .validate()
+        .map_err(|_| ContractError::InvalidPriceScaling {})?;
 
-    // Save new price scaling
     PRICE_SCALING.save(deps.storage, &new_scaling)?;
 
-    // Create event
     let event = PriceScalingUpdateEventData {
         hour_1_price: new_scaling.hour_1_price.u128(),
         hour_12_price: new_scaling.hour_12_price.u128(),

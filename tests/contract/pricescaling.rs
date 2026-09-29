@@ -10,12 +10,13 @@ use crate::utils::{EventAssertions, TestSetup};
 #[test]
 fn creator_can_update_price_scaling() -> Result<()> {
     let mut setup = TestSetup::new()?;
-    let creator = setup.users.tile_contract_creator().clone();
+    let creator = setup.users.get_buyer().clone();
 
-    let result =
-        setup
-            .tiles
-            .update_price_scaling(&mut setup.app, &creator.address, PriceScaling::default());
+    let result = setup.tiles.execute_update_price_scaling(
+        &mut setup.app,
+        &creator.address,
+        PriceScaling::default(),
+    );
     assert!(result.is_ok());
 
     Ok(())
@@ -26,7 +27,7 @@ fn pixel_operator_cannot_update_price_scaling() -> Result<()> {
     let mut setup = TestSetup::new()?;
     let operator = setup.users.pixel_operator().clone();
 
-    let result = setup.tiles.update_price_scaling(
+    let result = setup.tiles.execute_update_price_scaling(
         &mut setup.app,
         &operator.address,
         PriceScaling::default(),
@@ -36,16 +37,19 @@ fn pixel_operator_cannot_update_price_scaling() -> Result<()> {
     Ok(())
 }
 
+/// Only the collection payment address may change the price grid. The fixture sets
+/// that address to the buyer, so this checks that a different actor is refused.
 #[test]
-fn buyer_cannot_update_price_scaling() -> Result<()> {
+fn stranger_cannot_update_price_scaling() -> Result<()> {
     let mut setup = TestSetup::new()?;
-    let buyer = setup.users.get_buyer().clone();
+    let stranger = setup.users.pixel_operator().clone();
 
-    let result =
-        setup
-            .tiles
-            .update_price_scaling(&mut setup.app, &buyer.address, PriceScaling::default());
-    assert!(result.is_err());
+    let result = setup.tiles.execute_update_price_scaling(
+        &mut setup.app,
+        &stranger.address,
+        PriceScaling::default(),
+    );
+    assert!(result.is_err(), "a stranger must not change the price grid");
 
     Ok(())
 }
@@ -53,7 +57,7 @@ fn buyer_cannot_update_price_scaling() -> Result<()> {
 #[test]
 fn cannot_set_hour_1_price_greater_than_hour_12_price() -> Result<()> {
     let mut setup = TestSetup::new()?;
-    let creator = setup.users.tile_contract_creator().clone();
+    let creator = setup.users.get_buyer().clone();
 
     let invalid_scaling = PriceScaling {
         hour_1_price: Uint128::from(DEFAULT_PRICE_12_HOURS),
@@ -65,7 +69,7 @@ fn cannot_set_hour_1_price_greater_than_hour_12_price() -> Result<()> {
     let result =
         setup
             .tiles
-            .update_price_scaling(&mut setup.app, &creator.address, invalid_scaling);
+            .execute_update_price_scaling(&mut setup.app, &creator.address, invalid_scaling);
     assert!(result.is_err());
 
     Ok(())
@@ -74,7 +78,7 @@ fn cannot_set_hour_1_price_greater_than_hour_12_price() -> Result<()> {
 #[test]
 fn cannot_set_hour_12_price_greater_than_hour_24_price() -> Result<()> {
     let mut setup = TestSetup::new()?;
-    let creator = setup.users.tile_contract_creator().clone();
+    let creator = setup.users.get_buyer().clone();
 
     let invalid_scaling = PriceScaling {
         hour_12_price: Uint128::from(DEFAULT_PRICE_24_HOURS),
@@ -86,7 +90,7 @@ fn cannot_set_hour_12_price_greater_than_hour_24_price() -> Result<()> {
     let result =
         setup
             .tiles
-            .update_price_scaling(&mut setup.app, &creator.address, invalid_scaling);
+            .execute_update_price_scaling(&mut setup.app, &creator.address, invalid_scaling);
     assert!(result.is_err());
 
     Ok(())
@@ -95,7 +99,7 @@ fn cannot_set_hour_12_price_greater_than_hour_24_price() -> Result<()> {
 #[test]
 fn cannot_set_zero_hour_1_price() -> Result<()> {
     let mut setup = TestSetup::new()?;
-    let creator = setup.users.tile_contract_creator().clone();
+    let creator = setup.users.get_buyer().clone();
 
     let invalid_scaling = PriceScaling {
         hour_1_price: Uint128::zero(),
@@ -106,7 +110,7 @@ fn cannot_set_zero_hour_1_price() -> Result<()> {
     let result =
         setup
             .tiles
-            .update_price_scaling(&mut setup.app, &creator.address, invalid_scaling);
+            .execute_update_price_scaling(&mut setup.app, &creator.address, invalid_scaling);
     assert!(result.is_err());
 
     Ok(())
@@ -115,13 +119,15 @@ fn cannot_set_zero_hour_1_price() -> Result<()> {
 #[test]
 fn price_scaling_update_is_persisted() -> Result<()> {
     let mut setup = TestSetup::new()?;
-    let creator = setup.users.tile_contract_creator().clone();
+    let creator = setup.users.get_buyer().clone();
     let new_scaling = PriceScaling::default();
 
     // Update price scaling
-    setup
-        .tiles
-        .update_price_scaling(&mut setup.app, &creator.address, new_scaling.clone())?;
+    setup.tiles.execute_update_price_scaling(
+        &mut setup.app,
+        &creator.address,
+        new_scaling.clone(),
+    )?;
 
     // Query and verify
     let stored_scaling = setup.tiles.query_price_scaling(&setup.app)?;
@@ -133,13 +139,14 @@ fn price_scaling_update_is_persisted() -> Result<()> {
 #[test]
 fn price_scaling_update_emits_correct_event() -> Result<()> {
     let mut setup = TestSetup::new()?;
-    let creator = setup.users.tile_contract_creator().clone();
+    let creator = setup.users.get_buyer().clone();
 
     let new_scaling = PriceScaling::default();
-    let response =
-        setup
-            .tiles
-            .update_price_scaling(&mut setup.app, &creator.address, new_scaling.clone())?;
+    let response = setup.tiles.execute_update_price_scaling(
+        &mut setup.app,
+        &creator.address,
+        new_scaling.clone(),
+    )?;
 
     // Assert the event
     EventAssertions::assert_price_scaling_update(&response, &new_scaling);

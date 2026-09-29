@@ -38,19 +38,19 @@ impl EventAssertions {
 
             assert_eq!(matching_pixel.color, update.color, "Color mismatch");
             assert_eq!(
-                matching_pixel.last_updated_by,
-                sender.clone(),
+                matching_pixel.leased_by.as_ref(),
+                Some(sender),
                 "Sender mismatch"
             );
 
             assert!(
-                matching_pixel.expiration_timestamp > matching_pixel.last_updated_at,
-                "Expiration timestamp must be after last updated time"
+                matching_pixel.lease_expires_at > matching_pixel.last_updated_at,
+                "Lease must end after the write"
             );
             assert_eq!(
-                matching_pixel.expiration_timestamp,
+                matching_pixel.lease_expires_at,
                 matching_pixel.last_updated_at + update.expiration_duration,
-                "Expiration timestamp must be last_updated_at + duration"
+                "Lease must end at last_updated_at + duration"
             );
         }
     }
@@ -69,7 +69,7 @@ impl EventAssertions {
             token_id,
             "Token ID mismatch"
         );
-        assert_eq!(parsed.owner, owner.to_string(), "Owner mismatch");
+        assert_eq!(parsed.owner, *owner, "Owner mismatch");
         if let Some(expected) = expected_hash {
             assert_eq!(parsed.tile_hash, expected, "Hash mismatch");
         }
@@ -116,20 +116,14 @@ impl EventAssertions {
             .expect("Failed to get price scaling from state tracker");
         let total_price =
             price_scaling.calculate_total_price(updates.iter().map(|u| &u.expiration_duration));
-        let (expected_royalty_amount, expected_owner_amount) =
-            price_scaling.calculate_royalty_amounts(total_price);
 
         assert_eq!(parsed.token_id, token_id.to_string(), "Token ID mismatch");
-        assert_eq!(parsed.sender, sender.to_string(), "Sender mismatch");
+        assert_eq!(parsed.sender, sender, "Sender mismatch");
+        assert_eq!(parsed.total, total_price.u128(), "Total mismatch");
         assert_eq!(
-            parsed.royalty_amount,
-            expected_royalty_amount.u128(),
-            "Royalty amount mismatch"
-        );
-        assert_eq!(
-            parsed.owner_amount,
-            expected_owner_amount.u128(),
-            "Owner amount mismatch"
+            parsed.collection_amount + parsed.platform_amount + parsed.owner_amount,
+            parsed.total,
+            "The three shares must add up to the total"
         );
     }
 

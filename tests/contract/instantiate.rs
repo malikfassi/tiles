@@ -1,21 +1,28 @@
 use anyhow::Result;
 use tiles::core::pricing::PriceScaling;
 
-use crate::utils::{ContractAssertions, EventAssertions, Launchpad};
+use crate::utils::{ContractAssertions, Launchpad};
 
+/// Instantiation installs the CW721 collection, the default price grid and the
+/// payment configuration, all of which must be readable straight afterwards.
 #[test]
 fn can_instantiate_contracts() -> Result<()> {
-    // Setup contracts and get instantiation response
-    let (launchpad, response) = Launchpad::setup()?;
+    let (launchpad, _) = Launchpad::setup()?;
 
-    // Verify instantiation event was emitted
-    EventAssertions::assert_instantiate_price_scaling(&response, &PriceScaling::default())?;
-
-    // Query contract and verify price scaling
     ContractAssertions::assert_price_scaling(
         &launchpad.app,
         &launchpad.tiles,
         &PriceScaling::default(),
+    );
+
+    let config = launchpad.tiles.query_config(&launchpad.app)?;
+    assert!(
+        !config.collection_payment_address.to_string().is_empty(),
+        "the collection payment address must be configured"
+    );
+    assert!(
+        !config.platform_payment_address.to_string().is_empty(),
+        "the platform payment address must be configured"
     );
 
     Ok(())

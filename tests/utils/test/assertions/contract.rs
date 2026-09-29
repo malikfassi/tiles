@@ -22,11 +22,7 @@ impl ContractAssertions {
         let owner = contract
             .query_owner_of(app, token_id.to_string())
             .expect("Failed to query token owner");
-        assert_eq!(
-            owner.owner,
-            expected_owner.to_string(),
-            "Token owner mismatch"
-        );
+        assert_eq!(owner, expected_owner.to_string(), "Token owner mismatch");
     }
 
     pub fn assert_token_hash(

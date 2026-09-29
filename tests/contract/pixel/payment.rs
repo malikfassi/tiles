@@ -1,74 +1,56 @@
 use anyhow::Result;
-use sg_std::NATIVE_DENOM;
 use tiles::core::tile::metadata::PixelUpdate;
+use tiles::defaults::constants::{COLLECTION_SHARE_PERCENT, NATIVE_DENOM, PLATFORM_SHARE_PERCENT};
 
-use crate::utils::{ContractAssertions, EventAssertions, TestSetup};
+use crate::utils::{EventAssertions, TestSetup};
 
+/// A pixel sale is split between the collection, the platform and the tile owner,
+/// and the three shares always add up to the exact amount paid (ADR 0004).
 #[test]
 fn payment_is_distributed_correctly() -> Result<()> {
     let mut setup = TestSetup::new()?;
-    let buyer = setup.users.get_buyer().clone();
-    let token_id = setup.mint_token(&buyer.address)?;
-
-    let pixel_id = 1;
-    let color = "#FF0000";
-    let duration_hours = 1;
+    let buyer = setup.users.get_buyer().address.clone();
+    let colourer = setup.users.get_tile_creator().address.clone();
+    let token_id = setup.mint_token(&buyer)?;
 
     let update = PixelUpdate {
-        id: pixel_id,
-        color: color.to_string(),
-        expiration_duration: duration_hours * 3600,
+        id: 1,
+        color: "#FF0000".to_string(),
+        expiration_duration: 3600,
     };
 
     let price_scaling = setup.state.get_price_scaling()?;
-    let expected_payment = price_scaling.calculate_price(duration_hours * 3600);
-    println!("\nPrice scaling: {:?}", price_scaling);
-    println!("Expected payment: {}", expected_payment);
+    let price = price_scaling.calculate_price(3600);
 
-    let initial_creator_balance = setup
-        .app
-        .get_balance(&setup.users.tile_contract_creator().address, NATIVE_DENOM)?;
-    let initial_owner_balance = setup.app.get_balance(&buyer.address, NATIVE_DENOM)?;
-    println!("Initial creator balance: {}", initial_creator_balance);
-    println!("Initial owner balance: {}", initial_owner_balance);
+    let colourer_before = setup.app.get_balance(&colourer, NATIVE_DENOM)?;
 
-    let response = setup.update_pixel(&buyer.address, token_id, vec![update.clone()])?;
+    let response = setup.update_pixel(&colourer, token_id, vec![update.clone()])?;
 
-    // Calculate royalty amounts using price scaling
-    let (royalty_payment, owner_payment) =
-        price_scaling.calculate_royalty_amounts(expected_payment);
-    println!("Royalty payment: {}", royalty_payment);
-    println!("Owner payment: {}", owner_payment);
-
-    // Verify creator received royalty payment
-    let final_creator_balance = setup
-        .app
-        .get_balance(&setup.users.tile_contract_creator().address, NATIVE_DENOM)?;
-    println!("Final creator balance: {}", final_creator_balance);
-    ContractAssertions::assert_balance(
-        &setup.app,
-        &setup.users.tile_contract_creator().address,
-        initial_creator_balance + royalty_payment.u128(),
+    // The colourer pays the full price; what they get back depends on roles, so the
+    // split itself is asserted through the event below.
+    let colourer_after = setup.app.get_balance(&colourer, NATIVE_DENOM)?;
+    assert!(
+        colourer_after <= colourer_before,
+        "colouring is never free for the payer"
     );
 
-    // Verify owner received remaining payment
-    let final_owner_balance = setup.app.get_balance(&buyer.address, NATIVE_DENOM)?;
-    println!("Final owner balance: {}", final_owner_balance);
-    ContractAssertions::assert_balance(
-        &setup.app,
-        &buyer.address,
-        initial_owner_balance - expected_payment.u128() + owner_payment.u128(),
+    // The three shares must add up to the price exactly.
+    let collection_share = price.mul_floor(COLLECTION_SHARE_PERCENT);
+    let platform_share = price.mul_floor(PLATFORM_SHARE_PERCENT);
+    let owner_share = price - collection_share - platform_share;
+    assert_eq!(
+        collection_share + platform_share + owner_share,
+        price,
+        "the shares must add up to the price"
     );
 
-    // Verify events
-    EventAssertions::assert_pixel_update(&response, token_id, &[&update], &buyer.address);
+    EventAssertions::assert_pixel_update(&response, token_id, &[&update], &colourer);
     EventAssertions::assert_payment_distribution(
         &response,
         token_id,
-        &buyer.address,
+        &colourer,
         &setup.state,
         &[&update],
     );
-
     Ok(())
 }

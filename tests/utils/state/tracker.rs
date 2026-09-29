@@ -26,6 +26,12 @@ impl StateTracker {
         }
     }
 
+    /// Reloads the price grid from the contract, so tests do not depend on parsing
+    /// the instantiation event.
+    pub fn set_price_scaling(&mut self, price_scaling: PriceScaling) {
+        self.price_scaling = Some(price_scaling);
+    }
+
     pub fn get_price_scaling(&self) -> Result<PriceScaling> {
         self.price_scaling
             .clone()
@@ -37,6 +43,11 @@ impl StateTracker {
             .get(&token_id)
             .cloned()
             .ok_or_else(|| anyhow::anyhow!("No metadata found for token {}", token_id))
+    }
+
+    /// Replaces the tracked state of a token, used after a time jump.
+    pub fn set_token_metadata(&mut self, token_id: u32, metadata: TileMetadata) {
+        self.token_metadata.insert(token_id, metadata);
     }
 
     pub fn track_instantiate(&mut self, response: &AppResponse) -> Result<()> {
