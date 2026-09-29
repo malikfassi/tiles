@@ -13,13 +13,17 @@ Reprise du projet après abandon (dernier commit : 2025-01-03). Objectif de sess
 - **ADR 0004 accepté** : coloriage ouvert à tous (canvas collaboratif) et bail de couleur protégé jusqu'à expiration. Pitch, architecture et critères de T-008 mis à jour en conséquence.
 - **T-003 + T-004 + T-005 faits** : portage complet en CW721 0.22 / CosmWasm 2.x. `sg721`, `sg-std`, `vending-*`, `sg-multi-test` **entièrement retirés** du projet.
 - **T-006 fait** : état et temps revus. `Timestamp` de cosmwasm partout (plus de `u64` en secondes), prix calculé par une **source unique** (`core/quote.rs`) partagée entre l'exécution et la nouvelle query `QuotePixelUpdates`, `interpolate()` sans `unwrap()`, événement enrichi (`leased_pixels`).
+- **T-007 fait** : un test unitaire par règle et par variante d'erreur (`tests/core/validation_input.rs`, `validation_lease.rs`, `validation_money.rs`).
 
-**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **48/48 verts**, `cargo build` OK, `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur (2 warnings de nommage mineurs). Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
+**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **70/70 verts**, `cargo build` OK, `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur (2 warnings de nommage mineurs). Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
 
 **Point clé de T-006 — le devis :** la query `QuotePixelUpdates { token_id, updates }` renvoie ce que les écritures coûteront (`total`, les trois parts, les expirations). Elle passe par **le même `quote()`** que `SetPixelColor`, donc ce qui est affiché est exactement ce qui est facturé. C'est indispensable pour le frontend et ça élimine toute divergence prix annoncé / prix payé.
 
+**Règles du bail, désormais testées une par une :** pixel libre ouvert à tous ; bail expiré libéré ; un tiers refusé sous un bail actif ; **le titulaire peut prolonger** son propre pixel ; un bail qui expire exactement à l'instant du bloc est libre ; un pixel protégé fait refuser tout le lot.
+
 ## Prochaine étape
-`/next-task T-007` — validation et erreurs : finir de déplacer les règles dans les handlers et couvrir chaque variante d'erreur. Puis T-008 (finalisation du bail) et T-009 (répartition avancée).
+`/next-task T-008` — finaliser `set_pixel_color` (cœur du produit), puis T-009 (répartition avancée) et T-011 (migration). Vérification en Plan recommandée.
+
 
 ## Décisions en attente de Malik
 1. **Mode de production** (à trancher plus tard, quand le contrat sera complet) : Studio 2.0 + logique hors chaîne vs proposition de gouvernance — ADR à ouvrir.

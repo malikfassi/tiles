@@ -15,7 +15,7 @@
 | T-004 | Remplacer `sg721-base` par `cw721-base` + extension de collection (`royalty_info`, share ≤ 0.10) | Agent | fait | T-003 | **oui** |
 | T-005 | Supprimer le mint de type vending factory/minter et le remplacer par un mint direct du propriétaire | Agent | fait | T-004 | **oui** |
 | T-006 | Refonte de l'état : pixels par tuile interrogeables, prix par tuile, timestamps cosmwasm | Agent | fait | T-004 | **oui** |
-| T-007 | Validation et erreurs : variantes dédiées, bornes vérifiées dans les handlers (TODO.md §2, §3) | Agent | à faire | T-006 | non |
+| T-007 | Validation et erreurs : variantes dédiées, bornes vérifiées dans les handlers (TODO.md §2, §3) | Agent | fait | T-006 | non |
 | T-008 | `set_pixel_color` : coloriage ouvert à tous, bail protégé (`PixelLeaseActive`), paiement exact, événement indexable | Agent | à faire | T-006 | **oui** |
 | T-009 | Répartition des paiements : somme exacte, reste d'arrondi explicite, points de base | Agent | à faire | T-008 | **oui** |
 | T-010 | Suite de tests `cw-multi-test` : un test par règle et par variante d'erreur | Agent | à faire | T-008 | non |

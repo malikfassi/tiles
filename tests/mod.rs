@@ -21,4 +21,7 @@ mod core {
     pub mod tile {
         pub mod hash;
     }
+    pub mod validation_input;
+    pub mod validation_lease;
+    pub mod validation_money;
 }
