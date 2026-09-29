@@ -1,6 +1,8 @@
 use anyhow::Result;
 use tiles::core::tile::metadata::PixelUpdate;
-use tiles::defaults::constants::{COLLECTION_SHARE_PERCENT, NATIVE_DENOM, PLATFORM_SHARE_PERCENT};
+use tiles::defaults::constants::{
+    BPS_DENOMINATOR, COLLECTION_SHARE_BPS, NATIVE_DENOM, PLATFORM_SHARE_BPS,
+};
 
 use crate::utils::{EventAssertions, TestSetup};
 
@@ -35,8 +37,8 @@ fn payment_is_distributed_correctly() -> Result<()> {
     );
 
     // The three shares must add up to the price exactly.
-    let collection_share = price.mul_floor(COLLECTION_SHARE_PERCENT);
-    let platform_share = price.mul_floor(PLATFORM_SHARE_PERCENT);
+    let collection_share = price.multiply_ratio(COLLECTION_SHARE_BPS, BPS_DENOMINATOR);
+    let platform_share = price.multiply_ratio(PLATFORM_SHARE_BPS, BPS_DENOMINATOR);
     let owner_share = price - collection_share - platform_share;
     assert_eq!(
         collection_share + platform_share + owner_share,

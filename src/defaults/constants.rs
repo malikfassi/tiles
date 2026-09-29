@@ -1,4 +1,4 @@
-use cosmwasm_std::{Decimal, Uint128};
+use cosmwasm_std::Uint128;
 
 // Protocol constants that should never change
 pub const PIXELS_PER_TILE: usize = 100;
@@ -16,11 +16,18 @@ pub const PIXEL_MAX_EXPIRATION: u64 = 86400; // 24 hours
 // Stargaze 2.0 is a frontend orchestration (Skip swap), not a contract capability.
 pub const NATIVE_DENOM: &str = "uatom";
 
-// Payment split applied to every pixel sale, in percent of the total price.
-// The remainder goes to the tile owner. Collection share is capped at 10 %
-// by the CW721 collection extension (Stargaze 2.0 limit).
-pub const COLLECTION_SHARE_PERCENT: Decimal = Decimal::percent(5);
-pub const PLATFORM_SHARE_PERCENT: Decimal = Decimal::percent(2);
+// Payment split applied to every pixel sale. Expressed in basis points
+// (1 bp = 0.01 %) because on-chain money must be computed with integers only:
+// the shares are floored once, and the remainder is given to the tile owner,
+// so the three amounts always add up to the exact total (ADR 0004).
+//
+// The collection share is capped at 10 % (1000 bp) by the CW721 collection
+// extension, which is the royalty limit of Stargaze 2.0.
+pub const COLLECTION_SHARE_BPS: u64 = 500; // 5 %
+pub const PLATFORM_SHARE_BPS: u64 = 200; // 2 %
+
+/// Total of the basis point scale: 10 000 bp = 100 %.
+pub const BPS_DENOMINATOR: u64 = 10_000;
 
 // Price floor for a pixel sale, in micro ATOM.
 pub const MIN_PIXEL_PRICE: Uint128 = Uint128::new(100_000); // 0.1 ATOM

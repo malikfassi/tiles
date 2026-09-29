@@ -17,7 +17,7 @@
 | T-006 | Refonte de l'état : pixels par tuile interrogeables, prix par tuile, timestamps cosmwasm | Agent | fait | T-004 | **oui** |
 | T-007 | Validation et erreurs : variantes dédiées, bornes vérifiées dans les handlers (TODO.md §2, §3) | Agent | fait | T-006 | non |
 | T-008 | `set_pixel_color` : coloriage ouvert à tous, bail protégé (`PixelLeaseActive`), paiement exact, événement indexable | Agent | fait | T-006 | **oui** |
-| T-009 | Répartition des paiements : somme exacte, reste d'arrondi explicite, points de base | Agent | à faire | T-008 | **oui** |
+| T-009 | Répartition des paiements : somme exacte, reste d'arrondi explicite, points de base | Agent | fait | T-008 | **oui** |
 | T-010 | Suite de tests `cw-multi-test` : un test par règle et par variante d'erreur | Agent | à faire | T-008 | non |
 | T-011 | Migration d'état documentée et testée (schéma versionné) | Agent | à faire | T-006 | **oui** |
 | T-012 | Scripts de déploiement testnet Cosmos Hub (`gaiad`) + constantes (`CHAIN_ID`, `NODE_URL`, denom ATOM) | Agent | à faire | T-010 | non |
@@ -49,6 +49,14 @@ et détenu par quelqu'un d'autre ne peut pas être écrasé : erreur dédiée `P
 tarif normal, expiration recomptée depuis `env.block.time`, sans premium (amendement ADR 0004). À expiration, le pixel redevient libre.
 Critères : un test par cas (pixel libre, bail actif par un tiers, bail actif par son titulaire, bail expiré, bail expirant exactement à l'instant du bloc, prolongation qui recompte depuis le bloc courant).
 
-**T-009 — Répartition des paiements.** Somme des parts == montant reçu, reliquat d'arrondi attribué explicitement au propriétaire,
-part de royalties bornée (≤ 10 %). Le paiement provient d'une seule dénomination, vérifiée.
-Critères : test avec des montants provoquant des arrondis non nuls ; test d'un envoi multi-denom rejeté ; test d'un montant insuffisant et excédentaire.
+**T-009 — Répartition des paiements.** Fait le 2026-09-28. Les parts sont en **points de base entiers**
+(`COLLECTION_SHARE_BPS = 500`, `PLATFORM_SHARE_BPS = 200`, `BPS_DENOMINATOR = 10 000`), plus aucun flottant
+dans le chemin de l'argent. `split_payment_bps` floor chaque part une fois et donne le reliquat au propriétaire :
+la somme égale toujours le montant reçu. Le reliquat que le propriétaire absorbe est borné à 2 unités
+(une par part tronquée), prouvé par balayage de 1 à 2 000 plus quelques grandes valeurs.
+`Config` porte `collection_share_bps: u64` / `platform_share_bps: u64` au lieu de `Decimal` : **changement de
+schéma d'état à couvrir par la migration T-011**. `split_payment(Decimal)` reste en enveloppe de compatibilité,
+avec un test d'équivalence sur 6 montants dont `u128::MAX`.
+Tests : `tests/core/validation_money.rs` (unitaire) et `tests/contract/pixel/split.rs` (bout en bout : soldes
+réels mouvementés, reliquat non nul vérifié, sous-paiement/sur-paiement/multi-denom/absence de paiement refusés,
+prix revérifié après changement de grille, part collection tronquée et jamais arrondie au supérieur).

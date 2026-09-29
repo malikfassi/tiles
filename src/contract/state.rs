@@ -1,6 +1,6 @@
 use crate::core::pricing::PriceScaling;
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Decimal, Uint128};
+use cosmwasm_std::{Addr, Uint128};
 use cw_storage_plus::Item;
 
 /// Installed once at instantiation, then immutable.
@@ -12,12 +12,12 @@ use cw_storage_plus::Item;
 pub struct Config {
     /// Address receiving the collection share (royalties).
     pub collection_payment_address: Addr,
-    /// Share of every pixel sale going to the collection, in percent of the total price.
-    pub collection_share_percent: Decimal,
+    /// Share of every pixel sale going to the collection, in basis points (500 = 5 %).
+    pub collection_share_bps: u64,
     /// Address receiving the platform share.
     pub platform_payment_address: Addr,
-    /// Share of every pixel sale going to the platform, in percent of the total price.
-    pub platform_share_percent: Decimal,
+    /// Share of every pixel sale going to the platform, in basis points (200 = 2 %).
+    pub platform_share_bps: u64,
     /// Minimum price for a pixel sale, applied on top of the duration-based price.
     pub minimum_price: Uint128,
 }

@@ -1,12 +1,14 @@
 use crate::contract::error::ContractError;
 use crate::core::tile::metadata::{PixelData, PixelUpdate, TileMetadata};
-use crate::defaults::constants::{PIXELS_PER_TILE, PIXEL_MAX_EXPIRATION, PIXEL_MIN_EXPIRATION};
+use crate::defaults::constants::{
+    BPS_DENOMINATOR, PIXELS_PER_TILE, PIXEL_MAX_EXPIRATION, PIXEL_MIN_EXPIRATION,
+};
 use cosmwasm_std::{Addr, Decimal, Timestamp, Uint128};
 use std::collections::HashSet;
 
-/// Maximum share (percent) the collection may take from a pixel sale.
+/// Maximum share (basis points) the collection may take from a pixel sale.
 /// The CW721 collection extension caps royalties at 10 % (Stargaze 2.0 limit).
-pub const MAX_COLLECTION_SHARE_PERCENT: u64 = 10;
+pub const MAX_COLLECTION_SHARE_BPS: u64 = 1_000;
 
 /// Validates the shape of a single update: bounds, colour format, lease duration.
 ///
@@ -105,19 +107,17 @@ pub fn validate_updates_for_tile(
 
 /// Validates the payment split installed at instantiation.
 pub fn validate_shares(
-    collection_share_percent: Decimal,
-    platform_share_percent: Decimal,
+    collection_share_bps: u64,
+    platform_share_bps: u64,
 ) -> Result<(), ContractError> {
-    let total = collection_share_percent
-        .checked_add(platform_share_percent)
-        .map_err(|e| ContractError::Overflow(e.to_string()))?;
+    let total = collection_share_bps
+        .checked_add(platform_share_bps)
+        .ok_or_else(|| ContractError::Overflow("shares do not fit in u64".to_string()))?;
 
-    if total > Decimal::one()
-        || collection_share_percent > Decimal::percent(MAX_COLLECTION_SHARE_PERCENT)
-    {
+    if total > BPS_DENOMINATOR || collection_share_bps > MAX_COLLECTION_SHARE_BPS {
         return Err(ContractError::InvalidShareConfiguration {
-            collection: collection_share_percent.to_string(),
-            platform: platform_share_percent.to_string(),
+            collection: format!("{} bp", collection_share_bps),
+            platform: format!("{} bp", platform_share_bps),
         });
     }
 
@@ -126,15 +126,52 @@ pub fn validate_shares(
 
 /// Splits `total` between collection, platform and tile owner.
 ///
-/// The owner receives the remainder, so the three amounts always add up to `total`
-/// exactly, whatever the rounding of the two shares (ADR 0004, TODO.md §9).
+/// The two shares are floored once each, and the owner receives the remainder, so the
+/// three amounts always add up to `total` exactly whatever the rounding.
+/// Basis points make the rounding explicit: on 12 345 uatom, 5 % is 617.25 → 617,
+/// 2 % is 246.9 → 246, and the owner gets 12 345 - 617 - 246 = 11 482 instead of 11 481.9.
+pub fn split_payment_bps(
+    total: Uint128,
+    collection_share_bps: u64,
+    platform_share_bps: u64,
+) -> (Uint128, Uint128, Uint128) {
+    let denominator = Uint128::from(BPS_DENOMINATOR);
+    let collection = total.multiply_ratio(collection_share_bps, denominator);
+    let platform = total.multiply_ratio(platform_share_bps, denominator);
+    (collection, platform, total - collection - platform)
+}
+
+/// Splits `total` between collection, platform and tile owner.
+///
+/// Thin wrapper on [`split_payment_bps`] for callers that hold shares as `Decimal`
+/// fractions measured against the whole. Every share must stay within `[0, 1]`:
+/// anything else would make the owner's remainder underflow.
 pub fn split_payment(
     total: Uint128,
     collection_share_percent: Decimal,
     platform_share_percent: Decimal,
 ) -> (Uint128, Uint128, Uint128) {
-    let collection = total.mul_floor(collection_share_percent);
-    let platform = total.mul_floor(platform_share_percent);
-    let owner = total - collection - platform;
-    (collection, platform, owner)
+    split_payment_bps(
+        total,
+        share_percent_to_bps(collection_share_percent),
+        share_percent_to_bps(platform_share_percent),
+    )
+}
+
+/// Converts a `Decimal` fraction of the whole into basis points, truncating.
+///
+/// A share above 100 %, or one that cannot be represented on the basis point scale,
+/// is clamped to 10 000 bp: the owner then receives zero rather than the subtraction
+/// underflowing. `validate_shares` rejects those values before any sale.
+fn share_percent_to_bps(share_percent: Decimal) -> u64 {
+    // A `Decimal` stores its value scaled by 10^18, so one whole unit is 10^18 atomics.
+    const ONE: Uint128 = Uint128::new(1_000_000_000_000_000_000);
+    let scaled = share_percent
+        .atomics()
+        .checked_mul(Uint128::from(BPS_DENOMINATOR))
+        .map(|value| value / ONE)
+        .unwrap_or(Uint128::from(BPS_DENOMINATOR));
+
+    // Clamped to 10 000 before the cast, so the conversion is always lossless.
+    scaled.min(Uint128::from(BPS_DENOMINATOR)).u128() as u64
 }

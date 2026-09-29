@@ -3,7 +3,7 @@ use crate::contract::msg::QuoteResponse;
 use crate::contract::state::Config;
 use crate::core::pricing::PriceScaling;
 use crate::core::tile::metadata::PixelUpdate;
-use crate::core::validation::{split_payment, validate_updates};
+use crate::core::validation::{split_payment_bps, validate_updates};
 use cosmwasm_std::Timestamp;
 
 /// Computes what a set of pixel writes costs, and how it will be split.
@@ -25,10 +25,10 @@ pub fn quote(
         total = config.minimum_price;
     }
 
-    let (collection_amount, platform_amount, owner_amount) = split_payment(
+    let (collection_amount, platform_amount, owner_amount) = split_payment_bps(
         total,
-        config.collection_share_percent,
-        config.platform_share_percent,
+        config.collection_share_bps,
+        config.platform_share_bps,
     );
 
     let expirations = updates

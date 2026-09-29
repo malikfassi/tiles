@@ -55,9 +55,9 @@ pub fn instantiate_handler(
         CONTRACT_VERSION,
     )?;
 
-    let collection_share_percent = crate::defaults::constants::COLLECTION_SHARE_PERCENT;
-    let platform_share_percent = crate::defaults::constants::PLATFORM_SHARE_PERCENT;
-    validate_shares(collection_share_percent, platform_share_percent)?;
+    let collection_share_bps = crate::defaults::constants::COLLECTION_SHARE_BPS;
+    let platform_share_bps = crate::defaults::constants::PLATFORM_SHARE_BPS;
+    validate_shares(collection_share_bps, platform_share_bps)?;
 
     let collection_payment_address = match msg.creator {
         Some(creator) => deps.api.addr_validate(&creator)?,
@@ -66,9 +66,9 @@ pub fn instantiate_handler(
 
     let config = Config {
         collection_payment_address,
-        collection_share_percent,
+        collection_share_bps,
         platform_payment_address: info.sender.clone(),
-        platform_share_percent,
+        platform_share_bps,
         minimum_price: crate::defaults::constants::MIN_PIXEL_PRICE,
     };
     CONFIG.save(deps.storage, &config)?;

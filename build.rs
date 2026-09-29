@@ -59,8 +59,8 @@ fn main() {
         // Financial configuration
         "MINT_PRICE": read_const("MINT_PRICE"),
         "MIN_PIXEL_PRICE": read_const("MIN_PIXEL_PRICE"),
-        "COLLECTION_SHARE_PERCENT": read_const("COLLECTION_SHARE_PERCENT"),
-        "PLATFORM_SHARE_PERCENT": read_const("PLATFORM_SHARE_PERCENT"),
+        "COLLECTION_SHARE_BPS": read_const("COLLECTION_SHARE_BPS"),
+        "PLATFORM_SHARE_BPS": read_const("PLATFORM_SHARE_BPS"),
     });
 
     let constants_file = messages_dir.join("constants.json");

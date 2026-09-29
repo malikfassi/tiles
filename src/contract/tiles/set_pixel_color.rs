@@ -6,7 +6,7 @@ use crate::{
     },
     core::{
         tile::metadata::{PixelUpdate, TileMetadata},
-        validation::{is_valid_hex_color, validate_updates, validate_updates_for_tile},
+        validation::{validate_updates, validate_updates_for_tile},
     },
     events::{
         EventData, MetadataUpdateEventData, PaymentDistributionEventData, PixelUpdateEventData,

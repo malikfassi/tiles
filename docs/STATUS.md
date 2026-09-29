@@ -15,8 +15,13 @@ Reprise du projet après abandon (dernier commit : 2025-01-03). Objectif de sess
 - **T-006 fait** : état et temps revus. `Timestamp` de cosmwasm partout (plus de `u64` en secondes), prix calculé par une **source unique** (`core/quote.rs`) partagée entre l'exécution et la nouvelle query `QuotePixelUpdates`, `interpolate()` sans `unwrap()`, événement enrichi (`leased_pixels`).
 - **T-007 fait** : un test unitaire par règle et par variante d'erreur (`tests/core/validation_input.rs`, `validation_lease.rs`, `validation_money.rs`).
 - **T-008 fait** : `set_pixel_color` couvert de bout en bout. **Un bug mort retrouvé dans `single_payment`** (`!is_valid_hex_color("#FFFFFF") && info.funds.is_empty()` : le premier bloc ne s'exécutait jamais) → supprimé. Six nouveaux tests de paiement : montant exact accepté, sous-paiement refusé, sur-paiement refusé, denom inconnu refusé, paiement absent refusé, multi-denom refusé.
+- **T-009 fait** : répartition des paiements en **points de base entiers** (500 / 200 sur 10 000), plus aucun flottant dans le chemin de l'argent. `split_payment_bps` floor chaque part une fois et donne le reliquat au propriétaire : la somme égale toujours le montant reçu, et le reliquat est borné à 2 unités (prouvé par balayage de 1 à 2 000). `Config` passe de `Decimal` à `u64`.
 
-**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **78/78 verts**, `cargo build` OK, `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur (2 warnings de nommage mineurs). Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
+**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **84/84 verts**, `cargo build` OK, `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur nouvelle. Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
+
+## À traiter par la suite (non bloquant)
+- **`src/contract/contract.rs` porte le même nom que son module parent** : lint clippy `module_inception`, **préexistant** à T-009. Signale un vrai défaut de structure (conventions : pas de `contract/contract/`). À corriger dans une tâche dédiée — renommer touche `lib.rs` et les entry points.
+- **T-011 (migration d'état) devient nécessaire pour déployer** : T-009 a changé le schéma de `Config` (`collection_share_percent: Decimal` → `collection_share_bps: u64`), donc tout état existant doit être migré.
 
 ## ✅ Décision tranchée : ADR 0005 — denom de paiement (T-018, fait)
 Recherche faite dans `docs/notes/stargaze-2-denoms-paiement.md` (sources : `paying-with-different-tokens`,
