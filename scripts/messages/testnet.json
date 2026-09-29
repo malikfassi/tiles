@@ -1,0 +1,29 @@
+{
+  "CHAIN_ID": "provider",
+  "NODE_URL": "https://rpc.provider-sentry-01.hub-testnet.polypore.xyz",
+  "GAS_PRICE": "0.025",
+  "GAS_ADJUSTMENT": "1.3",
+  "BROADCAST_MODE": "sync",
+  "KEYRING_BACKEND": "test",
+
+  "COLLECTION_NAME": "Tiles",
+  "COLLECTION_SYMBOL": "TILE",
+  "COLLECTION_DESCRIPTION": "A collaborative pixel art canvas",
+  "COLLECTION_URI": "",
+  "ROYALTY_SHARE": "0.05",
+
+  "NATIVE_DENOM": "uatom",
+  "DEFAULT_COLOR": "#FFFFFF",
+  "TILE_SIZE": "10",
+  "PIXELS_PER_TILE": "100",
+  "PIXEL_MIN_EXPIRATION": "3600",
+  "PIXEL_MAX_EXPIRATION": "86400",
+
+  "MINT_PRICE": "1000000",
+  "MIN_PIXEL_PRICE": "100000",
+  "COLLECTION_SHARE_BPS": "500",
+  "PLATFORM_SHARE_BPS": "200",
+
+  "KEY_NAME": "tiles-testnet",
+  "DEPLOYER_ADDRESS": ""
+}

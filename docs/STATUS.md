@@ -22,7 +22,20 @@ Reprise du projet après abandon (dernier commit : 2025-01-03). Objectif de sess
 
 - **T-013 fait** : note `docs/notes/testnet-cosmos-hub.md`. **La croyance « le testnet du Hub accepte un upload libre » est fausse.** Gaia embarque le module wasm, mais l'upload est réservé à la gouvernance (`NewKeeper(..., govtypes.ModuleName, ...)`), et le testnet `provider` utilise la même application. Note d'écosystème corrigée.
 
-**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **115/115 verts** (vérifié avec `-- --list`), `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur nouvelle, tous les scripts passent `bash -n`. Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
+## ⚠️ Décisions en attente pour Malik
+- **T-016 / T-017 (orchestration web et interface)** : mis en `attente-malik`. Le choix de **où vivent la lecture des
+  événements et l'indexation** (client RPC direct, indexer maison, indexer tiers, ou décision reportée) engage
+  l'architecture et conditionne les deux tâches. Question posée, réponse en attente.
+- **T-014 (déploiement testnet)** : de type `Manuel`. Le scénario est prêt à être joué (voir T-019) ; il faut une clé
+  financée sur le testnet `provider` et `gaiad` installé.
+
+## Où en est le produit, concrètement
+**11 tâches sur 19 sont faites** (T-001 à T-013, T-018, T-019). Aucune tâche d'agent n'est bloquée par une autre :
+les restantes sont soit manuelles (T-014), soit des décisions (T-015), soit en attente de Malik (T-016, T-017).
+
+**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **115/115 verts** (vérifié avec `-- --list`),
+`cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur nouvelle, tous les scripts passent `bash -n`.
+Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
 
 ## À traiter par la suite (non bloquant)
 - **`src/contract/contract.rs` porte le même nom que son module parent** : lint clippy `module_inception`, **préexistant** à T-009. Signale un vrai défaut de structure (conventions : pas de `contract/contract/`). À corriger dans une tâche dédiée — renommer touche `lib.rs` et les entry points.

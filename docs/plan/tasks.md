@@ -25,8 +25,32 @@
 | T-014 | Déployer le contrat sur le testnet du Hub et minter une tuile | Manuel | à faire | T-012, T-013 | — |
 | T-015 | ADR production : Studio 2.0 + logique hors chaîne vs proposition de gouvernance | Décision | à faire | T-014 | — |
 | T-018 | ADR 0005 : denom de paiement (frais vs royalties, multi-denom à terme) | Décision | fait | T-008 | non |
-| T-016 | Orchestration web : lecture des pixels et des événements du contrat | Agent | à faire | T-010 | non |
-| T-017 | Interface : canvas de tuiles et coloriage, réutiliser `mosaic/frontend` | Agent | à faire | T-016 | non |
+| T-016 | Orchestration web : lecture des pixels et des événements du contrat | Agent | **attente-malik** | T-010 | non |
+| T-017 | Interface : canvas de tuiles et coloriage, réutiliser `mosaic/frontend` | Agent | **attente-malik** | T-016 | non |
+| T-019 | Scénario e2e en ligne de commande (`scripts/e2e.sh`) avec assertions on-chain | Agent | fait | T-012 | non |
+
+**T-019 — Scénario e2e en ligne de commande.** Ajouté à la demande de Malik (session du 2026-09-28) : avant toute
+partie web, un e2e réel avec le contrat, piloté uniquement par `gaiad`. `scripts/e2e.sh` exécute le parcours
+complet et **assertionne chaque fait on-chain**, en nommant la règle vérifiée :
+
+1. prérequis : `gaiad`, `jq`, solde suffisant, contrat déployé et joignable ;
+2. instantiation : parts en points de base, adresse de collection, royalties CW721 déclarées ;
+3. mint : la tuile a ses 100 pixels, pixel 0 en `#FFFFFF`, propriétaire correct ;
+4. **prix** : le devis vient du contrat (`QuotePixelUpdates`), les trois parts s'additionnent exactement au total,
+   un **sous-paiement d'une unité est refusé**, le paiement exact passe, et la couleur change réellement on-chain
+   (relecture de `tile_pixels`) ;
+5. **bail (ADR 0004)** : le titulaire peut recolorier son propre pixel, et son expiration est **prolongée**,
+   pas réinitialisée à la même valeur ;
+6. **paiement** : le solde du payeur diminue, et l'événement `payment_distribution` reporte exactement le total payé.
+
+Configuration testnet dédiée : `scripts/messages/testnet.json` (chain-id `provider`, RPC polypore, faucet).
+Usage : `scripts/e2e.sh testnet`. Sans `gaiad` sur la machine, le script sort en erreur explicitement au lieu
+de faire semblant : il est donc sûr à rejouer.
+
+**Ce que ce scénario ne peut pas couvrir** : le cas « un tiers ne peut pas écraser un bail actif » exige un
+second signataire, donc une seconde clé financée. Il reste couvert par `cw-multi-test` et les tests unitaires
+(`PixelLeaseActive`), et deviendra vérifiable sur chaîne dès que deux clés existeront dans le keyring.
+
 
 ## Détail des tâches à venir
 
