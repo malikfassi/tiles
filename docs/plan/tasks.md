@@ -18,7 +18,7 @@
 | T-007 | Validation et erreurs : variantes dédiées, bornes vérifiées dans les handlers (TODO.md §2, §3) | Agent | fait | T-006 | non |
 | T-008 | `set_pixel_color` : coloriage ouvert à tous, bail protégé (`PixelLeaseActive`), paiement exact, événement indexable | Agent | fait | T-006 | **oui** |
 | T-009 | Répartition des paiements : somme exacte, reste d'arrondi explicite, points de base | Agent | fait | T-008 | **oui** |
-| T-010 | Suite de tests `cw-multi-test` : un test par règle et par variante d'erreur | Agent | à faire | T-008 | non |
+| T-010 | Suite de tests `cw-multi-test` : un test par règle et par variante d'erreur | Agent | fait | T-008 | non |
 | T-011 | Migration d'état documentée et testée (schéma versionné) | Agent | à faire | T-006 | **oui** |
 | T-012 | Scripts de déploiement testnet Cosmos Hub (`gaiad`) + constantes (`CHAIN_ID`, `NODE_URL`, denom ATOM) | Agent | à faire | T-010 | non |
 | T-013 | Vérifier que le wasm du testnet du Hub est déployable librement (note `docs/notes/`) | Agent | à faire | — | non |

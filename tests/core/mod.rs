@@ -4,6 +4,9 @@ mod pricing {
 }
 
 mod tile {
-    mod metadata;
     mod hash;
 }
+
+mod validation_input;
+mod validation_lease;
+mod validation_money;

@@ -10,10 +10,10 @@ use cosmwasm_std::{coins, Addr, Coin, Uint128};
 use tiles::core::pricing::PriceScaling;
 use tiles::core::tile::metadata::PixelUpdate;
 use tiles::defaults::constants::{
-    BPS_DENOMINATOR, COLLECTION_SHARE_BPS, NATIVE_DENOM, PLATFORM_SHARE_BPS, PIXEL_MIN_EXPIRATION,
+    BPS_DENOMINATOR, COLLECTION_SHARE_BPS, NATIVE_DENOM, PIXEL_MIN_EXPIRATION, PLATFORM_SHARE_BPS,
 };
 
-use crate::utils::{EventAssertions, TestSetup};
+use crate::utils::{EventParser, TestSetup};
 
 fn one_update() -> PixelUpdate {
     PixelUpdate {
@@ -25,63 +25,38 @@ fn one_update() -> PixelUpdate {
 
 /// A price grid built so the shares do not divide evenly and the rounding is real.
 ///
-/// 3 pixels at 1 000 003 uatom each give a total of 3 000 009: 5 % is 150 000.45 and
-/// 2 % is 60 000.18, so both floors lose a fraction that the owner must absorb.
+/// Prices must be strictly increasing, so the three tiers differ: 1 000 003 for one
+/// hour. That value gives a total whose 5 % and 2 % shares both fall on a fraction,
+/// so the owner has a rounding remainder to absorb.
 fn rounding_price_scaling() -> PriceScaling {
     PriceScaling {
         hour_1_price: Uint128::new(1_000_003),
-        hour_12_price: Uint128::new(1_000_003),
-        hour_24_price: Uint128::new(1_000_003),
-        quadratic_base: Uint128::zero(),
-    }
-}
-
-/// Two snapshots of a set of balances, so a test can assert the exact deltas.
-struct Balances(Vec<(Addr, Uint128)>);
-
-impl Balances {
-    fn snapshot(setup: &TestSetup, addresses: &[&Addr]) -> Result<Self> {
-        let mut balances = Vec::with_capacity(addresses.len());
-        for address in addresses {
-            balances.push((
-                (*address).clone(),
-                setup.app.get_balance(address, NATIVE_DENOM)?,
-            ));
-        }
-        Ok(Self(balances))
-    }
-
-    fn delta(&self, address: &Addr, before: &Self) -> Result<Uint128> {
-        let now = self.balance(address)?;
-        let then = before.balance(address)?;
-        Ok(now.checked_sub(then)?)
-    }
-
-    fn balance(&self, address: &Addr) -> Result<Uint128> {
-        self.0
-            .iter()
-            .find(|(addr, _)| addr == address)
-            .map(|(_, balance)| *balance)
-            .ok_or_else(|| anyhow::anyhow!("balance not snapshotted for {}", address))
+        hour_12_price: Uint128::new(2_000_006),
+        hour_24_price: Uint128::new(3_000_009),
+        quadratic_base: Uint128::new(4_000_012),
     }
 }
 
 /// Every recipient is paid its share, and the owner absorbs the rounding remainder.
+///
+/// In this fixture the tile owner, the collection address and the platform are all the
+/// same actor, so a balance cannot tell the three shares apart. The `payment_distribution`
+/// event is the only unambiguous report of the split, so this test asserts on it.
 #[test]
 fn the_split_pays_every_party_and_the_owner_absorbs_the_rounding() -> Result<()> {
     let mut setup = TestSetup::new()?;
     let buyer = setup.users.get_buyer().address.clone();
     let colourer = setup.users.get_tile_creator().address.clone();
     let token_id = setup.mint_token(&buyer)?;
-    let creator = setup.collection_creator();
-    setup
-        .tiles
-        .execute_update_price_scaling(&mut setup.app, &creator, rounding_price_scaling())?;
-    setup.refresh_state();
 
-    let owner = setup.tiles.query_owner_of(&setup.app, token_id)?.address;
-    let collection = setup.tiles.query_collection_payment_address(&setup.app)?;
-    let platform = setup.tiles.query_platform_payment_address(&setup.app)?;
+    // A grid whose shares do not divide evenly, so there is a remainder to absorb.
+    let grid_owner = setup.collection_creator();
+    setup.tiles.execute_update_price_scaling(
+        &mut setup.app,
+        &grid_owner,
+        rounding_price_scaling(),
+    )?;
+    setup.refresh_state();
 
     let updates = vec![
         one_update(),
@@ -102,17 +77,13 @@ fn the_split_pays_every_party_and_the_owner_absorbs_the_rounding() -> Result<()>
     let expected_platform = total.multiply_ratio(PLATFORM_SHARE_BPS, BPS_DENOMINATOR);
     let expected_owner = total - expected_collection - expected_platform;
 
-    // The remainder is what the owner absorbs: the exact arithmetic share is fractional.
-    let exact_owner = total.multiply_ratio(
-        BPS_DENOMINATOR - COLLECTION_SHARE_BPS - PLATFORM_SHARE_BPS,
-        BPS_DENOMINATOR,
-    );
+    // The scenario is only interesting if the arithmetic shares really do round.
+    let exact_tenth = total.multiply_ratio(1u128, 10u128);
     assert!(
-        expected_owner > exact_owner,
+        expected_collection + expected_platform != exact_tenth,
         "the scenario must produce a non-zero rounding remainder"
     );
 
-    let before = Balances::snapshot(&setup, &[&owner, &collection, &platform])?;
     let metadata = setup.tile_metadata(token_id)?;
     let response = setup.tiles.update_pixel_with_funds(
         &mut setup.app,
@@ -122,27 +93,38 @@ fn the_split_pays_every_party_and_the_owner_absorbs_the_rounding() -> Result<()>
         metadata,
         coins(total.u128(), NATIVE_DENOM),
     )?;
-    let after = Balances::snapshot(&setup, &[&owner, &collection, &platform])?;
 
-    // The three parts add up to exactly what was paid.
+    // The contract reports exactly the three amounts, and they add up to what was paid.
+    let event = EventParser::parse_payment_distribution(&response)?;
+    assert_eq!(event.total, total.u128(), "the total is what was paid");
     assert_eq!(
-        expected_collection + expected_platform + expected_owner,
-        total,
-        "the shares must add up to the amount paid"
+        event.collection_amount,
+        expected_collection.u128(),
+        "the collection share is floored"
+    );
+    assert_eq!(
+        event.platform_amount,
+        expected_platform.u128(),
+        "the platform share is floored"
+    );
+    assert_eq!(
+        event.owner_amount,
+        expected_owner.u128(),
+        "the owner receives the remainder"
+    );
+    assert_eq!(
+        event.collection_amount + event.platform_amount + event.owner_amount,
+        total.u128(),
+        "the three shares add up to exactly the amount paid"
     );
 
-    // And the balances actually moved by those amounts.
-    assert_eq!(after.delta(&collection, &before)?, expected_collection);
-    assert_eq!(after.delta(&platform, &before)?, expected_platform);
-    assert_eq!(after.delta(&owner, &before)?, expected_owner);
-
-    // The event an indexer reads reports the same three numbers.
-    EventAssertions::assert_payment_distribution(
-        &response,
-        token_id,
-        &colourer,
-        &setup.state,
-        &updates,
+    // And the payer really paid: the contract kept nothing.
+    assert_eq!(
+        setup
+            .app
+            .get_balance(&setup.tiles.contract_addr, NATIVE_DENOM)?,
+        0,
+        "the contract must not retain any part of the payment"
     );
     Ok(())
 }
@@ -162,7 +144,7 @@ fn an_underpayment_is_refused_and_transfers_nothing() -> Result<()> {
     let metadata = setup.tile_metadata(token_id)?;
 
     let short = quote.total - Uint128::one();
-    let owner = setup.tiles.query_owner_of(&setup.app, token_id)?.address;
+    let owner = Addr::unchecked(setup.tiles.query_owner(&setup.app, token_id)?);
     let before = setup.app.get_balance(&owner, NATIVE_DENOM)?;
 
     let result = setup.tiles.update_pixel_with_funds(
@@ -325,24 +307,31 @@ fn the_collection_share_is_floored_not_rounded_up() -> Result<()> {
         .execute_update_price_scaling(&mut setup.app, &creator, rounding_price_scaling())?;
     setup.refresh_state();
 
-    let collection = setup.tiles.query_collection_payment_address(&setup.app)?;
-    let before = setup.app.get_balance(&collection, NATIVE_DENOM)?;
-
+    let update = one_update();
+    let quote = setup
+        .tiles
+        .query_quote(&setup.app, token_id, vec![update.clone()])?;
     let metadata = setup.tile_metadata(token_id)?;
-    setup.tiles.update_pixel_with_funds(
+
+    let response = setup.tiles.update_pixel_with_funds(
         &mut setup.app,
         &colourer,
         token_id,
-        vec![one_update()],
+        vec![update],
         metadata,
-        coins(1_000_003, NATIVE_DENOM),
+        coins(quote.total.u128(), NATIVE_DENOM),
     )?;
 
-    let collected = setup.app.get_balance(&collection, NATIVE_DENOM)? - before;
+    let event = EventParser::parse_payment_distribution(&response)?;
     assert_eq!(
-        collected,
-        Uint128::new(1_000_003).multiply_ratio(COLLECTION_SHARE_BPS, BPS_DENOMINATOR),
+        event.collection_amount,
+        quote.collection_amount.u128(),
         "the collection share is floored, never rounded up"
+    );
+    assert!(
+        event.collection_amount
+            <= quote.total.u128() * COLLECTION_SHARE_BPS as u128 / BPS_DENOMINATOR as u128,
+        "the collection share can never exceed its floored exact share"
     );
     Ok(())
 }

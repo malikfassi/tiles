@@ -16,12 +16,27 @@ Reprise du projet après abandon (dernier commit : 2025-01-03). Objectif de sess
 - **T-007 fait** : un test unitaire par règle et par variante d'erreur (`tests/core/validation_input.rs`, `validation_lease.rs`, `validation_money.rs`).
 - **T-008 fait** : `set_pixel_color` couvert de bout en bout. **Un bug mort retrouvé dans `single_payment`** (`!is_valid_hex_color("#FFFFFF") && info.funds.is_empty()` : le premier bloc ne s'exécutait jamais) → supprimé. Six nouveaux tests de paiement : montant exact accepté, sous-paiement refusé, sur-paiement refusé, denom inconnu refusé, paiement absent refusé, multi-denom refusé.
 - **T-009 fait** : répartition des paiements en **points de base entiers** (500 / 200 sur 10 000), plus aucun flottant dans le chemin de l'argent. `split_payment_bps` floor chaque part une fois et donne le reliquat au propriétaire : la somme égale toujours le montant reçu, et le reliquat est borné à 2 unités (prouvé par balayage de 1 à 2 000). `Config` passe de `Decimal` à `u64`.
+- **T-010 fait** : `tests/contract/errors.rs`, **15 tests, un par variante d'erreur atteignable**, chacun asserant la variante exacte. Deux corrections de fond au passage : `tests/mod.rs` ne chargeait pas les fichiers `mod.rs` (les tests d'intégration écrits en T-009 n'étaient **jamais compilés**), et `cw-multi-test` ne transmet pas l'erreur du contrat — les variantes se testent donc en appelant les handlers avec `mock_dependencies`.
 
-**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **84/84 verts**, `cargo build` OK, `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur nouvelle. Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
+**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **104/104 verts** (vérifié avec `-- --list` : les 104 tests existent bien dans le binaire), `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur nouvelle. Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
 
 ## À traiter par la suite (non bloquant)
 - **`src/contract/contract.rs` porte le même nom que son module parent** : lint clippy `module_inception`, **préexistant** à T-009. Signale un vrai défaut de structure (conventions : pas de `contract/contract/`). À corriger dans une tâche dédiée — renommer touche `lib.rs` et les entry points.
 - **T-011 (migration d'état) devient nécessaire pour déployer** : T-009 a changé le schéma de `Config` (`collection_share_percent: Decimal` → `collection_share_bps: u64`), donc tout état existant doit être migré.
+- **`tests/contract/pixel/validation.rs` n'assertent que `is_err()`** : ils passent si le contrat renvoie la mauvaise erreur. Doublés par `tests/contract/errors.rs`, mais à nettoyer un jour.
+
+## Ordre de validation du contrat (établi par T-010, à ne pas contredire)
+1. Forme du message (`InvalidPixelId`, `InvalidColorFormat`, `DuplicatePixelId`, `EmptyUpdates`, bornes de bail).
+2. Règles dépendant de l'état, une fois la tuile chargée : `TileNotFound` avant tout examen des fonds.
+3. **Paiement** (`InvalidPayment`) — avant le contrôle du hash de métadonnées.
+4. `MetadataHashMismatch` (verrou optimiste).
+5. `PixelLeaseActive`, puis écriture d'état.
+
+## Piège de structure des tests (T-009/T-010)
+`tests/mod.rs` est le **seul** point d'entrée de la suite d'intégration. Il déclare `pub mod contract;` et `pub mod core;`,
+qui délèguent aux fichiers `mod.rs`. Un fichier de test ajouté dans un dossier **sans** être déclaré dans le
+`mod.rs` correspondant est silencieusement ignoré : `cargo test` reste vert. Vérifier la présence du test avec
+`cargo test -- --list` avant de conclure qu'il passe.
 
 ## ✅ Décision tranchée : ADR 0005 — denom de paiement (T-018, fait)
 Recherche faite dans `docs/notes/stargaze-2-denoms-paiement.md` (sources : `paying-with-different-tokens`,
