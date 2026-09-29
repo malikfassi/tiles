@@ -37,8 +37,13 @@ Date : 2026-09-28. Sources vérifiées dans la session de reprise du projet. **N
   - ⚠️ Numéros de propositions exacts et dates à confirmer un jour sur Mintscan : les explorateurs web étaient inaccessibles
     pendant la rédaction de cette note.
 - Osmosis fonctionne sur le même modèle (whitelist par gouvernance), donc ce n'est pas une spécificité du Hub.
-- Le **testnet du Cosmos Hub** est la voie libre pour un contrat custom (faucet ATOM, Keplr, même environnement logiciel que Stargaze 2.0).
-  Binaire : `gaiad`. Repo des testnets : `github.com/cosmos/testnets` (branche `provider` / répertoire `testnets`).
+- ⚠️ **Correction (T-013)** : le Hub **embarque bien le module wasm** (Gaia v29 importe `github.com/CosmWasm/wasmd/x/wasm`),
+  et l'upload de code y est **réservé à la gouvernance** (`NewKeeper(..., govtypes.ModuleName, ...)`).
+  Le testnet `provider` utilise la même application `gaiad`, donc **l'upload n'y est pas libre non plus**.
+  Détail et sources : `docs/notes/testnet-cosmos-hub.md`. Le repli sans dépendre de personne est une chaîne
+  locale `gaiad` en Docker.
+- Binaire : `gaiad`. Testnet : `provider` (denom `uatom`, faucet `faucet.polypore.xyz`).
+  Repo des testnets : `github.com/cosmos/testnets` (répertoire `provider`).
 
 ## Autres chaînes (pour mémoire, non retenues)
 

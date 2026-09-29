@@ -20,6 +20,8 @@ Reprise du projet après abandon (dernier commit : 2025-01-03). Objectif de sess
 - **T-011 fait** : le contrat n'avait **aucun entry point `migrate`** — impossible à mettre à jour en place. `migrate_handler` + événement `migration`, avec 7 tests. Règle retenue : le nom de contrat doit correspondre, migrer depuis la version courante est un no-op, **toute autre version est refusée** plutôt que devinée.
 - **T-012 fait** : scripts de déploiement portés de Stargaze L1 vers le Cosmos Hub. `starsd`, `ustars`, `vending-*` et `sg721` **entièrement retirés** ; tout passe par `gaiad` et `uatom`. Scripts : `01_build`, `02_deploy`, `03_mint`, `04_set_pixel_color`, `query_contract`, `query_tx`, plus 4 tests qui font le pont script↔contrat. **Trois bugs corrigés au passage** : `build.rs` corrompait toutes les constantes exportées (`MIN_PIXEL_PRICE` valait `128100000`), `00_load_constants.sh` cassait sur tout espace (la description de collection était tronquée à `A`), et le message d'instantiation était rejeté par la chaîne (`share` doit être une chaîne, pas un nombre JSON).
 
+- **T-013 fait** : note `docs/notes/testnet-cosmos-hub.md`. **La croyance « le testnet du Hub accepte un upload libre » est fausse.** Gaia embarque le module wasm, mais l'upload est réservé à la gouvernance (`NewKeeper(..., govtypes.ModuleName, ...)`), et le testnet `provider` utilise la même application. Note d'écosystème corrigée.
+
 **Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **115/115 verts** (vérifié avec `-- --list`), `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur nouvelle, tous les scripts passent `bash -n`. Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
 
 ## À traiter par la suite (non bloquant)
