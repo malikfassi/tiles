@@ -216,3 +216,41 @@ fn colouring_an_unknown_tile_is_refused() -> Result<()> {
     assert!(result.is_err(), "an unknown tile must be refused");
     Ok(())
 }
+
+/// The payment denom is `uatom` by decision (ADR 0005), and it is not configurable.
+///
+/// This test locks the decision: if someone changes the denom or makes it configurable
+/// without reopening the ADR, this fails.
+#[test]
+fn the_only_accepted_denom_is_uatom() -> Result<()> {
+    let mut setup = TestSetup::new()?;
+    let buyer = setup.users.get_buyer().address.clone();
+    let colourer = setup.users.get_tile_creator().address.clone();
+    let token_id = setup.mint_token(&buyer)?;
+
+    assert_eq!(
+        NATIVE_DENOM, "uatom",
+        "ADR 0005: uatom is the payment denom, hard-coded on purpose"
+    );
+
+    // A payment in any other denom is refused, even for the right amount.
+    let update = one_update();
+    let price_scaling = setup.state.get_price_scaling()?;
+    let amount = price_scaling.calculate_price(update.expiration_duration);
+    let metadata = setup.tile_metadata(token_id)?;
+
+    let result = setup.tiles.update_pixel_with_funds(
+        &mut setup.app,
+        &colourer,
+        token_id,
+        vec![update],
+        metadata,
+        vec![Coin {
+            denom: "uosmo".to_string(),
+            amount,
+        }],
+    );
+
+    assert!(result.is_err(), "only the configured denom may be accepted");
+    Ok(())
+}

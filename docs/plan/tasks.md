@@ -24,7 +24,7 @@
 | T-013 | Vérifier que le wasm du testnet du Hub est déployable librement (note `docs/notes/`) | Agent | à faire | — | non |
 | T-014 | Déployer le contrat sur le testnet du Hub et minter une tuile | Manuel | à faire | T-012, T-013 | — |
 | T-015 | ADR production : Studio 2.0 + logique hors chaîne vs proposition de gouvernance | Décision | à faire | T-014 | — |
-| T-018 | ADR 0005 : denom de paiement (frais vs royalties, multi-denom à terme) | Décision | **attente-malik** | T-008 | **oui** |
+| T-018 | ADR 0005 : denom de paiement (frais vs royalties, multi-denom à terme) | Décision | fait | T-008 | non |
 | T-016 | Orchestration web : lecture des pixels et des événements du contrat | Agent | à faire | T-010 | non |
 | T-017 | Interface : canvas de tuiles et coloriage, réutiliser `mosaic/frontend` | Agent | à faire | T-016 | non |
 

@@ -1,46 +1,53 @@
 # 0005 — Denom de paiement des pixels
 
-- Statut : proposé
+- Statut : accepté
 - Date : 2026-09-28
 
 ## Contexte
-`NATIVE_DENOM` vaut `uatom` et c'est aussi le denom dans lequel le contrat paie ses trois parts.
-Or sur le Cosmos Hub, `uatom` est le denom des frais de transaction : la part « collection »
-(5 % aujourd'hui) serait donc versée dans le denom qui finance les frais, ce qui la rend
-structurellement ambiguë — elle finance l'exécution avant d'être une recette.
+`NATIVE_DENOM` vaut `uatom` : le prix des pixels, la part collection et la part plateforme sont
+tous exprimés et versés dans ce denom. Or `uatom` est aussi le denom des frais de transaction
+sur le Cosmos Hub, ce qui soulevait la crainte que la part « collection » se confonde avec un coût.
 
-Second problème : le contrat n'accepte qu'un seul denom. Le prix est une constante en `uatom`.
-Toute évolution vers un stablecoin (prix lisible en USD, volatilité nulle) obligerait à redéployer.
+La question a été tranchée par une recherche documentée dans
+`docs/notes/stargaze-2-denoms-paiement.md` : **ce n'est pas un problème, c'est le comportement
+de référence de Stargaze 2.0.** ATOM y est le token principal, et l'exemple officiel de répartition
+des frais du marketplace est lui-même libellé en ATOM (vente de 100 ATOM → 92 vendeur, 5 créateur, 2 marketplace).
+Les frais de gas sont un flux distinct, payé par l'acheteur en plus du prix.
 
-Le bug a été révélé par T-008 : un test qui payait en « mauvais » denom a été accepté,
-car ce mauvais denom était en réalité le seul denom reconnu.
+Le multi-token existe bien chez Stargaze 2.0 (ATOM, TIA, BTC, STARS, USDC), mais c'est une **couche
+d'orchestration** : le frontend enchaîne un swap automatique (propulsé par Skip) avant l'achat.
+Un contrat CW721 autonome ne peut pas la reproduire sans dépendre d'un routeur externe.
+
+Le bug révélé par T-008 reste valable et est corrigé : le contrat doit refuser tout denom qu'il
+ne reconnaît pas (test `an_unknown_denom_is_refused`).
 
 ## Décision
-À trancher par Malik. Les trois options ci-dessous sont argumentées, aucune n'est retenue ici.
+**Option B retenue (Malik, 2026-09-28) : `uatom` est le denom de paiement, en dur.**
 
-**Option A — denom de paiement explicite, distinct des frais.**
-Un champ `payment_denom` dans `Config`, choisi à l'instantiation (par exemple `uusdc` sur le Hub),
-distinct du denom des frais. Le prix, la part collection et la part plateforme sont exprimés dans ce denom.
-
-**Option B — `uatom` assumé comme denom de paiement.**
-On assume que la part collection finance les frais, et on le documente. Aucun changement de code.
-
-**Option C — plusieurs denoms acceptés, avec prix par denom.**
-`Config` porte une table denom → prix. Un payeur choisit son denom. Plus riche, plus lourd :
-table de prix, oracle ou prix administrés, un test par denom.
+1. Le prix d'un pixel, la part collection et la part plateforme sont exprimés en `uatom`
+   (`defaults::constants::NATIVE_DENOM`), et le contrat paie ses trois parts dans ce denom.
+2. Le contrat accepte **exactement un coin `uatom`** et refuse tout autre denom, tout paiement
+   vide, tout paiement multi-denom, tout montant différent du prix annoncé.
+3. Aucun champ de configuration de denom n'est ajouté. Le denom est une constante de compilation.
 
 ## Conséquences
-- Quelle que soit l'option, **le contrat doit refuser tout denom qu'il ne reconnaît pas**. C'est déjà
-  le comportement actuel et il est testé.
-- L'option A est la seule qui rend la part collection économiquement lisible. Elle ajoute un champ
-  à `Config`, donc une migration d'état (T-011) et un impact sur les scripts de déploiement.
-- L'option C multiplie les chemins de test et introduit une source de vérité pour les prix
-  hors chaîne (ou une administration on-chain) : contraire pour l'instant à « pas de dépendance externe ».
-- Décider tard coûte une migration ; décider tôt avec le mauvais denom coûte un redéploiement.
+- Le contrat reste conforme au standard de fait de Stargaze 2.0 et son comportement de paiement
+  est celui de l'écosystème : une vente en ATOM verse ses parts en ATOM.
+- Changer de denom un jour (par exemple un stablecoin) **exige un redéploiement**. C'est assumé :
+  le coût d'un `Config` dénormalisable est jugé supérieur au bénéfice tant qu'aucun besoin produit
+  ne le justifie.
+- Les frais de transaction restent payés par l'appelant en ATOM, en plus du prix. Si le denom
+  de paiement devenait un jour un stablecoin, ce serait toujours le cas.
+- Le support multi-denom (option C) est **hors périmètre du contrat** : si le produit le veut un jour,
+  l'orchestration (swap Skip) vit dans la couche web, pas dans le contrat.
 
 ## Alternatives écartées
-- **Fixer le denom du load-balancing côté distributeur** : hors du contrat, ne règle rien on-chain.
-- **Ne pas décider et laisser `uatom` implicite** : c'est l'état actuel, et il est ambigu (part collection = frais).
+- **Option A — denom configurable distinct des frais (ex. `uusdc`)** : écartée. Elle reposait sur
+  l'hypothèse d'un problème (« la part collection finance les frais ») que la documentation invalide.
+  Ajouter un champ, une migration et des scripts de déploiement pour un bénéfice nul.
+- **Option C — plusieurs denoms avec prix par denom** : écartée. Le multi-token de Stargaze 2.0 est
+  une couche d'application adossée à un routeur (Skip) ; la reproduire on-chain introduirait une
+  dépendance externe, contraire aux règles du projet, pour un coût de tests multiplié.
+- **Variante B+ (denom configurable, un seul denom accepté)** : écartée par Malik. Souplesse de
+  déploiement marginale, complexité de configuration et de migration non justifiée à ce stade.
 
-## Question ouverte pour Malik
-Le produit vend-il de la visibilité à un prix **lisible** (stable, option A/C) ou **natif** (option B, simple) ?

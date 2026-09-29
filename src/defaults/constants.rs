@@ -9,6 +9,11 @@ pub const PIXEL_MAX_EXPIRATION: u64 = 86400; // 24 hours
 
 // Native denomination of the target chain (Cosmos Hub: ATOM).
 // Stargaze 2.0 runs on the Cosmos Hub, where gas, mint and pixel payments are in ATOM.
+//
+// ADR 0005: this denom is the payment denom, hard-coded on purpose. ATOM is the "primary"
+// token of Stargaze 2.0 and its marketplace pays royalties and fees in the denom of the sale.
+// Gas is a separate flow paid by the caller on top of the price. Multi-token payment on
+// Stargaze 2.0 is a frontend orchestration (Skip swap), not a contract capability.
 pub const NATIVE_DENOM: &str = "uatom";
 
 // Payment split applied to every pixel sale, in percent of the total price.

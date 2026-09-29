@@ -16,14 +16,20 @@ Reprise du projet après abandon (dernier commit : 2025-01-03). Objectif de sess
 - **T-007 fait** : un test unitaire par règle et par variante d'erreur (`tests/core/validation_input.rs`, `validation_lease.rs`, `validation_money.rs`).
 - **T-008 fait** : `set_pixel_color` couvert de bout en bout. **Un bug mort retrouvé dans `single_payment`** (`!is_valid_hex_color("#FFFFFF") && info.funds.is_empty()` : le premier bloc ne s'exécutait jamais) → supprimé. Six nouveaux tests de paiement : montant exact accepté, sous-paiement refusé, sur-paiement refusé, denom inconnu refusé, paiement absent refusé, multi-denom refusé.
 
-**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **77/77 verts**, `cargo build` OK, `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur (2 warnings de nommage mineurs). Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
+**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **78/78 verts**, `cargo build` OK, `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur (2 warnings de nommage mineurs). Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
 
-## ⚠️ Décision en attente pour Malik — ADR 0005 (tâche T-018)
-`NATIVE_DENOM` **et** le payout codent tous deux `uatom`. Sur le Cosmos Hub, `uatom` est le denom des **frais** :
-la part collection (5 %) et la part plateforme (2 %) seraient versées dans le denom qui finance l'exécution.
-Le bug a été révélé par T-008 (un test payant en « mauvais » denom passait, parce que ce denom était le seul reconnu).
-Trois options dans `docs/adr/0005-denom-de-paiement.md` : denom de paiement explicite distinct des frais,
-`uatom` assumé et documenté, ou multi-denom avec prix par denom. **Rien n'est codé tant que Malik n'a pas tranché.**
+## ✅ Décision tranchée : ADR 0005 — denom de paiement (T-018, fait)
+Recherche faite dans `docs/notes/stargaze-2-denoms-paiement.md` (sources : `paying-with-different-tokens`,
+`collect/fees`, `collect/minting-and-trading`). **Conclusion : `uatom` est le bon denom, sans configuration.**
+
+- ATOM est le token **« primary »** de Stargaze 2.0, et l'exemple officiel de répartition des frais est
+  libellé en ATOM (vente de 100 ATOM → 92 vendeur, 5 créateur, 2 marketplace). La crainte « la part
+  collection se confond avec les frais » était fausse : le gas est un flux **séparé**, payé en plus du prix.
+- Le multi-token de Stargaze 2.0 (ATOM, TIA, BTC, STARS, USDC) est une **orchestration frontend**
+  (swap Skip), pas une capacité du CW721. Un contrat autonome ne peut pas la reproduire sans dépendre
+  d'un routeur externe — contraire aux règles du projet.
+- **Option B retenue** : `uatom` en dur, zéro changement de code. Un test verrouille la décision
+  (`the_only_accepted_denom_is_uatom`) pour qu'une régression soit détectée si quelqu'un y touche.
 
 ## Prochaine étape
 `/next-task T-009` — répartition des paiements (somme exacte, reliquat explicite, points de base), puis T-010 (suite de tests) et T-011 (migration d'état).
