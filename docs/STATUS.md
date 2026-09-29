@@ -33,8 +33,13 @@ Reprise du projet après abandon (dernier commit : 2025-01-03). Objectif de sess
 
 
 ## Pièges connus (ne pas refaire)
+- **Shell : pas de heredocs.** `cat <<'EOF' … EOF` et `python3 - <<'PYEOF'` laissent le terminal en mode `heredoc>` et mélangent la sortie : plusieurs commandes ont été perdues en session. Utiliser l'outil d'édition de fichiers pour créer/modifier un fichier, ou `python3 -c "..."` sur une seule ligne.
+- **Shell : jamais de pager.** Toujours `git --no-pager log --oneline -N` (jamais `git log` nu, il ouvre un pager interactif qui bloque). Idem `git --no-pager diff` / `show`.
+- **Shell : borner les commandes longues.** `(timeout N <cmd> > /tmp/x.log 2>&1); grep … /tmp/x.log` puis lecture ciblée, jamais de sortie brute non bornée.
 - **Ne plus chercher Stargaze L1** : `elgafar-1` est mort, `starsd` n'est plus la CLI, le repo `public-awesome/stargaze` est archivé. Tout le dossier `launchpad/` est une copie morte du projet Stargaze.
-- **Ne pas réintroduire `sg721`/`sg-std`/`vending-*`** : ce sont ces dépendances qui rendent le contrat impossible à déployer (ADR 0002).
+- **Ne pas réintroduire `sg721`/`sg-std`/`vending-*`** : ce sont ces dépendances qui rendent le contrat impossible à déployer (ADR 0002). Le portage est fait, ne pas le défaire.
+- **Toolchain** : `cw721-base` 0.22 exige **Rust ≥ 1.86**. La machine a deux toolchains ; les commandes du projet passent par `rustup run stable cargo …` (stable est en 1.98.1), le toolchain par défaut étant un nightly 1.85 trop ancien.
+- **Adresses en test** : CW721 0.22 valide les adresses en écriture. Les acteurs de test doivent être de vrais bech32 préfixés `cosmwasm` (le préfixe de `cw-multi-test`), pas des étiquettes comme `"buyer"`.
 - **Ne pas perdre de temps sur les explorateurs web** (Mintscan, forum Discourse, DuckDuckGo) : SPA/captchas. Les docs officielles passent par GitBook et sont lisibles avec `.md` (ex. `docs.stargaze.zone/developers/overview.md`).
-- Le code réseau sortant depuis le shell de cette machine a échoué pendant la session (curl/LCD bloqués) : privilégier `fetch_web_content`.
 - `mosaic/` (décembre 2024) est un **prédécesseur**, pas un doublon : le garder comme archive pour le frontend (`mosaic/frontend`, spec dans `mosaic/TECHNICAL_SPEC.md`), sans y travailler.
+
