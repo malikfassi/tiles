@@ -2,8 +2,12 @@ use serde_json::json;
 use std::fs;
 use std::path::Path;
 
-// Constants are parsed out of the source instead of included, so that the build script
-// does not need the contract's dependencies (cosmwasm_std) at build time.
+/// Reads a `pub const NAME: TYPE = VALUE;` from the constants source and returns `VALUE`.
+///
+/// The value is extracted by splitting on the first `=` after the type, rather than by
+/// trimming characters off the front: the type name varies (`&str`, `u64`, `Uint128`,
+/// `Decimal`, `f64`) and would otherwise eat into the value. For string literals the
+/// surrounding quotes are removed, and any trailing `//` comment is dropped.
 fn read_const(name: &str) -> String {
     let source = fs::read_to_string("src/defaults/constants.rs").expect("constants.rs is readable");
     for line in source.lines() {
@@ -12,18 +16,57 @@ fn read_const(name: &str) -> String {
             continue;
         }
         let rest = &line["pub const ".len()..];
-        let (key, value) = match rest.split_once(':') {
+        let (key, after_key) = match rest.split_once(':') {
             Some(parts) => parts,
             None => continue,
         };
         if key.trim() != name {
             continue;
         }
-        let value = value.trim_start_matches([' ', '&', 's', 't', 'r', 'u', '8', 'u', '1', '2']);
-        let value = value.trim().trim_end_matches(';').trim();
-        return value.trim_matches('"').to_string();
+        // `after_key` is "TYPE = VALUE;", so the first `=` separates type from value.
+        let value = match after_key.split_once('=') {
+            Some((_ty, value)) => value,
+            None => continue,
+        };
+        let value = value.trim();
+
+        // A string literal is read between its quotes first, so a `//` inside it (an RPC
+        // URL) is never mistaken for a comment. The terminator and any trailing comment
+        // are handled after the closing quote.
+        if let Some(after_quote) = value.strip_prefix('"') {
+            let inner = match after_quote.split_once('"') {
+                Some((inner, _trailing)) => inner,
+                None => after_quote,
+            };
+            return inner.to_string();
+        }
+
+        // A numeric literal may carry a trailing comment, dropped here. The comment is cut
+        // before the `;` because the comment itself can contain semicolons.
+        let value = value.split("//").next().unwrap_or("").trim();
+        let value = value.trim_end_matches(';').trim();
+        return value.to_string();
     }
     panic!("constant {} not found", name);
+}
+
+/// Reads a numeric constant as a plain integer, dropping `_` separators and suffixes.
+///
+/// `Uint128::new(100_000)` yields "100000": only the digits of the innermost literal are
+/// kept, so the `128` of `Uint128` never leaks into the value. Used for the money values,
+/// where the Rust wrapper is noise for a shell or a JSON message.
+fn read_const_number(name: &str) -> String {
+    let raw = read_const(name);
+    let innermost = raw
+        .rsplit_once('(')
+        .and_then(|(_, rest)| rest.split_once(')'))
+        .map(|(inner, _)| inner)
+        .unwrap_or(raw.as_str());
+    let digits: String = innermost.chars().filter(|c| c.is_ascii_digit()).collect();
+    if digits.is_empty() {
+        panic!("constant {} is not numeric: {}", name, raw);
+    }
+    digits
 }
 
 fn main() {
@@ -40,27 +83,28 @@ fn main() {
         "GAS_PRICE": read_const("GAS_PRICE"),
         "GAS_ADJUSTMENT": read_const("GAS_ADJUSTMENT"),
         "BROADCAST_MODE": read_const("BROADCAST_MODE"),
+        "KEYRING_BACKEND": read_const("KEYRING_BACKEND"),
 
         // Collection configuration
         "COLLECTION_NAME": read_const("COLLECTION_NAME"),
         "COLLECTION_SYMBOL": read_const("COLLECTION_SYMBOL"),
         "COLLECTION_DESCRIPTION": read_const("COLLECTION_DESCRIPTION"),
-        "BASE_TOKEN_URI": read_const("BASE_TOKEN_URI"),
         "COLLECTION_URI": read_const("COLLECTION_URI"),
+        "ROYALTY_SHARE": read_const("ROYALTY_SHARE"),
 
         // Token configuration
-        "TOKEN_DENOM": read_const("NATIVE_DENOM"),
+        "NATIVE_DENOM": read_const("NATIVE_DENOM"),
         "DEFAULT_COLOR": read_const("DEFAULT_COLOR"),
-        "TILE_SIZE": read_const("TILE_SIZE"),
-        "PIXELS_PER_TILE": read_const("PIXELS_PER_TILE"),
-        "PIXEL_MIN_EXPIRATION": read_const("PIXEL_MIN_EXPIRATION"),
-        "PIXEL_MAX_EXPIRATION": read_const("PIXEL_MAX_EXPIRATION"),
+        "TILE_SIZE": read_const_number("TILE_SIZE"),
+        "PIXELS_PER_TILE": read_const_number("PIXELS_PER_TILE"),
+        "PIXEL_MIN_EXPIRATION": read_const_number("PIXEL_MIN_EXPIRATION"),
+        "PIXEL_MAX_EXPIRATION": read_const_number("PIXEL_MAX_EXPIRATION"),
 
         // Financial configuration
-        "MINT_PRICE": read_const("MINT_PRICE"),
-        "MIN_PIXEL_PRICE": read_const("MIN_PIXEL_PRICE"),
-        "COLLECTION_SHARE_BPS": read_const("COLLECTION_SHARE_BPS"),
-        "PLATFORM_SHARE_BPS": read_const("PLATFORM_SHARE_BPS"),
+        "MINT_PRICE": read_const_number("MINT_PRICE"),
+        "MIN_PIXEL_PRICE": read_const_number("MIN_PIXEL_PRICE"),
+        "COLLECTION_SHARE_BPS": read_const_number("COLLECTION_SHARE_BPS"),
+        "PLATFORM_SHARE_BPS": read_const_number("PLATFORM_SHARE_BPS"),
     });
 
     let constants_file = messages_dir.join("constants.json");

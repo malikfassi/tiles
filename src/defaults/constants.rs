@@ -58,13 +58,19 @@ pub const NODE_URL: &str = "https://cosmos-rpc.polkachu.com:443";
 pub const GAS_PRICE: &str = "0.025";
 pub const GAS_ADJUSTMENT: f64 = 1.3;
 pub const BROADCAST_MODE: &str = "sync";
+// Keyring used by the deployment scripts. `test` is the only backend that works
+// unattended; a real deployment should sign on a machine holding the key.
+pub const KEYRING_BACKEND: &str = "test";
 
 // Collection configuration
 pub const COLLECTION_NAME: &str = "Tiles";
 pub const COLLECTION_SYMBOL: &str = "TILE";
 pub const COLLECTION_DESCRIPTION: &str = "A collaborative pixel art canvas";
-pub const BASE_TOKEN_URI: &str = "";
 pub const COLLECTION_URI: &str = "";
+// Royalty declared in the CW721 collection extension. `Decimal` is string-encoded on the
+// wire, so this goes into the instantiate message as a JSON string, not a JSON number.
+// Capped at 0.10 by the CW721 standard.
+pub const ROYALTY_SHARE: &str = "0.05";
 
 // Start time configuration
 pub const START_TIME: &str = "0";

@@ -1,240 +1,151 @@
 #!/bin/bash
+# Stores and instantiates the tiles collection on the Cosmos Hub.
+#
+# Target: Stargaze 2.0 on the Cosmos Hub (`gaiad`, gas in uatom). Override CHAIN_ID,
+# NODE_URL and GAS_PRICE in scripts/messages/constants.json for a testnet run.
+#
+# There is no factory and no minter contract to wire up: the collection is instantiated
+# directly and mints its own tiles. That is the CW721 shape Stargaze 2.0 documents.
 set -e
 
-# Load constants
 source scripts/00_load_constants.sh
 
-# Validate required constants
 if [ -z "$DEPLOYER_ADDRESS" ]; then
-    echo -e "\033[0;31mDEPLOYER_ADDRESS is not set\033[0m"
+    echo -e "\033[0;31mDEPLOYER_ADDRESS is not set (fill scripts/messages/constants.json)\033[0m"
     exit 1
 fi
 
-# Create state directory
-mkdir -p scripts/state
+if [ ! -f artifacts/tiles.wasm ]; then
+    echo -e "\033[0;31martifacts/tiles.wasm is missing: run scripts/01_build_contracts.sh first\033[0m"
+    exit 1
+fi
 
-# State files
+mkdir -p scripts/state
 CURRENT_STATE_FILE="scripts/state/02_deploy_contracts.state"
-PREV_STATE_FILE="scripts/state/01_build_contracts.state"
 touch "$CURRENT_STATE_FILE"
 
-# Load previous state
-if [ ! -f "$PREV_STATE_FILE" ]; then
-    echo -e "\033[0;31mPrevious state file not found: $PREV_STATE_FILE\033[0m"
-    exit 1
-fi
-
-# Check if previous steps are completed
-if ! grep -q "^tile=done$" "$PREV_STATE_FILE" || \
-   ! grep -q "^minter=done$" "$PREV_STATE_FILE" || \
-   ! grep -q "^factory=done$" "$PREV_STATE_FILE"; then
-    echo -e "\033[0;31mPrevious steps not completed. Please run 01_build_contracts.sh first\033[0m"
-    exit 1
-fi
-
-# Colors
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# Function to check if a step is completed
 check_step() {
     grep -q "^$1=done$" "$CURRENT_STATE_FILE"
-    return $?
 }
 
-# Function to mark step as completed
 mark_step_done() {
     echo "$1=done" >> "$CURRENT_STATE_FILE"
 }
 
-# Save code id and transaction hash
-save_code_info() {
-    local step=$1
-    local code_id=$2
-    local txhash=$3
-    echo "${step}_code_id=$code_id" >> "$CURRENT_STATE_FILE"
-    echo "${step}_txhash=$txhash" >> "$CURRENT_STATE_FILE"
+# Waits for a broadcast transaction and prints its raw log.
+wait_for_tx() {
+    local txhash=$1
+    echo -e "${BLUE}   tx: $txhash${NC}"
+    sleep 8
+    gaia_wait_tx "$txhash"
 }
 
-# Save contract info
-save_contract_info() {
-    local step=$1
-    local contract=$2
-    local txhash=$3
-    echo "${step}_contract=$contract" >> "$CURRENT_STATE_FILE"
-    echo "${step}_txhash=$txhash" >> "$CURRENT_STATE_FILE"
+# `gaiad` flags shared by every transaction. Gas is paid in uatom: this is the gas
+# denom of the Cosmos Hub and it is a separate flow from the pixel payment (ADR 0005).
+gaia_tx() {
+    gaiad tx "$@" \
+        --from "$DEPLOYER_ADDRESS" \
+        --keyring-backend "$KEYRING_BACKEND" \
+        --gas-prices "${GAS_PRICE}${NATIVE_DENOM}" \
+        --gas-adjustment "$GAS_ADJUSTMENT" \
+        --gas auto \
+        --chain-id "$CHAIN_ID" \
+        --node "$NODE_URL" \
+        --broadcast-mode "$BROADCAST_MODE" \
+        -y --output json
 }
 
-# Store tile contract
+# ============================================================================
+# 1. Store the contract code
+# ============================================================================
 if ! check_step "store_tile"; then
-    echo -e "${BLUE}Storing Tile Contract...${NC}"
-    
-    TILE_TX=$(starsd tx wasm store artifacts/tiles.wasm \
-        --from "$DEPLOYER_ADDRESS" \
-        --keyring-backend test \
-        --gas-prices "$GAS_PRICE"ustars \
-        --gas-adjustment "$GAS_ADJUSTMENT" \
-        --gas auto \
-        --chain-id "$CHAIN_ID" \
-        --node "$NODE_URL" \
-        --broadcast-mode "$BROADCAST_MODE" \
-        -y --output json)
-    
-    TILE_TXHASH=$(echo "$TILE_TX" | jq -r '.txhash')
-    echo -e "${BLUE}Transaction hash: $TILE_TXHASH${NC}"
-    
-    echo -e "${BLUE}Waiting for transaction...${NC}"
+    echo -e "${BLUE}1. Storing the tiles contract...${NC}"
+
+    STORE_TX=$(gaia_tx wasm store artifacts/tiles.wasm)
+    STORE_TXHASH=$(echo "$STORE_TX" | jq -r '.txhash')
+    echo -e "${BLUE}   tx: $STORE_TXHASH${NC}"
+
     sleep 10
-    
-    TILE_TX_RESULT=$(starsd query tx "$TILE_TXHASH" --output json --node "$NODE_URL")
-    TILE_CODE_ID=$(echo "$TILE_TX_RESULT" | jq -r '.logs[0].events[] | select(.type=="store_code") | .attributes[] | select(.key=="code_id") | .value')
-    
-    if [ -z "$TILE_CODE_ID" ]; then
-        echo -e "${RED}❌ Tile contract store failed${NC}"
+    STORE_RESULT=$(gaiad query tx "$STORE_TXHASH" --output json --node "$NODE_URL")
+    TILE_CODE_ID=$(echo "$STORE_RESULT" | jq -r '[.events[] | select(.type=="store_code") | .attributes[] | select(.key=="code_id") | .value] | first')
+
+    if [ -z "$TILE_CODE_ID" ] || [ "$TILE_CODE_ID" = "null" ]; then
+        echo -e "${RED}❌ Store failed${NC}"
+        echo "$STORE_RESULT" | jq .
         exit 1
     fi
-    
-    save_code_info "tile" "$TILE_CODE_ID" "$TILE_TXHASH"
+
+    echo "tile_code_id=$TILE_CODE_ID" >> "$CURRENT_STATE_FILE"
+    echo "tile_store_txhash=$STORE_TXHASH" >> "$CURRENT_STATE_FILE"
     mark_step_done "store_tile"
-    echo -e "${GREEN}✅ Tile contract stored with code ID: $TILE_CODE_ID${NC}"
+    echo -e "${GREEN}✅ Stored with code id $TILE_CODE_ID${NC}"
 fi
 
-# Store minter contract
-if ! check_step "store_minter"; then
-    echo -e "${BLUE}Storing Minter Contract...${NC}"
-    
-    MINTER_TX=$(starsd tx wasm store artifacts/vending_minter.wasm \
-        --from "$DEPLOYER_ADDRESS" \
-        --keyring-backend test \
-        --gas-prices "$GAS_PRICE"ustars \
-        --gas-adjustment "$GAS_ADJUSTMENT" \
-        --gas auto \
-        --chain-id "$CHAIN_ID" \
-        --node "$NODE_URL" \
-        --broadcast-mode "$BROADCAST_MODE" \
-        -y --output json)
-    
-    MINTER_TXHASH=$(echo "$MINTER_TX" | jq -r '.txhash')
-    echo -e "${BLUE}Transaction hash: $MINTER_TXHASH${NC}"
-    
-    echo -e "${BLUE}Waiting for transaction...${NC}"
-    sleep 10
-    
-    MINTER_TX_RESULT=$(starsd query tx "$MINTER_TXHASH" --output json --node "$NODE_URL")
-    MINTER_CODE_ID=$(echo "$MINTER_TX_RESULT" | jq -r '.logs[0].events[] | select(.type=="store_code") | .attributes[] | select(.key=="code_id") | .value')
-    
-    if [ -z "$MINTER_CODE_ID" ]; then
-        echo -e "${RED}❌ Minter contract store failed${NC}"
-        exit 1
-    fi
-    
-    save_code_info "minter" "$MINTER_CODE_ID" "$MINTER_TXHASH"
-    mark_step_done "store_minter"
-    echo -e "${GREEN}✅ Minter contract stored with code ID: $MINTER_CODE_ID${NC}"
-fi
-
-# Store factory contract
-if ! check_step "store_factory"; then
-    echo -e "${BLUE}Storing Factory Contract...${NC}"
-    
-    FACTORY_TX=$(starsd tx wasm store artifacts/vending_factory.wasm \
-        --from "$DEPLOYER_ADDRESS" \
-        --keyring-backend test \
-        --gas-prices "$GAS_PRICE"ustars \
-        --gas-adjustment "$GAS_ADJUSTMENT" \
-        --gas auto \
-        --chain-id "$CHAIN_ID" \
-        --node "$NODE_URL" \
-        --broadcast-mode "$BROADCAST_MODE" \
-        -y --output json)
-    
-    FACTORY_TXHASH=$(echo "$FACTORY_TX" | jq -r '.txhash')
-    echo -e "${BLUE}Transaction hash: $FACTORY_TXHASH${NC}"
-    
-    echo -e "${BLUE}Waiting for transaction...${NC}"
-    sleep 10
-    
-    FACTORY_TX_RESULT=$(starsd query tx "$FACTORY_TXHASH" --output json --node "$NODE_URL")
-    FACTORY_CODE_ID=$(echo "$FACTORY_TX_RESULT" | jq -r '.logs[0].events[] | select(.type=="store_code") | .attributes[] | select(.key=="code_id") | .value')
-    
-    if [ -z "$FACTORY_CODE_ID" ]; then
-        echo -e "${RED}❌ Factory contract store failed${NC}"
-        exit 1
-    fi
-    
-    save_code_info "factory" "$FACTORY_CODE_ID" "$FACTORY_TXHASH"
-    mark_step_done "store_factory"
-    echo -e "${GREEN}✅ Factory contract stored with code ID: $FACTORY_CODE_ID${NC}"
-fi
-
-# Load code IDs from state if not already set
 if [ -z "$TILE_CODE_ID" ]; then
     TILE_CODE_ID=$(grep "^tile_code_id=" "$CURRENT_STATE_FILE" | cut -d'=' -f2)
 fi
-if [ -z "$MINTER_CODE_ID" ]; then
-    MINTER_CODE_ID=$(grep "^minter_code_id=" "$CURRENT_STATE_FILE" | cut -d'=' -f2)
-fi
-if [ -z "$FACTORY_CODE_ID" ]; then
-    FACTORY_CODE_ID=$(grep "^factory_code_id=" "$CURRENT_STATE_FILE" | cut -d'=' -f2)
-fi
 
-# Initialize factory
-if ! check_step "init_factory"; then
-    echo -e "${BLUE}Initializing Factory Contract...${NC}"
-    
-    MSG='{
-      "params": {
-        "code_id": '$MINTER_CODE_ID',
-        "allowed_sg721_code_ids": ['$TILE_CODE_ID'],
-        "frozen": false,
-        "creation_fee": {"amount": "'$CREATION_FEE'", "denom": "'$TOKEN_DENOM'"},
-        "min_mint_price": {"amount": "'$MIN_MINT_PRICE'", "denom": "'$TOKEN_DENOM'"},
-        "mint_fee_bps": '$MINT_FEE_BPS',
-        "max_trading_offset_secs": '$MAX_TRADING_OFFSET_SECS',
-        "extension": {
-            "max_token_limit": '$MAX_TOKEN_LIMIT',
-            "max_per_address_limit": '$MAX_PER_ADDRESS_LIMIT',
-            "airdrop_mint_price": { "denom": "'$TOKEN_DENOM'", "amount": "'$AIRDROP_MINT_PRICE'" },
-            "airdrop_mint_fee_bps": '$AIRDROP_MINT_FEE_BPS',
-            "shuffle_fee": { "amount": "'$SHUFFLE_FEE'", "denom": "'$TOKEN_DENOM'" }
-        }
-      }
-    }'
-    
-    echo "Initialize message:"
+# ============================================================================
+# 2. Instantiate the collection
+# ============================================================================
+if ! check_step "instantiate_tile"; then
+    echo -e "${BLUE}2. Instantiating the collection...${NC}"
+
+    # Built with jq so the message follows the CW721 0.22 collection extension shape:
+    # royalties live in `collection_info_extension.royalty_info`, capped at 10 %.
+    # `share` is a `Decimal`, which is string-encoded on the wire, so it is passed as
+    # `--arg` (a JSON string) and not `--argjson` (a JSON number).
+    MSG=$(jq -n \
+        --arg creator "$DEPLOYER_ADDRESS" \
+        --arg name "$COLLECTION_NAME" \
+        --arg symbol "$COLLECTION_SYMBOL" \
+        --arg description "$COLLECTION_DESCRIPTION" \
+        --arg image "$COLLECTION_URI" \
+        --arg share "$ROYALTY_SHARE" \
+        '{
+            name: $name,
+            symbol: $symbol,
+            minter: null,
+            creator: $creator,
+            withdraw_address: null,
+            collection_info_extension: {
+                description: $description,
+                image: (if $image == "" then null else $image end),
+                external_link: null,
+                royalty_info: {
+                    payment_address: $creator,
+                    share: $share
+                }
+            }
+        }')
+
+    echo "   instantiate message:"
     echo "$MSG" | jq .
-    
-    INIT_TX=$(starsd tx wasm instantiate "$FACTORY_CODE_ID" "$MSG" \
-        --label "Tiles Factory" \
-        --no-admin \
-        --from "$DEPLOYER_ADDRESS" \
-        --keyring-backend test \
-        --gas-prices "$GAS_PRICE"ustars \
-        --gas-adjustment "$GAS_ADJUSTMENT" \
-        --gas auto \
-        --chain-id "$CHAIN_ID" \
-        --node "$NODE_URL" \
-        --broadcast-mode "$BROADCAST_MODE" \
-        -y --output json)
-    
+
+    INIT_TX=$(gaia_tx wasm instantiate "$TILE_CODE_ID" "$MSG" \
+        --label "$COLLECTION_NAME" \
+        --admin "$DEPLOYER_ADDRESS")
     INIT_TXHASH=$(echo "$INIT_TX" | jq -r '.txhash')
-    echo -e "${BLUE}Transaction hash: $INIT_TXHASH${NC}"
-    
-    echo -e "${BLUE}Waiting for transaction...${NC}"
+    echo -e "${BLUE}   tx: $INIT_TXHASH${NC}"
+
     sleep 10
-    
-    INIT_TX_RESULT=$(starsd query tx "$INIT_TXHASH" --output json --node "$NODE_URL")
-    FACTORY_CONTRACT=$(echo "$INIT_TX_RESULT" | jq -r '.logs[0].events[] | select(.type=="instantiate") | .attributes[] | select(.key=="_contract_address") | .value')
-    
-    if [ -z "$FACTORY_CONTRACT" ]; then
-        echo -e "${RED}❌ Factory initialization failed${NC}"
+    INIT_RESULT=$(gaiad query tx "$INIT_TXHASH" --output json --node "$NODE_URL")
+    TILE_CONTRACT=$(echo "$INIT_RESULT" | jq -r '[.events[] | select(.type=="instantiate") | .attributes[] | select(.key=="_contract_address") | .value] | first')
+
+    if [ -z "$TILE_CONTRACT" ] || [ "$TILE_CONTRACT" = "null" ]; then
+        echo -e "${RED}❌ Instantiate failed${NC}"
+        echo "$INIT_RESULT" | jq .
         exit 1
     fi
-    
-    save_contract_info "factory" "$FACTORY_CONTRACT" "$INIT_TXHASH"
-    mark_step_done "init_factory"
-    echo -e "${GREEN}✅ Factory initialized at: $FACTORY_CONTRACT${NC}"
-fi 
+
+    echo "tile_contract=$TILE_CONTRACT" >> "$CURRENT_STATE_FILE"
+    echo "tile_instantiate_txhash=$INIT_TXHASH" >> "$CURRENT_STATE_FILE"
+    mark_step_done "instantiate_tile"
+    echo -e "${GREEN}✅ Collection live at $TILE_CONTRACT${NC}"
+fi

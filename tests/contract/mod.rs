@@ -5,3 +5,4 @@ pub mod migrate;
 pub mod mint;
 pub mod pixel;
 pub mod pricescaling;
+pub mod scripts;

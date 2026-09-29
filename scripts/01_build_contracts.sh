@@ -1,81 +1,63 @@
 #!/bin/bash
+# Builds the tiles wasm artifact.
+#
+# The contract is self-contained: there is no vending factory and no vending minter to
+# fetch any more. A Stargaze 2.0 collection on the Cosmos Hub is a plain CW721 contract,
+# and this one mints its own tiles (ADR 0002, ADR 0003).
 set -e
 
-# Load constants
 source scripts/00_load_constants.sh
 
-# Create state directory
 mkdir -p scripts/state
-
-# State file
 CURRENT_STATE_FILE="scripts/state/01_build_contracts.state"
 touch "$CURRENT_STATE_FILE"
 
-# Colors
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# Function to check if a step is completed
 check_step() {
     grep -q "^$1=done$" "$CURRENT_STATE_FILE"
-    return $?
 }
 
-# Function to mark step as completed
 mark_step_done() {
     echo "$1=done" >> "$CURRENT_STATE_FILE"
 }
 
-# Create artifacts directory if it doesn't exist
 mkdir -p artifacts
 
-# Build tile contract
 if ! check_step "tile"; then
-    echo -e "${BLUE}1. Building Tile Contract...${NC}"
-    
+    echo -e "${BLUE}1. Building the tiles contract...${NC}"
+
     if cargo build --release --target wasm32-unknown-unknown; then
         cp target/wasm32-unknown-unknown/release/tiles.wasm artifacts/
-        echo -e "${GREEN}✅ Tile contract built successfully${NC}"
+        echo -e "${GREEN}✅ Contract built${NC}"
         mark_step_done "tile"
     else
-        echo -e "${RED}❌ Failed to build tile contract${NC}"
+        echo -e "${RED}❌ Build failed${NC}"
         exit 1
     fi
 else
-    echo -e "${YELLOW}Skipping tile contract build (already completed)${NC}"
+    echo -e "${YELLOW}Skipping build (already done)${NC}"
 fi
 
-# Download minter contract
-if ! check_step "minter"; then
-    echo -e "${BLUE}2. Downloading Minter Contract...${NC}"
-    
-    MINTER_URL="https://github.com/public-awesome/launchpad/releases/download/v3.15.0/vending_minter.wasm"
-    if curl -L -o artifacts/vending_minter.wasm "$MINTER_URL"; then
-        echo -e "${GREEN}✅ Minter contract downloaded successfully${NC}"
-        mark_step_done "minter"
-    else
-        echo -e "${RED}❌ Failed to download minter contract${NC}"
-        exit 1
-    fi
-else
-    echo -e "${YELLOW}Skipping minter contract download (already completed)${NC}"
-fi
+if ! check_step "artifact"; then
+    echo -e "${BLUE}2. Checking artifacts/tiles.wasm...${NC}"
 
-# Download factory contract
-if ! check_step "factory"; then
-    echo -e "${BLUE}3. Downloading Factory Contract...${NC}"
-    
-    FACTORY_URL="https://github.com/public-awesome/launchpad/releases/download/v3.15.0/vending_factory.wasm"
-    if curl -L -o artifacts/vending_factory.wasm "$FACTORY_URL"; then
-        echo -e "${GREEN}✅ Factory contract downloaded successfully${NC}"
-        mark_step_done "factory"
-    else
-        echo -e "${RED}❌ Failed to download factory contract${NC}"
+    if [ ! -f artifacts/tiles.wasm ]; then
+        echo -e "${RED}❌ artifacts/tiles.wasm is missing${NC}"
         exit 1
     fi
-else
-    echo -e "${YELLOW}Skipping factory contract download (already completed)${NC}"
-fi 
+
+    SIZE=$(stat -f%z artifacts/tiles.wasm 2>/dev/null || stat -c%s artifacts/tiles.wasm)
+    echo -e "   raw wasm size: ${SIZE} bytes"
+    echo -e "${YELLOW}   Optimise before uploading to a live chain:${NC}"
+    echo -e "   docker run --rm -v \"\$(pwd)\":/code \\"
+    echo -e "     --mount type=volume,source=tiles_cache,target=/code/target \\"
+    echo -e "     --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \\"
+    echo -e "     cosmwasm/rust-optimizer:0.16.1"
+
+    mark_step_done "artifact"
+fi
