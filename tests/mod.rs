@@ -7,6 +7,7 @@ pub mod contract {
         pub mod basic;
         pub mod hash;
         pub mod payment;
+        pub mod payment_errors;
         pub mod quote;
         pub mod validation;
     }

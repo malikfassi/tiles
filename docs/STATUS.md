@@ -14,8 +14,20 @@ Reprise du projet après abandon (dernier commit : 2025-01-03). Objectif de sess
 - **T-003 + T-004 + T-005 faits** : portage complet en CW721 0.22 / CosmWasm 2.x. `sg721`, `sg-std`, `vending-*`, `sg-multi-test` **entièrement retirés** du projet.
 - **T-006 fait** : état et temps revus. `Timestamp` de cosmwasm partout (plus de `u64` en secondes), prix calculé par une **source unique** (`core/quote.rs`) partagée entre l'exécution et la nouvelle query `QuotePixelUpdates`, `interpolate()` sans `unwrap()`, événement enrichi (`leased_pixels`).
 - **T-007 fait** : un test unitaire par règle et par variante d'erreur (`tests/core/validation_input.rs`, `validation_lease.rs`, `validation_money.rs`).
+- **T-008 fait** : `set_pixel_color` couvert de bout en bout. **Un bug mort retrouvé dans `single_payment`** (`!is_valid_hex_color("#FFFFFF") && info.funds.is_empty()` : le premier bloc ne s'exécutait jamais) → supprimé. Six nouveaux tests de paiement : montant exact accepté, sous-paiement refusé, sur-paiement refusé, denom inconnu refusé, paiement absent refusé, multi-denom refusé.
 
-**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **70/70 verts**, `cargo build` OK, `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur (2 warnings de nommage mineurs). Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
+**Ce qui marche vraiment (testé le 2026-09-28) :** `cargo test` **77/77 verts**, `cargo build` OK, `cargo fmt --check` propre, `cargo clippy --all-targets` sans erreur (2 warnings de nommage mineurs). Toolchain : Rust stable 1.98.1 (exigé ≥ 1.86 par cw721-base 0.22).
+
+## ⚠️ Décision en attente pour Malik — ADR 0005 (tâche T-018)
+`NATIVE_DENOM` **et** le payout codent tous deux `uatom`. Sur le Cosmos Hub, `uatom` est le denom des **frais** :
+la part collection (5 %) et la part plateforme (2 %) seraient versées dans le denom qui finance l'exécution.
+Le bug a été révélé par T-008 (un test payant en « mauvais » denom passait, parce que ce denom était le seul reconnu).
+Trois options dans `docs/adr/0005-denom-de-paiement.md` : denom de paiement explicite distinct des frais,
+`uatom` assumé et documenté, ou multi-denom avec prix par denom. **Rien n'est codé tant que Malik n'a pas tranché.**
+
+## Prochaine étape
+`/next-task T-009` — répartition des paiements (somme exacte, reliquat explicite, points de base), puis T-010 (suite de tests) et T-011 (migration d'état).
+
 
 **Point clé de T-006 — le devis :** la query `QuotePixelUpdates { token_id, updates }` renvoie ce que les écritures coûteront (`total`, les trois parts, les expirations). Elle passe par **le même `quote()`** que `SetPixelColor`, donc ce qui est affiché est exactement ce qui est facturé. C'est indispensable pour le frontend et ça élimine toute divergence prix annoncé / prix payé.
 

@@ -137,19 +137,20 @@ pub fn set_pixel_color(
 
 /// Extracts the single coin of `denom` sent with the message.
 ///
-/// Rejects multi-denomination sends and amounts expressed in another denom.
+/// Rejects no payment at all, multi-denomination sends, and amounts expressed in
+/// another denom: the price is only correct if it is paid in the configured denom.
 fn single_payment(info: &MessageInfo, denom: &str) -> Result<Uint128, ContractError> {
-    if info.funds.len() != 1 || !is_valid_hex_color("#FFFFFF") && info.funds.is_empty() {
-        return Err(ContractError::InvalidPayment {
-            expected: format!("a single {} coin", denom),
-        });
+    let invalid = || ContractError::InvalidPayment {
+        expected: format!("exactly one {} coin", denom),
+    };
+
+    if info.funds.len() != 1 {
+        return Err(invalid());
     }
 
     let coin = &info.funds[0];
     if coin.denom != denom {
-        return Err(ContractError::InvalidPayment {
-            expected: format!("a single {} coin", denom),
-        });
+        return Err(invalid());
     }
 
     Ok(coin.amount)
